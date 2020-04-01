@@ -7,9 +7,10 @@
 typedef enum{
     INHALE_RAMP,
     INHALE_HOLD,
-    EXHALE,
-    NUM_BREATHCYCLE_STEPS
+    EXHALE
 }BreathCycleStep;
+
+#define NUM_BREATHCYCLE_STEPS (BreathCycleStep::EXHALE+1)
 
 const char* BreathCycleStepNames[NUM_BREATHCYCLE_STEPS]
 {
@@ -22,6 +23,7 @@ typedef struct{
     BreathCycleStep CurrCycleStep;
     uint32_t CycleStartTimeFromSysClockMilliseconds;
     uint32_t CurrTimeInCycleMilliseconds;
+    double CurrPressureSetpointCentimetersH2O;
 }BreathCycleState;
 
 typedef struct{
@@ -29,15 +31,20 @@ typedef struct{
     uint32_t InhaleDurationMilliseconds;
     uint32_t ExhaleDurationMilliseconds;
     uint32_t BreathCycleDurationMilliseconds;
-    float PeepPressureCentimetersH2O;
-    float PipPressureCentimetersH2O;
+    double PeepPressureCentimetersH2O;
+    double PipPressureCentimetersH2O;
 }BreathCycleSettings;
 
 typedef struct{
-    float PatientCircuitPressureCentimetersH2O;
-    float OxygenFlowRateLitersPerMinute;
-    float TotalFlowRateLitersPerMinute;
-}SensorReadin;
+    double PatientCircuitPressureCentimetersH2O;
+    double OxygenFlowRateLitersPerMinute;
+    double TotalFlowRateLitersPerMinute;
+}SensorReading;
+
+typedef struct{
+    double blowerPowerLevelPercent;
+    bool expirationValveState;
+}ActuatorState;
 
 
 #endif
