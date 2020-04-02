@@ -1,10 +1,15 @@
 #include "includes.h"
 
+// Control loop State variables
+#pragma region
 BreathCycleState currBreathCycleState;
 BreathCycleSettings currBreathCycleSettings;
 SensorReading currSensorStates;
 ActuatorState currActuatorStates;
+#pragma endregion
 
+// PID Loop Object instantiations
+#pragma region
 PID blowerPid(&currSensorStates.PatientCircuitPressureCentimetersH2O,
               &currActuatorStates.blowerPowerLevelPercent,  
               &currBreathCycleState.CurrPressureSetpointCentimetersH2O,
@@ -20,9 +25,40 @@ PID expirationValvePid(&currSensorStates.PatientCircuitPressureCentimetersH2O,
               BLOWER_PID__DEFAULT_INTEGRAL_GAIN,
               BLOWER_PID__DEFAULT_DERIVATIVE_GAIN,
               DIRECT);
+#pragma endregion
+
+// Pressure Transducer Object instantiation
+#pragma region
+I2cMultiplexer i2cMultiplexer(I2C_MULTIPLEXER__ADDRESS);
+
+PressureTransducer oxygenVenturiDifferentialPressure;
+PressureTransducer totalFlowVenturiDifferentialPressure;
+PressureTransducer blowerOutletGagePressure;
+PressureTransducer patientCircuitGagePressure;
+
+#pragma endregion
 
 void setup() {
+  // initialize communications
+  #if SYSTEM__SERIAL_DEBUG__STATEMACHINE
+    Serial.begin(SYSTEM__SERIAL_DEBUG__BAUD_RATE); 
+  #endif
+    Wire.begin();
+  
+  //Setup pressure transducers
+  oxygenVenturiDifferentialPressure = PressureTransducer(&Wire, I2C_MULTIPLEXER__ADDRESS, DLHR_OXYGEN_VENTURI, &currSensorStates.OxygenVenturiDifferentialPressureCentimetersH20);
+  totalFlowVenturiDifferentialPressure = PressureTransducer(&Wire, I2C_MULTIPLEXER__ADDRESS, DLHR_TOTAL_VENTURI, &currSensorStates.TotalFlowVenturiDifferentialPressureCentimetersH20);
+  blowerOutletGagePressure = PressureTransducer(&Wire, I2C_MULTIPLEXER__ADDRESS, DLHR_BLOWER_OUTLET_GAGE, &currSensorStates.BlowerOutletPressureCentimetersH20);
+  patientCircuitGagePressure = PressureTransducer(&Wire, I2C_MULTIPLEXER__ADDRESS, DLHR_PATIENT_CIRCUIT_GAGE, &currSensorStates.PatientCircuitPressureCentimetersH2O);
+
+  //Setup venturis
+  
+
+  //TODO: setup fan driver
+  //TODO: setup expiration valve driver
+  
   // setup PID loop parameters
+
     blowerPid.SetOutputLimits(BLOWER_PID__MIN_CONTROL_OUTPUT,BLOWER_PID__MAX_CONTROL_OUTPUT);
     blowerPid.SetControllerDirection(BLOWER_PID__CONTROL_DIRECTION);
     blowerPid.SetSampleTime(BLOWER_PID__SAMPLE_TIME);
@@ -31,11 +67,8 @@ void setup() {
     expirationValvePid.SetControllerDirection(EXPIRATION_VALVE_PID__CONTROL_DIRECTION);
     expirationValvePid.SetSampleTime(EXPIRATION_VALVE_PID__SAMPLE_TIME);
   
-  //TODO: setup pressure transducers
-  //TODO: setup venturis
-  //TODO: setup fan driver
-  //TODO: setup expiration valve driver
-  
+
+
   //TODO: wait 5 seconds for sensor readings to stabilize
   delay(SYSTEM_TIMINGS__STARTUP_DELAY__MILLISECONDS);
   
@@ -46,7 +79,7 @@ void setup() {
    currBreathCycleSettings.BreathCycleDurationMilliseconds = BREATHCYCLE__DEFAULT_CYCLE_DURATION__MILLISECONDS;
    currBreathCycleSettings.InhaleRampDurationMilliseconds = BREATHCYCLE__DEFAULT_INHALE_RAMP_DURATION__MILLISECONDS;
    currBreathCycleSettings.ExhaleDurationMilliseconds = BREATHCYCLE__DEFAULT_EXHALE_DURATION__MILLISECONDS;
-
+  
   // Init state machine variable
   currBreathCycleState.CurrCycleStep = EXHALE;
   //TODO: set pressure setpoint to BREATHCYCLE__MINIMUM_PEEP__CENTIMETERSH2O
@@ -56,10 +89,6 @@ void setup() {
   currBreathCycleState.CurrTimeInCycleMilliseconds = 0;
   currBreathCycleState.CycleStartTimeFromSysClockMilliseconds = millis();
 
-  // init serial debug 
-  #if SYSTEM__SERIAL_DEBUG__STATEMACHINE
-    Serial.begin(SYSTEM__SERIAL_DEBUG__BAUD_RATE); 
-  #endif
 }
 
 void loop() {
