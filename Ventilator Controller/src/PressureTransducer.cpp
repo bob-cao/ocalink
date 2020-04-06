@@ -2,12 +2,14 @@
 PressureTransducer::PressureTransducer()
 {}
 
-PressureTransducer::PressureTransducer(TwoWire *bus, uint8_t multiplexerI2cAddress, uint8_t multiplexerChannel, double* readingDestination)
+PressureTransducer::PressureTransducer(TwoWire *bus,  I2cMultiplexer *i2cMultiplexer, uint8_t multiplexerChannel, double* readingDestination)
     {
-        _multiplexerI2cAddress = multiplexerI2cAddress;
+        _attachedMultiplexer = i2cMultiplexer;
         _sensorMultiplexerChannel = multiplexerChannel;
         _attachedSensor = *(new AllSensors_DLHR_L60D_6(bus));
         _readingDestination = readingDestination;
+
+        _attachedMultiplexer->tca_select(_sensorMultiplexerChannel);
 
         _attachedSensor.setPressureUnit(AllSensors_DLHR::PressureUnit::CM_H2O);
         _attachedSensor.startMeasurement(DHLR_PRESSURE_SENSOR__DEFAULT_READING_TYPE);
@@ -22,29 +24,26 @@ PressureTransducer::PressureTransducer(TwoWire *bus, uint8_t multiplexerI2cAddre
         #if SYSTEM__SERIAL_DEBUG__PRESSURE_TRANSDUCERS
             if(sensorWasBusy)
             {
-                Serial.print("DHLR Sensor timed out at Address: ");
-                Serial.print(_multiplexerI2cAddress);
-                Serial.print(" / Channel: ");
+                Serial.print("DHLR Sensor timed out at Channel: ");
                 Serial.println(_sensorMultiplexerChannel);
             }
             else
             {
-                Serial.print("DHLR Sensor succesfully started at Address: ");
-                Serial.print(_multiplexerI2cAddress);
-                Serial.print(" / Channel: ");
+                Serial.print("DHLR Sensor succesfully started at Channel: ");
                 Serial.println(_sensorMultiplexerChannel);
             } 
         #endif
 
         _zeroOutOffsetCentimetersH20 = _attachedSensor.pressure;
-        UpdateReading();
+        _attachedSensor.startMeasurement(DHLR_PRESSURE_SENSOR__DEFAULT_READING_TYPE);
     }
 
 void PressureTransducer::UpdateReading()
     {
+        _attachedMultiplexer->tca_select(_sensorMultiplexerChannel);
         if(!_attachedSensor.readData())
         {
-            *_readingDestination = _attachedSensor.pressure;
+            *_readingDestination = _attachedSensor.pressure-_zeroOutOffsetCentimetersH20;
             _attachedSensor.startMeasurement(DHLR_PRESSURE_SENSOR__DEFAULT_READING_TYPE);
         }
     }
