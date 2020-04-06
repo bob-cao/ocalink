@@ -46,10 +46,10 @@ void setup() {
     Wire.begin();
   
   //Setup pressure transducers
-  oxygenVenturiDifferentialPressure = PressureTransducer(&Wire, I2C_MULTIPLEXER__ADDRESS, DLHR_OXYGEN_VENTURI, &currSensorStates.OxygenVenturiDifferentialPressureCentimetersH20);
-  totalFlowVenturiDifferentialPressure = PressureTransducer(&Wire, I2C_MULTIPLEXER__ADDRESS, DLHR_TOTAL_VENTURI, &currSensorStates.TotalFlowVenturiDifferentialPressureCentimetersH20);
-  blowerOutletGagePressure = PressureTransducer(&Wire, I2C_MULTIPLEXER__ADDRESS, DLHR_BLOWER_OUTLET_GAGE, &currSensorStates.BlowerOutletPressureCentimetersH20);
-  patientCircuitGagePressure = PressureTransducer(&Wire, I2C_MULTIPLEXER__ADDRESS, DLHR_PATIENT_CIRCUIT_GAGE, &currSensorStates.PatientCircuitPressureCentimetersH2O);
+  oxygenVenturiDifferentialPressure = PressureTransducer(&Wire, &i2cMultiplexer, DLHR_OXYGEN_VENTURI, &currSensorStates.OxygenVenturiDifferentialPressureCentimetersH20);
+  totalFlowVenturiDifferentialPressure = PressureTransducer(&Wire, &i2cMultiplexer, DLHR_TOTAL_VENTURI, &currSensorStates.TotalFlowVenturiDifferentialPressureCentimetersH20);
+  blowerOutletGagePressure = PressureTransducer(&Wire, &i2cMultiplexer, DLHR_BLOWER_OUTLET_GAGE, &currSensorStates.BlowerOutletPressureCentimetersH20);
+  patientCircuitGagePressure = PressureTransducer(&Wire, &i2cMultiplexer, DLHR_PATIENT_CIRCUIT_GAGE, &currSensorStates.PatientCircuitPressureCentimetersH2O);
 
   //Setup venturis
   
@@ -100,6 +100,7 @@ void loop() {
   BreathCycleStep prevCycleStep = currBreathCycleState.CurrCycleStep;
   #endif
 
+  //TODO: Make sure clock overflow is handled gracefully
   currBreathCycleState.CurrTimeInCycleMilliseconds = millis()-currBreathCycleState.CycleStartTimeFromSysClockMilliseconds;
   if(currBreathCycleState.CurrTimeInCycleMilliseconds <= currBreathCycleSettings.InhaleRampDurationMilliseconds)
   {
