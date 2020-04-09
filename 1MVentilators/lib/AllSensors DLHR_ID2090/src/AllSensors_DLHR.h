@@ -32,14 +32,13 @@ See the LICENSE file for more details.
 
 #include <stdint.h>
 
-#pragma message("Ignore the LITTLE_ENDIAN/_LITTLE_ENDIAN redefine. The conflict does not break anything and fixing it requires rewriting the arduino MKR framework")
 #include <Wire.h>
 
 class AllSensors_DLHR {
 public:
 
   // The default I2C address from the datasheet.
-  //static const uint8_t I2C_ADDRESS = 0x29;
+  static const uint8_t I2C_ADDRESS = 0x29;
 
   // The sensor type, where part numbers:
   //   * DLHR-xxxG-* are GAGE sensors.
@@ -80,7 +79,6 @@ public:
   enum PressureUnit {
     IN_H2O = 'H',
     PASCAL = 'P',
-    CM_H2O = 'C',
   };
 
   enum TemperatureUnit {
@@ -136,8 +134,6 @@ private:
   // Convert the input in inH2O to the configured pressure output unit.
   float convertPressure(float in_h2o) {
     switch(pressure_unit) {
-      case CM_H2O:
-        return 2.54 * in_h2o;
       case PASCAL:
         return 249.08 * in_h2o;
       case IN_H2O:
@@ -181,8 +177,6 @@ public:
     return (status_arg & (StatusFlags::ERROR_MEMORY | StatusFlags::ERROR_ALU)) != 0;
   }
 
-  AllSensors_DLHR();
-
   AllSensors_DLHR(TwoWire *bus, SensorType type, SensorResolution pressure_resolution, float pressure_max);
 
   // Set the configured pressure unit for data output (the default is inH2O).
@@ -216,8 +210,7 @@ public:
   // Read the data from the sensor. Passing a "wait" argument polls the sensor repeatedly until it is
   // no longer busy. If wait is false, if the sensor is busy return "true" immediately indicating that
   // data was not available. 
-  //  bool readData(bool wait = false);
-  bool readData();
+  bool readData(bool wait = true);
 };
 
 #include "AllSensors_DLHR_subclasses.h"
