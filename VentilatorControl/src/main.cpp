@@ -27,7 +27,7 @@ double pressure_input, blower_output;
 double CurrPressureSetpointCentimetersH2O;
 // double Kp=0.0000011, Ki=0.00000005, Kd=0.0000000;
 // double Kp=5.0000000, Ki=2.0000000, Kd=0.0000000;
-double Kp=0.1000000, Ki=1.0000000, Kd=0.0000000;
+double Kp=0.1000000, Ki=0.1000000, Kd=0.0000000;
 // double Kp, Ki, Kd;
 PID Pressure_PID(&pressure_input, &blower_output, &CurrPressureSetpointCentimetersH2O, Kp, Ki, Kd, DIRECT);
 
@@ -129,7 +129,7 @@ void loop()
     case INHALE_RAMP:
       // calculate new setpoint based on linear ramp from PEEP pressure to PIP pressure over set duration
       // PRESSURE_SETPOINT(t) = t*(PIP/RAMP_DURATION)+PEEP
-      Kp=0.5000000, Ki=2.0000000, Kd=0.0000000;
+      Kp=0.15000000, Ki=0.15000000, Kd=0.0000000;
       CurrPressureSetpointCentimetersH2O = (((float)CurrTimeInCycleMilliseconds/(float)InhaleRampDurationMilliseconds)*PipPressureCentimetersH2O)+PeepPressureCentimetersH2O;
       // Serial.println("INHALE_RAMP");
     break;
