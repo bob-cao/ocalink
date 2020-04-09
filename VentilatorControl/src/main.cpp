@@ -26,7 +26,7 @@ Servo blower;
 double pressure_input, blower_output;
 double CurrPressureSetpointCentimetersH2O;
 // double Kp=0.0000011, Ki=0.00000005, Kd=0.0000000;
-double Kp=1.0000000, Ki=0.0000000, Kd=0.0000000;
+double Kp=0.2500000, Ki=0.0000000, Kd=0.0000000;
 PID Pressure_PID(&pressure_input, &blower_output, &CurrPressureSetpointCentimetersH2O, Kp, Ki, Kd, DIRECT);
 
 uint32_t CycleStartTimeFromSysClockMilliseconds;
@@ -125,15 +125,15 @@ void loop()
       // calculate new setpoint based on linear ramp from PEEP pressure to PIP pressure over set duration
       // PRESSURE_SETPOINT(t) = t*(PIP/RAMP_DURATION)+PEEP
       CurrPressureSetpointCentimetersH2O = (((float)CurrTimeInCycleMilliseconds/(float)InhaleRampDurationMilliseconds)*PipPressureCentimetersH2O)+PeepPressureCentimetersH2O;
-      Serial.println("INHALE_RAMP");
+      // Serial.println("INHALE_RAMP");
     break;
     case INHALE_HOLD:
       CurrPressureSetpointCentimetersH2O = PipPressureCentimetersH2O;
-      Serial.println("INHALE_HOLD");
+      // Serial.println("INHALE_HOLD");
     break;
     case EXHALE:
       CurrPressureSetpointCentimetersH2O = PeepPressureCentimetersH2O;
-      Serial.println("EXHALE");
+      // Serial.println("EXHALE");
     break;
   }
 
@@ -142,6 +142,7 @@ void loop()
   // Comute Pressure PID
   Pressure_PID.Compute();
 
-  Serial.println(pressure_input);
+  Serial.print(pressure_input);
+  Serial.print(" ");
   Serial.println(CurrPressureSetpointCentimetersH2O);
 }
