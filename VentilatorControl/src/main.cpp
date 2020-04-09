@@ -6,6 +6,11 @@
 #include <Servo.h>
 #include <PID_v1.h>
 
+// ESC Pulse Widths (using OTS hobby ESCs)
+// TODO: Use later instead of Servo library
+#define BLOWER_DRIVER__MIN_PULSE__MICROSECONDS 1000
+#define BLOWER_DRIVER__MAX_PULSE__MICROSECONDS 2000
+
 //TODO: Refactor to have all variables extremely modular and not hard coded (later)
 
 // Pressure Variables
@@ -77,7 +82,7 @@ void loop()
   if(!gagePressure.readData(true))
   {
     gagePressure.startMeasurement();
-    delay(50);
+    // delay(50);
     pressure_input = gagePressure.pressure * 2.53746;
     // Serial.print("Pressure: ");
     // Serial.println(pressure_input);
