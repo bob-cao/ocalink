@@ -18,16 +18,21 @@ byte blower_speed;
 Servo blower;
 
 // Pressure Controlled Blower PID
-double pressure_input, blower_output, pressure_setpoint;
-double Kp=1, Ki=1, Kd=1;
-PID Pressure_PID(&pressure_input, &blower_output, &pressure_setpoint, Kp, Ki, Kd, DIRECT);
+double pressure_input, blower_output;
+double CurrPressureSetpointCentimetersH2O;
+// double Kp=0.0000011, Ki=0.00000005, Kd=0.0000000;
+double Kp=1.0000000, Ki=0.0000000, Kd=0.0000000;
+PID Pressure_PID(&pressure_input, &blower_output, &CurrPressureSetpointCentimetersH2O, Kp, Ki, Kd, DIRECT);
 
 uint32_t CycleStartTimeFromSysClockMilliseconds;
 uint32_t CurrTimeInCycleMilliseconds;
-uint32_t InhaleRampDurationMilliseconds;
-uint32_t InhaleDurationMilliseconds;
-uint32_t ExhaleDurationMilliseconds;
-uint32_t BreathCycleDurationMilliseconds;
+uint32_t InhaleRampDurationMilliseconds = 5000;
+uint32_t InhaleDurationMilliseconds = 30000;
+uint32_t ExhaleDurationMilliseconds = 30000;
+uint32_t BreathCycleDurationMilliseconds = InhaleDurationMilliseconds + ExhaleDurationMilliseconds;
+
+double PipPressureCentimetersH2O = 5.0;
+double PeepPressureCentimetersH2O = 35.0;
 
 typedef enum{
     INHALE_RAMP,
@@ -74,60 +79,55 @@ void loop()
     gagePressure.startMeasurement();
     pressure_input = gagePressure.pressure * 2.53746;
     // Serial.print("Pressure: ");
-    // Serial.print(pressure_input);
-    // Serial.println();
+    Serial.println(pressure_input);
   }
 
   //TODO: Remove delay later, just for testing -- pressure sensor needs time
-  delay(50);
-
-  // Get pressure reading and declare setpoint
-  pressure_setpoint = 5.0;
+  // delay(50);
 
   //TODO: Make sure clock overflow is handled gracefully
   CurrTimeInCycleMilliseconds = millis()-CycleStartTimeFromSysClockMilliseconds;
   if(CurrTimeInCycleMilliseconds <= InhaleRampDurationMilliseconds)
   {
     CurrCycleStep = INHALE_RAMP;
-    Serial.println("INHALE_RAMP");
+    // Serial.println("INHALE_RAMP");
   }
   else if((InhaleRampDurationMilliseconds < CurrTimeInCycleMilliseconds) &&
           (CurrTimeInCycleMilliseconds <= InhaleDurationMilliseconds))
   { 
     CurrCycleStep = INHALE_HOLD;
-    Serial.println("INHALE_HOLD");
+    // Serial.println("INHALE_HOLD");
   }
   else if((InhaleDurationMilliseconds < CurrTimeInCycleMilliseconds) &&
          (CurrTimeInCycleMilliseconds <= BreathCycleDurationMilliseconds))
   {
     CurrCycleStep = EXHALE;
-    Serial.println("EXHALE");
+    // Serial.println("EXHALE");
   }
   else if(CurrTimeInCycleMilliseconds > BreathCycleDurationMilliseconds)
   {
     CurrCycleStep = INHALE_RAMP;
-    Serial.println("INHALE_RAMP");
+    // Serial.println("INHALE_RAMP");
     CurrTimeInCycleMilliseconds = 0;
     CycleStartTimeFromSysClockMilliseconds = millis();
   }
 
   // //Recompute Setpoints
-  // switch(currBreathCycleState.CurrCycleStep)
-  // {
-  //   case INHALE_RAMP:
-  //     // calculate new setpoint based on linear ramp from PEEP pressure to PIP pressure over set duration
-  //     // PRESSURE_SETPOINT(t) = t*(PIP/RAMP_DURATION)+PEEP
-  //     currBreathCycleState.CurrPressureSetpointCentimetersH2O = (((float)currBreathCycleState.CurrTimeInCycleMilliseconds/(float)currBreathCycleSettings.InhaleRampDurationMilliseconds)*currBreathCycleSettings.PipPressureCentimetersH2O)+currBreathCycleSettings.PeepPressureCentimetersH2O;
-  //   break;
-  //   case INHALE_HOLD:
-  //     currBreathCycleState.CurrPressureSetpointCentimetersH2O = currBreathCycleSettings.PipPressureCentimetersH2O;
-  //   break;
-  //   case EXHALE:
-  //     currBreathCycleState.CurrPressureSetpointCentimetersH2O = currBreathCycleSettings.PeepPressureCentimetersH2O;
-  //   break;
-  // }
+  switch(CurrCycleStep)
+  {
+    case INHALE_RAMP:
+      // calculate new setpoint based on linear ramp from PEEP pressure to PIP pressure over set duration
+      // PRESSURE_SETPOINT(t) = t*(PIP/RAMP_DURATION)+PEEP
+      CurrPressureSetpointCentimetersH2O = (((float)CurrTimeInCycleMilliseconds/(float)InhaleRampDurationMilliseconds)*PipPressureCentimetersH2O)+PeepPressureCentimetersH2O;
+    break;
+    case INHALE_HOLD:
+      CurrPressureSetpointCentimetersH2O = PipPressureCentimetersH2O;
+    break;
+    case EXHALE:
+      CurrPressureSetpointCentimetersH2O = PeepPressureCentimetersH2O;
+    break;
+  }
 
-  // blower_speed = map(blower_output, 0, 100, 18, 180);
   blower.write(blower_output);
 
   // Comute Pressure PID
