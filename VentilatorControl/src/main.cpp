@@ -26,7 +26,7 @@ Servo blower;
 double pressure_input, blower_output;
 double CurrPressureSetpointCentimetersH2O;
 // double Kp=0.0000011, Ki=0.00000005, Kd=0.0000000;
-double Kp=0.2500000, Ki=0.0000000, Kd=0.0000000;
+double Kp=10.0000000, Ki=0.0000000, Kd=0.0000000;
 PID Pressure_PID(&pressure_input, &blower_output, &CurrPressureSetpointCentimetersH2O, Kp, Ki, Kd, DIRECT);
 
 uint32_t CycleStartTimeFromSysClockMilliseconds;
@@ -79,10 +79,10 @@ void setup()
 void loop()
 {
   // Get a pressure reading in units of cmH2O
-  if(!gagePressure.readData(true))
+  // gagePressure.startMeasurement();
+  if(!gagePressure.readData(!true))
   {
     gagePressure.startMeasurement();
-    // delay(50);
     pressure_input = gagePressure.pressure * 2.53746;
     // Serial.print("Pressure: ");
     // Serial.println(pressure_input);
