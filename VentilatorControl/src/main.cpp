@@ -66,7 +66,8 @@ void setup()
   Pressure_PID.SetMode(AUTOMATIC);
   Pressure_PID.SetOutputLimits(0, 180);
 
-  // What's this extra one for??
+
+  //TODO: Add ramp up to PIP value and stabilize
   // currBreathCycleState.CurrCycleStep = EXHALE;
   //TODO: set pressure setpoint to BREATHCYCLE__MINIMUM_PEEP__CENTIMETERSH2O
   //TODO: run PID control loop until things stabilize at min PEEP, then let the actual loop start
@@ -137,6 +138,7 @@ void loop()
     break;
   }
 
+  // Output calculated pulse width to motor
   blower.write(blower_output);
 
   // Comute Pressure PID
