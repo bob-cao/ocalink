@@ -26,13 +26,15 @@ Servo blower;
 double pressure_input, blower_output;
 double CurrPressureSetpointCentimetersH2O;
 // double Kp=0.0000011, Ki=0.00000005, Kd=0.0000000;
-double Kp=5.0000000, Ki=2.0000000, Kd=0.0000000;
+// double Kp=5.0000000, Ki=2.0000000, Kd=0.0000000;
+double Kp=0.1000000, Ki=1.0000000, Kd=0.0000000;
+// double Kp, Ki, Kd;
 PID Pressure_PID(&pressure_input, &blower_output, &CurrPressureSetpointCentimetersH2O, Kp, Ki, Kd, DIRECT);
 
 uint32_t CycleStartTimeFromSysClockMilliseconds;
 uint32_t CurrTimeInCycleMilliseconds;
-uint32_t InhaleRampDurationMilliseconds = 500;
-uint32_t InhaleDurationMilliseconds = 1000;
+uint32_t InhaleRampDurationMilliseconds = 1000;
+uint32_t InhaleDurationMilliseconds = 3000;
 uint32_t ExhaleDurationMilliseconds = 3000;
 uint32_t BreathCycleDurationMilliseconds = InhaleDurationMilliseconds + ExhaleDurationMilliseconds;
 
@@ -72,7 +74,9 @@ void setup()
   //TODO: set pressure setpoint to BREATHCYCLE__MINIMUM_PEEP__CENTIMETERSH2O
   //TODO: run PID control loop until things stabilize at min PEEP, then let the actual loop start
 
-  CurrCycleStep = INHALE_HOLD;
+  // CurrCycleStep = INHALE_HOLD;
+  // CurrCycleStep = EXHALE;
+  CurrCycleStep = INHALE_RAMP;
   CurrTimeInCycleMilliseconds = 0;
   CycleStartTimeFromSysClockMilliseconds = millis();
 }
@@ -125,14 +129,17 @@ void loop()
     case INHALE_RAMP:
       // calculate new setpoint based on linear ramp from PEEP pressure to PIP pressure over set duration
       // PRESSURE_SETPOINT(t) = t*(PIP/RAMP_DURATION)+PEEP
+      Kp=0.5000000, Ki=2.0000000, Kd=0.0000000;
       CurrPressureSetpointCentimetersH2O = (((float)CurrTimeInCycleMilliseconds/(float)InhaleRampDurationMilliseconds)*PipPressureCentimetersH2O)+PeepPressureCentimetersH2O;
       // Serial.println("INHALE_RAMP");
     break;
     case INHALE_HOLD:
+      Kp=5.0000000, Ki=2.0000000, Kd=0.0000000;
       CurrPressureSetpointCentimetersH2O = PipPressureCentimetersH2O;
       // Serial.println("INHALE_HOLD");
     break;
     case EXHALE:
+      Kp=2.0000000, Ki=1.0000000, Kd=0.0000000;
       CurrPressureSetpointCentimetersH2O = PeepPressureCentimetersH2O;
       // Serial.println("EXHALE");
     break;
