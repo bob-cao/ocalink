@@ -31,9 +31,9 @@ PID Pressure_PID(&pressure_input, &blower_output, &CurrPressureSetpointCentimete
 
 uint32_t CycleStartTimeFromSysClockMilliseconds;
 uint32_t CurrTimeInCycleMilliseconds;
-uint32_t InhaleRampDurationMilliseconds = 5000;
-uint32_t InhaleDurationMilliseconds = 30000;
-uint32_t ExhaleDurationMilliseconds = 30000;
+uint32_t InhaleRampDurationMilliseconds = 500;
+uint32_t InhaleDurationMilliseconds = 1000;
+uint32_t ExhaleDurationMilliseconds = 3000;
 uint32_t BreathCycleDurationMilliseconds = InhaleDurationMilliseconds + ExhaleDurationMilliseconds;
 
 double PipPressureCentimetersH2O = 5.0;
