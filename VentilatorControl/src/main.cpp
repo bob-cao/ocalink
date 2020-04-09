@@ -26,7 +26,7 @@ Servo blower;
 double pressure_input, blower_output;
 double CurrPressureSetpointCentimetersH2O;
 // double Kp=0.0000011, Ki=0.00000005, Kd=0.0000000;
-double Kp=10.0000000, Ki=0.0000000, Kd=0.0000000;
+double Kp=5.0000000, Ki=2.0000000, Kd=0.0000000;
 PID Pressure_PID(&pressure_input, &blower_output, &CurrPressureSetpointCentimetersH2O, Kp, Ki, Kd, DIRECT);
 
 uint32_t CycleStartTimeFromSysClockMilliseconds;
