@@ -1,0 +1,41 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "C:\\Users\\sheld\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\**",
+                "C:\\Users\\sheld\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\samd\\1.8.6\\**",
+                "C:/Users/sheld/AppData/Local/Arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/lib/gcc/arm-none-eabi/7.2.1/include",
+                "${workspaceFolder}/Ventilator Controller/include",
+                "${workspaceFolder}/Ventilator Controller/src",
+                "${workspaceFolder}/Ventilator Controller/lib/I2C_Multiplexer",
+                "${workspaceFolder}/Ventilator Controller/lib/Allsensors_DLHR",
+                "C:/Users/sheld/.platformio/packages/framework-arduino-samd/libraries/Wire",
+                "C:/Users/sheld/.platformio/lib/PID_ID2",
+                "C:/Users/sheld/.platformio/packages/framework-arduino-samd/cores/arduino",
+                "C:/Users/sheld/.platformio/packages/framework-cmsis/CMSIS/Include",
+                "C:/Users/sheld/.platformio/packages/framework-cmsis-atmel/CMSIS/Device/ATMEL",
+                "C:/Users/sheld/.platformio/packages/framework-arduino-samd/variants/mkrnb1500",
+                "C:/Users/sheld/.platformio/packages/framework-arduino-samd/libraries/HID",
+                "C:/Users/sheld/.platformio/packages/framework-arduino-samd/libraries/I2S/src",
+                "C:/Users/sheld/.platformio/packages/framework-arduino-samd/libraries/SAMD_AnalogCorrection/src",
+                "C:/Users/sheld/.platformio/packages/framework-arduino-samd/libraries/SAMD_BootloaderUpdater/src",
+                "C:/Users/sheld/.platformio/packages/framework-arduino-samd/libraries/SDU/src",
+                "C:/Users/sheld/.platformio/packages/framework-arduino-samd/libraries/SPI",
+                "C:/Users/sheld/.platformio/packages/framework-arduino-samd/libraries/USBHost/src",
+                "C:/Users/sheld/.platformio/packages/tool-unity"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "intelliSenseMode": "msvc-x64",
+            "forcedInclude": [
+                "C:\\Users\\sheld\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\samd\\1.8.6\\cores\\arduino\\Arduino.h"
+            ]
+        }
+    ],
+    "version": 4
+}

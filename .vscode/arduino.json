@@ -1,0 +1,6 @@
+{
+    "board": "arduino:samd:mkrnb1500",
+    "port": "COM14",
+    "programmer": "Arduino as ISP",
+    "sketch": "V0 Prototype\\V0.3\\VentCont_V0.3\\VentCont_V0.3.ino"
+}

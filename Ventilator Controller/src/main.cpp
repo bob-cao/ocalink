@@ -40,11 +40,13 @@ PressureTransducer patientCircuitGagePressure;
 
 void setup() {
   // initialize communications
-  #if SYSTEM__SERIAL_DEBUG__STATEMACHINE
-    Serial.begin(SYSTEM__SERIAL_DEBUG__BAUD_RATE); 
-  #endif
-    Wire.begin();
-  
+ #if SYSTEM__SERIAL_DEBUG__STATEMACHINE
+   Serial.begin(SYSTEM__SERIAL_DEBUG__BAUD_RATE); 
+ #endif
+   Wire.begin();
+
+ Serial.begin(SYSTEM__SERIAL_DEBUG__BAUD_RATE);
+
   //Setup pressure transducers
   oxygenVenturiDifferentialPressure = PressureTransducer(&Wire, &i2cMultiplexer, DLHR_OXYGEN_VENTURI, &currSensorStates.OxygenVenturiDifferentialPressureCentimetersH20);
   totalFlowVenturiDifferentialPressure = PressureTransducer(&Wire, &i2cMultiplexer, DLHR_TOTAL_VENTURI, &currSensorStates.TotalFlowVenturiDifferentialPressureCentimetersH20);
