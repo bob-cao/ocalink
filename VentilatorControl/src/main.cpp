@@ -17,6 +17,7 @@
 AllSensors_DLHR_L60D_8 gagePressure(&Wire);
 float pressure_cmH20;
 double expiration_offset = 1.00;
+double expiration_hysteresis = 0.50;
 
 //Solenoid
 byte solenoid_pin = 4;
@@ -173,12 +174,12 @@ void loop()
   // Open expiration valve
   if(CurrCycleStep == EXHALE)
   {
-    if(CurrPressureSetpointCentimetersH2O < (pressure_input - expiration_offset))
+    if((CurrPressureSetpointCentimetersH2O + expiration_offset + expiration_hysteresis) < (pressure_input))
     {
       digitalWrite(solenoid_pin, LOW);
     }
     
-    else if(CurrPressureSetpointCentimetersH2O >= (pressure_input + expiration_offset))
+    else if((CurrPressureSetpointCentimetersH2O + expiration_offset - expiration_hysteresis)>= (pressure_input))
     {
       digitalWrite(solenoid_pin, HIGH);
     }
