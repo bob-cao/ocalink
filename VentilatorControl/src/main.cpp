@@ -8,8 +8,8 @@
 
 // ESC Pulse Widths (using OTS hobby ESCs)
 // TODO: Use later instead of Servo library
-#define BLOWER_DRIVER__MIN_PULSE__MICROSECONDS 1000
-#define BLOWER_DRIVER__MAX_PULSE__MICROSECONDS 2000
+// #define BLOWER_DRIVER__MIN_PULSE__MICROSECONDS 1000
+// #define BLOWER_DRIVER__MAX_PULSE__MICROSECONDS 2000
 
 //TODO: Refactor to have all variables extremely modular and not hard coded (later)
 
@@ -49,6 +49,12 @@ typedef enum{
 }BreathCycleStep;
 
 BreathCycleStep CurrCycleStep;
+
+String string_from_pi;
+byte pi_string_index_comma;
+byte pi_string_index_asterik;
+String property_name;
+String value;
 
 void setup()
 {
@@ -136,7 +142,8 @@ void loop()
       // Serial.println("INHALE_HOLD");
     break;
     case EXHALE:
-      Kp=700.00000, Ki=20.50000, Kd=25.250000;
+      // Kp=700.00000, Ki=20.50000, Kd=25.250000;
+      Kp=34.10000, Ki=1.00000, Kd=1.250000;
       CurrPressureSetpointCentimetersH2O = PeepPressureCentimetersH2O;  // low
       // Serial.println("EXHALE");
     break;
@@ -149,16 +156,67 @@ void loop()
   // Output calculated pulse width to motor
   blower.write(blower_output);
 
-  Serial.print(pressure_input);
-  Serial.print(" ");
-  Serial.print(CurrPressureSetpointCentimetersH2O);
-  Serial.print(" ");
-  Serial.print(Pressure_PID.GetKp());
-  Serial.print(" ");
-  Serial.print(Pressure_PID.GetKi());
-  Serial.print(" ");
-  Serial.print(Pressure_PID.GetKd());
-  Serial.print(" ");
-  Serial.print(blower_output);
-  Serial.println();
+  // Serial.print(pressure_input);
+  // Serial.print(" ");
+  // Serial.print(CurrPressureSetpointCentimetersH2O);
+  // Serial.print(" ");
+  // Serial.print(Pressure_PID.GetKp());
+  // Serial.print(" ");
+  // Serial.print(Pressure_PID.GetKi());
+  // Serial.print(" ");
+  // Serial.print(Pressure_PID.GetKd());
+  // Serial.print(" ");
+  // Serial.print(blower_output);
+  // Serial.println();
+
+  // $<property_name>,<value>*<LF>
+  // PEEP	cmH20
+  // PIP	cmH20
+  // FI02	%
+  // F	b/m
+  // RISE	sec
+  // I/E	ratio (denominator) <1,2,3>
+
+  if (Serial.available())
+  {
+    string_from_pi = Serial.readStringUntil(0x0A);  // LF
+    if(string_from_pi[0] == '$')
+    {
+      property_name = string_from_pi.substring(string_from_pi.indexOf('$') + 1, string_from_pi.indexOf(','));
+      value = string_from_pi.substring(string_from_pi.indexOf(',') + 1, string_from_pi.indexOf('*'));
+    }
+
+    if(property_name == "PEEP")
+    {
+      // PEEP Value
+      // PeepPressureCentimetersH2O = (double)value;
+    }
+
+    else if(property_name == "PIP")
+    {
+      // PIP Value
+      // PipPressureCentimetersH2O = (double)value;
+    }
+
+    else if(property_name == "FI02")
+    {
+      // Flow of O2 in %
+    }
+
+    else if(property_name == "F")
+    {
+      // Breathes per minute in b/m
+    }
+
+    else if(property_name == "RISE")
+    {
+      // Rise time in seconds
+      // InhaleRampDurationMilliseconds = (double)value;
+    }
+
+    else if(property_name == "I/E")
+    {
+      // Inhale vs Exhale
+    }
+  }
 }
