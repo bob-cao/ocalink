@@ -52,7 +52,7 @@ void setup()
   // Need a simulated throttle LOW for at least 1 second delay for ESC to start properly
   blower.attach(blower_pin);
   blower.write(10);
-  delay(1000);
+  delay(5000);
 
   //TODO: Make for debugging ONLY
   Serial.begin(115200);
@@ -128,7 +128,7 @@ void loop()
       // Serial.println("INHALE_RAMP");
     break;
     case INHALE_HOLD:
-      Kp=1.750000, Ki=0.100000, Kd=0.250000;
+      Kp=50.750000, Ki=0.500000, Kd=1.250000;
       CurrPressureSetpointCentimetersH2O = PipPressureCentimetersH2O;
       // Serial.println("INHALE_HOLD");
     break;
