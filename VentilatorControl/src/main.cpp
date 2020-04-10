@@ -16,8 +16,8 @@
 // Pressure Variables
 AllSensors_DLHR_L60D_8 gagePressure(&Wire);
 float pressure_cmH20;
-double expiration_offset = 1.00;
-double expiration_hysteresis = 0.50;
+double expiration_offset = 3.0;
+double expiration_hysteresis = 0.25;
 
 //Solenoid
 byte solenoid_pin = 4;
@@ -37,13 +37,15 @@ PID Pressure_PID(&pressure_input, &blower_output, &CurrPressureSetpointCentimete
 uint32_t CycleStartTimeFromSysClockMilliseconds;
 uint32_t CurrTimeInCycleMilliseconds;
 uint32_t InhaleRampDurationMilliseconds = 1000;
-uint32_t InhaleDurationMilliseconds = 10000;
-uint32_t ExhaleDurationMilliseconds = 3000;
+uint32_t InhaleDurationMilliseconds = 3000;
+uint32_t ExhaleDurationMilliseconds = 10000;
 uint32_t BreathCycleDurationMilliseconds = InhaleDurationMilliseconds + ExhaleDurationMilliseconds;
 uint32_t ControlLoopInitialStabilizationTImeMilliseconds = 5000;;
 uint32_t ControlLoopStartTimeMilliseconds;
+uint32_t TimeOfLastSolenoidToggleMilliseconds = 0;
+uint32_t SolenoidMinimumDwellTimeMilliseconds = 250;
 
-double PeepPressureCentimetersH2O = 5.5000000;
+double PeepPressureCentimetersH2O = 8.000000;
 double PipPressureCentimetersH2O = 50.500000;
 
 typedef enum{
@@ -158,7 +160,7 @@ void loop()
     break;
     case EXHALE:
       // Kp=700.00000, Ki=20.50000, Kd=25.250000;
-      Kp=34.10000, Ki=1.00000, Kd=1.250000;
+      Kp=1000, Ki=500.00000, Kd=8.0000;
       CurrPressureSetpointCentimetersH2O = PeepPressureCentimetersH2O;  // low
       // Serial.println("EXHALE");
     break;
@@ -172,17 +174,26 @@ void loop()
   blower.write(blower_output);
 
   // Open expiration valve
+  char NewSolenoidState = digitalRead(solenoid_pin); 
   if(CurrCycleStep == EXHALE)
   {
     if((CurrPressureSetpointCentimetersH2O + expiration_offset + expiration_hysteresis) < (pressure_input))
     {
-      digitalWrite(solenoid_pin, LOW);
+      NewSolenoidState = LOW;
     }
     
     else if((CurrPressureSetpointCentimetersH2O + expiration_offset - expiration_hysteresis)>= (pressure_input))
     {
-      digitalWrite(solenoid_pin, HIGH);
+      NewSolenoidState = HIGH;
     }
+
+    if((digitalRead(solenoid_pin) != NewSolenoidState) && 
+       ((TimeOfLastSolenoidToggleMilliseconds + SolenoidMinimumDwellTimeMilliseconds) < millis()))
+    {
+      digitalWrite(solenoid_pin, NewSolenoidState);
+      TimeOfLastSolenoidToggleMilliseconds = millis();
+    }
+
   }
 
   else // if inhale_ramp or inhale_hold
