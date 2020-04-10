@@ -64,7 +64,7 @@ void setup()
 
   // Set PID Mode to Automatic, may change later
   Pressure_PID.SetMode(AUTOMATIC);
-  Pressure_PID.SetOutputLimits(17, 180);
+  Pressure_PID.SetOutputLimits(15, 180);
 
   //TODO: Add ramp up to PIP value and stabilize
   // currBreathCycleState.CurrCycleStep = EXHALE;
@@ -128,7 +128,7 @@ void loop()
       // Serial.println("INHALE_RAMP");
     break;
     case INHALE_HOLD:
-      Kp=0.110000, Ki=0.100000, Kd=0.000000;
+      Kp=1.750000, Ki=0.100000, Kd=0.250000;
       CurrPressureSetpointCentimetersH2O = PipPressureCentimetersH2O;
       // Serial.println("INHALE_HOLD");
     break;
