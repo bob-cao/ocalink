@@ -72,8 +72,8 @@ void setup()
   //TODO: set pressure setpoint to BREATHCYCLE__MINIMUM_PEEP__CENTIMETERSH2O
   //TODO: run PID control loop until things stabilize at min PEEP, then let the actual loop start
 
-  // CurrCycleStep = INHALE_HOLD;
-  CurrCycleStep = EXHALE;
+  CurrCycleStep = INHALE_HOLD;
+  // CurrCycleStep = EXHALE;
   // CurrCycleStep = INHALE_RAMP;
   CurrTimeInCycleMilliseconds = 0;
   CycleStartTimeFromSysClockMilliseconds = millis();
@@ -129,12 +129,12 @@ void loop()
       // Serial.println("INHALE_RAMP");
     break;
     case INHALE_HOLD:
-      Kp=1.0000000, Ki=0.0500000, Kd=0.0000000;
+      Kp=4.00000000, Ki=0.0010000, Kd=0.950000000;
       CurrPressureSetpointCentimetersH2O = PipPressureCentimetersH2O;
       // Serial.println("INHALE_HOLD");
     break;
     case EXHALE:
-      Kp=0.6000000, Ki=0.1000000, Kd=0.0000000;
+      Kp=1.0000000, Ki=0.25000000, Kd=0.0000000;
       CurrPressureSetpointCentimetersH2O = PeepPressureCentimetersH2O;
       // Serial.println("EXHALE");
     break;
