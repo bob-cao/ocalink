@@ -68,7 +68,7 @@ void setup()
   // Need a simulated throttle LOW for at least 1 second delay for ESC to start properly
   blower.attach(blower_pin);
   blower.write(10);
-  delay(1000);
+  delay(2000);
 
   //TODO: Make for debugging ONLY
   Serial.begin(115200);
