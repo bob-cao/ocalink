@@ -16,6 +16,10 @@
 // Pressure Variables
 AllSensors_DLHR_L60D_8 gagePressure(&Wire);
 float pressure_cmH20;
+double expiration_offset = 1.00;
+
+//Solenoid
+byte solenoid_pin = 4;
 
 // Blower Variables
 byte blower_pin = 5;
@@ -58,6 +62,9 @@ String value;
 
 void setup()
 {
+  pinMode(solenoid_pin, OUTPUT);
+  digitalWrite(solenoid_pin, LOW);
+
   // Need a simulated throttle LOW for at least 1 second delay for ESC to start properly
   blower.attach(blower_pin);
   blower.write(10);
@@ -156,9 +163,27 @@ void loop()
   // Output calculated pulse width to motor
   blower.write(blower_output);
 
-  // Serial.print(pressure_input);
-  // Serial.print(" ");
-  // Serial.print(CurrPressureSetpointCentimetersH2O);
+  // Open expiration valve
+  if(CurrCycleStep == EXHALE)
+  {
+    if(CurrPressureSetpointCentimetersH2O < (pressure_input - expiration_offset))
+    {
+      digitalWrite(solenoid_pin, LOW);
+    }
+    
+    else if(CurrPressureSetpointCentimetersH2O >= (pressure_input + expiration_offset))
+    {
+      digitalWrite(solenoid_pin, HIGH);
+    }
+  }
+  else // if inhale_ramp or inhale_hold
+  {
+    digitalWrite(solenoid_pin, HIGH);
+  }
+
+  Serial.print(pressure_input);
+  Serial.print(" ");
+  Serial.print(CurrPressureSetpointCentimetersH2O);
   // Serial.print(" ");
   // Serial.print(Pressure_PID.GetKp());
   // Serial.print(" ");
@@ -167,7 +192,7 @@ void loop()
   // Serial.print(Pressure_PID.GetKd());
   // Serial.print(" ");
   // Serial.print(blower_output);
-  // Serial.println();
+  Serial.println();
 
   // $<property_name>,<value>*<LF>
   // PEEP	cmH20
@@ -177,46 +202,46 @@ void loop()
   // RISE	sec
   // I/E	ratio (denominator) <1,2,3>
 
-  if (Serial.available())
-  {
-    string_from_pi = Serial.readStringUntil(0x0A);  // LF
-    if(string_from_pi[0] == '$')
-    {
-      property_name = string_from_pi.substring(string_from_pi.indexOf('$') + 1, string_from_pi.indexOf(','));
-      value = string_from_pi.substring(string_from_pi.indexOf(',') + 1, string_from_pi.indexOf('*'));
-    }
+  // if (Serial.available())
+  // {
+  //   string_from_pi = Serial.readStringUntil(0x0A);  // LF
+  //   if(string_from_pi[0] == '$')
+  //   {
+  //     property_name = string_from_pi.substring(string_from_pi.indexOf('$') + 1, string_from_pi.indexOf(','));
+  //     value = string_from_pi.substring(string_from_pi.indexOf(',') + 1, string_from_pi.indexOf('*'));
+  //   }
 
-    if(property_name == "PEEP")
-    {
-      // PEEP Value
-      // PeepPressureCentimetersH2O = (double)value;
-    }
+  //   if(property_name == "PEEP")
+  //   {
+  //     // PEEP Value
+  //     // PeepPressureCentimetersH2O = (double)value;
+  //   }
 
-    else if(property_name == "PIP")
-    {
-      // PIP Value
-      // PipPressureCentimetersH2O = (double)value;
-    }
+  //   else if(property_name == "PIP")
+  //   {
+  //     // PIP Value
+  //     // PipPressureCentimetersH2O = (double)value;
+  //   }
 
-    else if(property_name == "FI02")
-    {
-      // Flow of O2 in %
-    }
+  //   else if(property_name == "FI02")
+  //   {
+  //     // Flow of O2 in %
+  //   }
 
-    else if(property_name == "F")
-    {
-      // Breathes per minute in b/m
-    }
+  //   else if(property_name == "F")
+  //   {
+  //     // Breathes per minute in b/m
+  //   }
 
-    else if(property_name == "RISE")
-    {
-      // Rise time in seconds
-      // InhaleRampDurationMilliseconds = (double)value;
-    }
+  //   else if(property_name == "RISE")
+  //   {
+  //     // Rise time in seconds
+  //     // InhaleRampDurationMilliseconds = (double)value;
+  //   }
 
-    else if(property_name == "I/E")
-    {
-      // Inhale vs Exhale
-    }
-  }
+  //   else if(property_name == "I/E")
+  //   {
+  //     // Inhale vs Exhale
+  //   }
+  // }
 }
