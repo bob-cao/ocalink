@@ -26,7 +26,7 @@ Servo blower;
 // Pressure Controlled Blower PID
 double pressure_input, blower_output;
 double CurrPressureSetpointCentimetersH2O;
-double Kp=0.15000000, Ki=0.15000000, Kd=2.0000000;
+double Kp=0.15000000, Ki=0.15000000, Kd=0.0000000;
 PID Pressure_PID(&pressure_input, &blower_output, &CurrPressureSetpointCentimetersH2O, Kp, Ki, Kd, DIRECT);
 
 uint32_t CycleStartTimeFromSysClockMilliseconds;
@@ -72,8 +72,8 @@ void setup()
   //TODO: set pressure setpoint to BREATHCYCLE__MINIMUM_PEEP__CENTIMETERSH2O
   //TODO: run PID control loop until things stabilize at min PEEP, then let the actual loop start
 
-  CurrCycleStep = INHALE_HOLD;
-  // CurrCycleStep = EXHALE;
+  // CurrCycleStep = INHALE_HOLD;
+  CurrCycleStep = EXHALE;
   // CurrCycleStep = INHALE_RAMP;
   CurrTimeInCycleMilliseconds = 0;
   CycleStartTimeFromSysClockMilliseconds = millis();
@@ -129,23 +129,23 @@ void loop()
       // Serial.println("INHALE_RAMP");
     break;
     case INHALE_HOLD:
-      Kp=0.1500000, Ki=0.1500000, Kd=0.0000000;
+      Kp=1.0000000, Ki=0.0500000, Kd=0.0000000;
       CurrPressureSetpointCentimetersH2O = PipPressureCentimetersH2O;
       // Serial.println("INHALE_HOLD");
     break;
     case EXHALE:
-      Kp=2.0000000, Ki=1.0000000, Kd=0.0000000;
+      Kp=0.6000000, Ki=0.1000000, Kd=0.0000000;
       CurrPressureSetpointCentimetersH2O = PeepPressureCentimetersH2O;
       // Serial.println("EXHALE");
     break;
   }
 
+  // Set Kp, Ki, Kd and comute Pressure PID
+  Pressure_PID.SetTunings(Kp, Ki, Kd);
+  Pressure_PID.Compute();
+
   // Output calculated pulse width to motor
   blower.write(blower_output);
-
-  // Set Kp, Ki, Kd and comute Pressure PID
-  Pressure_PID.SetTunings(Kp, Ki, Kp);
-  Pressure_PID.Compute();
 
   Serial.print(pressure_input);
   Serial.print(" ");
@@ -155,5 +155,6 @@ void loop()
   Serial.print(" ");
   Serial.print(Pressure_PID.GetKi());
   Serial.print(" ");
-  Serial.println(Pressure_PID.GetKd());
+  Serial.print(Pressure_PID.GetKd());
+  Serial.println();
 }
