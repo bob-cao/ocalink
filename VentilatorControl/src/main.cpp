@@ -37,7 +37,7 @@ uint32_t ExhaleDurationMilliseconds = 2500;
 uint32_t BreathCycleDurationMilliseconds = InhaleDurationMilliseconds + ExhaleDurationMilliseconds;
 
 double PipPressureCentimetersH2O = 10.000000;
-double PeepPressureCentimetersH2O = 35.0000000;
+double PeepPressureCentimetersH2O = 20.0000000;
 
 typedef enum{
     INHALE_RAMP,
@@ -71,8 +71,8 @@ void setup()
   //TODO: set pressure setpoint to BREATHCYCLE__MINIMUM_PEEP__CENTIMETERSH2O
   //TODO: run PID control loop until things stabilize at min PEEP, then let the actual loop start
 
-  CurrCycleStep = INHALE_HOLD;
-  // CurrCycleStep = EXHALE;
+  // CurrCycleStep = INHALE_HOLD;
+  CurrCycleStep = EXHALE;
   // CurrCycleStep = INHALE_RAMP;
   CurrTimeInCycleMilliseconds = 0;
   CycleStartTimeFromSysClockMilliseconds = millis();
@@ -133,7 +133,7 @@ void loop()
       // Serial.println("INHALE_HOLD");
     break;
     case EXHALE:
-      Kp=1.0000000, Ki=0.25000000, Kd=0.0000000;
+      Kp=400.750000, Ki=10.500000, Kd=0.250000;
       CurrPressureSetpointCentimetersH2O = PeepPressureCentimetersH2O;
       // Serial.println("EXHALE");
     break;
