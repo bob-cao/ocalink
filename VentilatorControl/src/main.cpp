@@ -36,8 +36,8 @@ uint32_t InhaleDurationMilliseconds = 2500;
 uint32_t ExhaleDurationMilliseconds = 2500;
 uint32_t BreathCycleDurationMilliseconds = InhaleDurationMilliseconds + ExhaleDurationMilliseconds;
 
-double PipPressureCentimetersH2O = 5.0;
-double PeepPressureCentimetersH2O = 35.0;
+double PipPressureCentimetersH2O = 10.000000;
+double PeepPressureCentimetersH2O = 35.0000000;
 
 typedef enum{
     INHALE_RAMP,
@@ -52,7 +52,7 @@ void setup()
   // Need a simulated throttle LOW for at least 1 second delay for ESC to start properly
   blower.attach(blower_pin);
   blower.write(10);
-  delay(10000);
+  delay(1000);
 
   //TODO: Make for debugging ONLY
   Serial.begin(115200);
@@ -64,8 +64,7 @@ void setup()
 
   // Set PID Mode to Automatic, may change later
   Pressure_PID.SetMode(AUTOMATIC);
-  Pressure_PID.SetOutputLimits(0, 180);
-
+  Pressure_PID.SetOutputLimits(17, 180);
 
   //TODO: Add ramp up to PIP value and stabilize
   // currBreathCycleState.CurrCycleStep = EXHALE;
@@ -129,7 +128,7 @@ void loop()
       // Serial.println("INHALE_RAMP");
     break;
     case INHALE_HOLD:
-      Kp=4.00000000, Ki=0.0010000, Kd=0.950000000;
+      Kp=0.110000, Ki=0.100000, Kd=0.000000;
       CurrPressureSetpointCentimetersH2O = PipPressureCentimetersH2O;
       // Serial.println("INHALE_HOLD");
     break;
@@ -156,5 +155,7 @@ void loop()
   Serial.print(Pressure_PID.GetKi());
   Serial.print(" ");
   Serial.print(Pressure_PID.GetKd());
+  Serial.print(" ");
+  Serial.print(blower_output);
   Serial.println();
 }
