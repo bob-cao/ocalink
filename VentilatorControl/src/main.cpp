@@ -20,22 +20,20 @@ float pressure_cmH20;
 // Blower Variables
 byte blower_pin = 5;
 byte blower_speed;
+//TODO: Temporary measure, Servo library only uses 8b, pulse width can be ~10b
 Servo blower;
 
 // Pressure Controlled Blower PID
 double pressure_input, blower_output;
 double CurrPressureSetpointCentimetersH2O;
-// double Kp=0.0000011, Ki=0.00000005, Kd=0.0000000;
-// double Kp=5.0000000, Ki=2.0000000, Kd=0.0000000;
-double Kp=0.1500000, Ki=0.1500000, Kd=0.0000000;
-// double Kp, Ki, Kd;
+double Kp=0.15000000, Ki=0.15000000, Kd=2.0000000;
 PID Pressure_PID(&pressure_input, &blower_output, &CurrPressureSetpointCentimetersH2O, Kp, Ki, Kd, DIRECT);
 
 uint32_t CycleStartTimeFromSysClockMilliseconds;
 uint32_t CurrTimeInCycleMilliseconds;
 uint32_t InhaleRampDurationMilliseconds = 1000;
-uint32_t InhaleDurationMilliseconds = 10000;
-uint32_t ExhaleDurationMilliseconds = 10000;
+uint32_t InhaleDurationMilliseconds = 2500;
+uint32_t ExhaleDurationMilliseconds = 2500;
 uint32_t BreathCycleDurationMilliseconds = InhaleDurationMilliseconds + ExhaleDurationMilliseconds;
 
 double PipPressureCentimetersH2O = 5.0;
@@ -148,7 +146,8 @@ void loop()
   // Output calculated pulse width to motor
   blower.write(blower_output);
 
-  // Comute Pressure PID
+  // Set Kp, Ki, Kd and comute Pressure PID
+  Pressure_PID.SetTunings(Kp, Ki, Kp);
   Pressure_PID.Compute();
 
   Serial.print(pressure_input);
