@@ -40,7 +40,7 @@ uint32_t BreathCycleDurationMilliseconds = InhaleDurationMilliseconds + ExhaleDu
 // double PeepPressureCentimetersH2O = 35.0000000;
 
 double PeepPressureCentimetersH2O = 5.5000000;
-double PipPressureCentimetersH2O = 34.500000;
+double PipPressureCentimetersH2O = 35.000000;
 
 // Kp=400.750000, Ki=10.500000, Kd=0.250000;  //20cmH2O
 // Kp=100.750000, Ki=0.500000, Kd=1.250000;  //10cmH20
@@ -134,7 +134,7 @@ void loop()
       // Serial.println("INHALE_RAMP");
     break;
     case INHALE_HOLD:
-      Kp=2000.00000, Ki=10.500000, Kd=250.250000;
+      Kp=0.300000, Ki=0.2000000, Kd=0.150000;
       CurrPressureSetpointCentimetersH2O = PipPressureCentimetersH2O;  // high
       // Serial.println("INHALE_HOLD");
     break;
