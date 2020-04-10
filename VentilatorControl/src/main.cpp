@@ -72,9 +72,9 @@ void setup()
   //TODO: set pressure setpoint to BREATHCYCLE__MINIMUM_PEEP__CENTIMETERSH2O
   //TODO: run PID control loop until things stabilize at min PEEP, then let the actual loop start
 
-  // CurrCycleStep = INHALE_HOLD;
+  CurrCycleStep = INHALE_HOLD;
   // CurrCycleStep = EXHALE;
-  CurrCycleStep = INHALE_RAMP;
+  // CurrCycleStep = INHALE_RAMP;
   CurrTimeInCycleMilliseconds = 0;
   CycleStartTimeFromSysClockMilliseconds = millis();
 }
@@ -91,35 +91,32 @@ void loop()
     // Serial.println(pressure_input);
   }
 
-  //TODO: Remove delay later, just for testing -- pressure sensor needs time
-  // delay(50);
-
-  //TODO: Make sure clock overflow is handled gracefully
-  CurrTimeInCycleMilliseconds = millis()-CycleStartTimeFromSysClockMilliseconds;
-  if(CurrTimeInCycleMilliseconds <= InhaleRampDurationMilliseconds)
-  {
-    CurrCycleStep = INHALE_RAMP;
-    // Serial.println("INHALE_RAMP");
-  }
-  else if((InhaleRampDurationMilliseconds < CurrTimeInCycleMilliseconds) &&
-          (CurrTimeInCycleMilliseconds <= InhaleDurationMilliseconds))
-  { 
-    CurrCycleStep = INHALE_HOLD;
-    // Serial.println("INHALE_HOLD");
-  }
-  else if((InhaleDurationMilliseconds < CurrTimeInCycleMilliseconds) &&
-         (CurrTimeInCycleMilliseconds <= BreathCycleDurationMilliseconds))
-  {
-    CurrCycleStep = EXHALE;
-    // Serial.println("EXHALE");
-  }
-  else if(CurrTimeInCycleMilliseconds > BreathCycleDurationMilliseconds)
-  {
-    CurrCycleStep = INHALE_RAMP;
-    // Serial.println("INHALE_RAMP");
-    CurrTimeInCycleMilliseconds = 0;
-    CycleStartTimeFromSysClockMilliseconds = millis();
-  }
+  // //TODO: Make sure clock overflow is handled gracefully
+  // CurrTimeInCycleMilliseconds = millis()-CycleStartTimeFromSysClockMilliseconds;
+  // if(CurrTimeInCycleMilliseconds <= InhaleRampDurationMilliseconds)
+  // {
+  //   CurrCycleStep = INHALE_RAMP;
+  //   // Serial.println("INHALE_RAMP");
+  // }
+  // else if((InhaleRampDurationMilliseconds < CurrTimeInCycleMilliseconds) &&
+  //         (CurrTimeInCycleMilliseconds <= InhaleDurationMilliseconds))
+  // { 
+  //   CurrCycleStep = INHALE_HOLD;
+  //   // Serial.println("INHALE_HOLD");
+  // }
+  // else if((InhaleDurationMilliseconds < CurrTimeInCycleMilliseconds) &&
+  //        (CurrTimeInCycleMilliseconds <= BreathCycleDurationMilliseconds))
+  // {
+  //   CurrCycleStep = EXHALE;
+  //   // Serial.println("EXHALE");
+  // }
+  // else if(CurrTimeInCycleMilliseconds > BreathCycleDurationMilliseconds)
+  // {
+  //   CurrCycleStep = INHALE_RAMP;
+  //   // Serial.println("INHALE_RAMP");
+  //   CurrTimeInCycleMilliseconds = 0;
+  //   CycleStartTimeFromSysClockMilliseconds = millis();
+  // }
 
   // //Recompute Setpoints
   switch(CurrCycleStep)
@@ -132,7 +129,7 @@ void loop()
       // Serial.println("INHALE_RAMP");
     break;
     case INHALE_HOLD:
-      Kp=5.0000000, Ki=2.0000000, Kd=0.0000000;
+      Kp=0.1500000, Ki=0.1500000, Kd=0.0000000;
       CurrPressureSetpointCentimetersH2O = PipPressureCentimetersH2O;
       // Serial.println("INHALE_HOLD");
     break;
@@ -154,9 +151,9 @@ void loop()
   Serial.print(" ");
   Serial.print(CurrPressureSetpointCentimetersH2O);
   Serial.print(" ");
-  Serial.print(Kp);
+  Serial.print(Pressure_PID.GetKp());
   Serial.print(" ");
-  Serial.print(Ki);
+  Serial.print(Pressure_PID.GetKi());
   Serial.print(" ");
-  Serial.println(Kd);
+  Serial.println(Pressure_PID.GetKd());
 }
