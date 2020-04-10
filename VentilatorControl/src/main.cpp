@@ -129,7 +129,7 @@ void loop()
     case INHALE_RAMP:
       // calculate new setpoint based on linear ramp from PEEP pressure to PIP pressure over set duration
       // PRESSURE_SETPOINT(t) = t*(PIP/RAMP_DURATION)+PEEP
-      Kp=0.15000000, Ki=0.15000000, Kd=0.0000000;
+      Kp=0.15000000, Ki=0.15000000, Kd=2.0000000;
       CurrPressureSetpointCentimetersH2O = (((float)CurrTimeInCycleMilliseconds/(float)InhaleRampDurationMilliseconds)*PipPressureCentimetersH2O)+PeepPressureCentimetersH2O;
       // Serial.println("INHALE_RAMP");
     break;
@@ -153,5 +153,11 @@ void loop()
 
   Serial.print(pressure_input);
   Serial.print(" ");
-  Serial.println(CurrPressureSetpointCentimetersH2O);
+  Serial.print(CurrPressureSetpointCentimetersH2O);
+  Serial.print(" ");
+  Serial.print(Kp);
+  Serial.print(" ");
+  Serial.print(Ki);
+  Serial.print(" ");
+  Serial.println(Kd);
 }
