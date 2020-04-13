@@ -40,7 +40,7 @@ uint32_t InhaleRampDurationMilliseconds = 1000;
 uint32_t InhaleDurationMilliseconds = 3000;
 uint32_t ExhaleDurationMilliseconds = 10000;
 uint32_t BreathCycleDurationMilliseconds = InhaleDurationMilliseconds + ExhaleDurationMilliseconds;
-uint32_t ControlLoopInitialStabilizationTImeMilliseconds = 5000;;
+uint32_t ControlLoopInitialStabilizationTImeMilliseconds = 1000;;
 uint32_t ControlLoopStartTimeMilliseconds;
 uint32_t TimeOfLastSolenoidToggleMilliseconds = 0;
 uint32_t SolenoidMinimumDwellTimeMilliseconds = 250;
@@ -51,7 +51,8 @@ double PipPressureCentimetersH2O = 50.500000;
 typedef enum{
     INHALE_RAMP,
     INHALE_HOLD,
-    EXHALE
+    EXHALE,
+    IDLE
 }BreathCycleStep;
 
 BreathCycleStep CurrCycleStep;
@@ -60,7 +61,7 @@ String string_from_pi;
 byte pi_string_index_comma;
 byte pi_string_index_asterik;
 String property_name;
-String value;
+double value;
 
 void setup()
 {
@@ -91,7 +92,7 @@ void setup()
   //TODO: run PID control loop until things stabilize at min PEEP, then let the actual loop start
 
   // CurrCycleStep = INHALE_HOLD;
-  CurrCycleStep = EXHALE;
+  CurrCycleStep = IDLE;
   // CurrCycleStep = INHALE_RAMP;
   CurrTimeInCycleMilliseconds = 0;
   ControlLoopStartTimeMilliseconds = CycleStartTimeFromSysClockMilliseconds = millis();
@@ -110,37 +111,40 @@ void loop()
   }
 
   //TODO: Make sure clock overflow is handled gracefully
-  CurrTimeInCycleMilliseconds = millis()-CycleStartTimeFromSysClockMilliseconds;
-  if(millis()-ControlLoopStartTimeMilliseconds > ControlLoopInitialStabilizationTImeMilliseconds)
+  if( CurrCycleStep != IDLE )
   {
-    if(CurrTimeInCycleMilliseconds <= InhaleRampDurationMilliseconds)
+    CurrTimeInCycleMilliseconds = millis()-CycleStartTimeFromSysClockMilliseconds;
+    if(millis()-ControlLoopStartTimeMilliseconds > ControlLoopInitialStabilizationTImeMilliseconds)
     {
-      CurrCycleStep = INHALE_RAMP;
-      // Serial.println("INHALE_RAMP");
+      if(CurrTimeInCycleMilliseconds <= InhaleRampDurationMilliseconds)
+      {
+        CurrCycleStep = INHALE_RAMP;
+        // Serial.println("INHALE_RAMP");
+      }
+      else if((InhaleRampDurationMilliseconds < CurrTimeInCycleMilliseconds) &&
+              (CurrTimeInCycleMilliseconds <= InhaleDurationMilliseconds))
+      { 
+        CurrCycleStep = INHALE_HOLD;
+        // Serial.println("INHALE_HOLD");
+      }
+      else if((InhaleDurationMilliseconds < CurrTimeInCycleMilliseconds) &&
+            (CurrTimeInCycleMilliseconds <= BreathCycleDurationMilliseconds))
+      {
+        CurrCycleStep = EXHALE;
+        // Serial.println("EXHALE");
+      }
+      else if(CurrTimeInCycleMilliseconds > BreathCycleDurationMilliseconds)
+      {
+        CurrCycleStep = INHALE_RAMP;
+        // Serial.println("INHALE_RAMP");
+        CurrTimeInCycleMilliseconds = 0;
+        CycleStartTimeFromSysClockMilliseconds = millis();
+      }
     }
-    else if((InhaleRampDurationMilliseconds < CurrTimeInCycleMilliseconds) &&
-            (CurrTimeInCycleMilliseconds <= InhaleDurationMilliseconds))
-    { 
-      CurrCycleStep = INHALE_HOLD;
-      // Serial.println("INHALE_HOLD");
-    }
-    else if((InhaleDurationMilliseconds < CurrTimeInCycleMilliseconds) &&
-          (CurrTimeInCycleMilliseconds <= BreathCycleDurationMilliseconds))
+    else
     {
       CurrCycleStep = EXHALE;
-      // Serial.println("EXHALE");
     }
-    else if(CurrTimeInCycleMilliseconds > BreathCycleDurationMilliseconds)
-    {
-      CurrCycleStep = INHALE_RAMP;
-      // Serial.println("INHALE_RAMP");
-      CurrTimeInCycleMilliseconds = 0;
-      CycleStartTimeFromSysClockMilliseconds = millis();
-    }
-  }
-  else
-  {
-    CurrCycleStep = EXHALE;
   }
 
   //Recompute Setpoints
@@ -150,7 +154,7 @@ void loop()
       // calculate new setpoint based on linear ramp from PEEP pressure to PIP pressure over set duration
       // PRESSURE_SETPOINT(t) = t*(PIP/RAMP_DURATION)+PEEP
       Kp=64.000000, Ki=1.800000, Kd=13.000000;
-      CurrPressureSetpointCentimetersH2O = (((float)CurrTimeInCycleMilliseconds/(float)InhaleRampDurationMilliseconds)*PipPressureCentimetersH2O)+PeepPressureCentimetersH2O;
+      CurrPressureSetpointCentimetersH2O = (((float)CurrTimeInCycleMilliseconds/(float)InhaleRampDurationMilliseconds)*(PipPressureCentimetersH2O-PeepPressureCentimetersH2O))+PeepPressureCentimetersH2O;
       // Serial.println("INHALE_RAMP");
     break;
     case INHALE_HOLD:
@@ -159,6 +163,7 @@ void loop()
       // Serial.println("INHALE_HOLD");
     break;
     case EXHALE:
+    case IDLE:
       // Kp=700.00000, Ki=20.50000, Kd=25.250000;
       Kp=1000, Ki=500.00000, Kd=8.0000;
       CurrPressureSetpointCentimetersH2O = PeepPressureCentimetersH2O;  // low
@@ -214,54 +219,87 @@ void loop()
   // Serial.print(blower_output);
   Serial.println();
 
-  // $<property_name>,<value>*<LF>
+  // $<property_name> <value><LF>
   // PEEP	cmH20
   // PIP	cmH20
   // FI02	%
   // F	b/m
   // RISE	sec
   // I/E	ratio (denominator) <1,2,3>
+  if (Serial.available())
+  {
+    string_from_pi = Serial.readStringUntil(0x0A);  // LF
+    if(string_from_pi[0] == '$')
+    {
+      property_name = string_from_pi.substring(string_from_pi.indexOf('$') + 1, string_from_pi.indexOf(' '));
+      value = string_from_pi.substring(string_from_pi.indexOf(' ') + 1, string_from_pi.indexOf(0x0A)).toFloat();
+    }
 
-  // if (Serial.available())
-  // {
-  //   string_from_pi = Serial.readStringUntil(0x0A);  // LF
-  //   if(string_from_pi[0] == '$')
-  //   {
-  //     property_name = string_from_pi.substring(string_from_pi.indexOf('$') + 1, string_from_pi.indexOf(','));
-  //     value = string_from_pi.substring(string_from_pi.indexOf(',') + 1, string_from_pi.indexOf('*'));
-  //   }
+    if(property_name.equalsIgnoreCase("PEEP"))
+    {
+      // PEEP Value
+      PeepPressureCentimetersH2O = value;
+    }
 
-  //   if(property_name == "PEEP")
-  //   {
-  //     // PEEP Value
-  //     // PeepPressureCentimetersH2O = (double)value;
-  //   }
+    else if(property_name.equalsIgnoreCase("PIP"))
+    {
+      // PIP Value
+      PipPressureCentimetersH2O = value;
+    }
 
-  //   else if(property_name == "PIP")
-  //   {
-  //     // PIP Value
-  //     // PipPressureCentimetersH2O = (double)value;
-  //   }
+    // else if(property_name == "FI02")
+    // {
+    //   // Flow of O2 in %
+    // }
 
-  //   else if(property_name == "FI02")
-  //   {
-  //     // Flow of O2 in %
-  //   }
+    // else if(property_name.equalsIgnoreCase("F"))
+    // {
+    //   // Breathes per minute in b/m
+    // }
 
-  //   else if(property_name == "F")
-  //   {
-  //     // Breathes per minute in b/m
-  //   }
+    else if(property_name.equalsIgnoreCase("Ramptime"))
+    {
+      // Rise time in seconds
+      InhaleRampDurationMilliseconds = value;
+    }
 
-  //   else if(property_name == "RISE")
-  //   {
-  //     // Rise time in seconds
-  //     // InhaleRampDurationMilliseconds = (double)value;
-  //   }
+    else if(property_name.equalsIgnoreCase("InhaleTime"))
+    {
+      InhaleDurationMilliseconds = value*1000.00;
+      InhaleRampDurationMilliseconds = InhaleDurationMilliseconds*0.25;
+    }
 
-  //   else if(property_name == "I/E")
-  //   {
-  //     // Inhale vs Exhale
-  //   }
-  // }
+    else if(property_name.equalsIgnoreCase("BreathRate"))
+    {
+      BreathCycleDurationMilliseconds = 60.0/value;
+      if( (InhaleDurationMilliseconds/BreathCycleDurationMilliseconds) >= 0.50 )
+      {
+        InhaleDurationMilliseconds = BreathCycleDurationMilliseconds*0.50;
+        InhaleRampDurationMilliseconds = InhaleDurationMilliseconds*0.25;
+      }
+    }
+
+    else if( property_name.equalsIgnoreCase("Start") )
+    {
+      if(CurrCycleStep == IDLE)
+      {
+        CurrCycleStep = EXHALE;
+        CurrCycleStep = EXHALE;
+        CurrTimeInCycleMilliseconds = 0;
+        ControlLoopStartTimeMilliseconds = CycleStartTimeFromSysClockMilliseconds = millis();
+        Serial.println("Test Started");
+        Serial.print("PEEP: ");              Serial.print(PeepPressureCentimetersH2O);                  Serial.println("cmH20");
+        Serial.print("PIP: ");               Serial.print(PipPressureCentimetersH2O);                   Serial.println("cmH20");
+        Serial.print("Rate: ");              Serial.print(BreathCycleDurationMilliseconds/(60*1000)) ;  Serial.println("/min");
+        Serial.print("Inhale Duration: ");   Serial.print(InhaleDurationMilliseconds/1000) ;            Serial.println("s");
+      }
+    }
+
+    else if( property_name.equalsIgnoreCase("Stop") )
+    {
+      Serial.println("Test Stopped");
+      CurrCycleStep = IDLE;
+    }
+    
+  }
 }
