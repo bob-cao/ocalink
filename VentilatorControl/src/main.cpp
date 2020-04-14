@@ -1,4 +1,4 @@
-//TODO: Refactor to have all includes in one include file (later)
+//TODO: LOW Refactor to have all includes in one include file (later)
 // Libraries
 #include <Arduino.h>
 #include <Wire.h>
@@ -7,11 +7,11 @@
 #include <PID_v1.h>
 
 // ESC Pulse Widths (using OTS hobby ESCs)
-// TODO: Use later instead of Servo library
+// TODO: HIGH Use later instead of Servo library
 // #define BLOWER_DRIVER__MIN_PULSE__MICROSECONDS 1000
 // #define BLOWER_DRIVER__MAX_PULSE__MICROSECONDS 2000
 
-//TODO: Refactor to have all variables extremely modular and not hard coded (later)
+//TODO: LOW Refactor to have all variables extremely modular and not hard coded (later)
 
 // Pressure Variables
 AllSensors_DLHR_L60D_8 gagePressure(&Wire);
@@ -25,9 +25,10 @@ byte solenoid_pin = 4;
 // Blower Variables
 byte blower_pin = 5;
 byte blower_speed;
-//TODO: Temporary measure, Servo library only uses 8b, pulse width can be ~10b
+//TODO: HIGH Temporary measure, Servo library only uses 8b, pulse width can be ~10b
 Servo blower;
 
+// TODO: MEDIUM rerganize constants
 // Pressure Controlled Blower PID
 double pressure_input, blower_output;
 double CurrPressureSetpointCentimetersH2O;
@@ -36,17 +37,17 @@ PID Pressure_PID(&pressure_input, &blower_output, &CurrPressureSetpointCentimete
 
 uint32_t CycleStartTimeFromSysClockMilliseconds;
 uint32_t CurrTimeInCycleMilliseconds;
-uint32_t InhaleRampDurationMilliseconds = 1000;
-uint32_t InhaleDurationMilliseconds = 3000;
-uint32_t ExhaleDurationMilliseconds = 10000;
-uint32_t BreathCycleDurationMilliseconds = InhaleDurationMilliseconds + ExhaleDurationMilliseconds;
+uint32_t InhaleRampDurationMilliseconds = 250;
+uint32_t InhaleDurationMilliseconds = 1000;
+//uint32_t ExhaleDurationMilliseconds = 10000;
+uint32_t BreathCycleDurationMilliseconds = 6000;
 uint32_t ControlLoopInitialStabilizationTImeMilliseconds = 1000;;
 uint32_t ControlLoopStartTimeMilliseconds;
 uint32_t TimeOfLastSolenoidToggleMilliseconds = 0;
 uint32_t SolenoidMinimumDwellTimeMilliseconds = 250;
 
-double PeepPressureCentimetersH2O = 8.000000;
-double PipPressureCentimetersH2O = 50.500000;
+double PeepPressureCentimetersH2O = 5.000000;
+double PipPressureCentimetersH2O = 15.500000;
 
 typedef enum{
     INHALE_RAMP,
@@ -73,10 +74,10 @@ void setup()
   blower.write(10);
   delay(2000);
 
-  //TODO: Make for debugging ONLY
+  //TODO: LOW Make for debugging ONLY
   Serial.begin(115200);
 
-  //TODO: Change from I2C to SPI
+  //TODO: LOW Change from I2C to SPI
   Wire.begin();
   gagePressure.setPressureUnit(AllSensors_DLHR::PressureUnit::IN_H2O);
   gagePressure.startMeasurement();
@@ -86,14 +87,8 @@ void setup()
   Pressure_PID.SetOutputLimits(15, 180);
   Pressure_PID.SetSampleTime(10);
 
-  //TODO: Add ramp up to PIP value and stabilize
-  // currBreathCycleState.CurrCycleStep = EXHALE;
-  //TODO: set pressure setpoint to BREATHCYCLE__MINIMUM_PEEP__CENTIMETERSH2O
-  //TODO: run PID control loop until things stabilize at min PEEP, then let the actual loop start
-
-  // CurrCycleStep = INHALE_HOLD;
   CurrCycleStep = IDLE;
-  // CurrCycleStep = INHALE_RAMP;
+  //TODO: MED Make control loop timing handled by a single function
   CurrTimeInCycleMilliseconds = 0;
   ControlLoopStartTimeMilliseconds = CycleStartTimeFromSysClockMilliseconds = millis();
 }
@@ -105,12 +100,13 @@ void loop()
   if(!gagePressure.readData(!true))
   {
     gagePressure.startMeasurement();
-    pressure_input = gagePressure.pressure * 2.53746;
+    pressure_input = gagePressure.pressure * 2.54;
     // Serial.print("Pressure: ");
     // Serial.println(pressure_input);
   }
 
-  //TODO: Make sure clock overflow is handled gracefully
+  // TODO: break out into separate file and rewrite for better readability
+  //TODO: LOW Make sure clock overflow is handled gracefully
   if( CurrCycleStep != IDLE )
   {
     CurrTimeInCycleMilliseconds = millis()-CycleStartTimeFromSysClockMilliseconds;
@@ -141,12 +137,14 @@ void loop()
         CycleStartTimeFromSysClockMilliseconds = millis();
       }
     }
-    else
+    else // if idle == true
     {
       CurrCycleStep = EXHALE;
     }
   }
 
+  // TODO: HIGH breakout into separate file and rewrite for readability.
+  // TODO: MEDIUM put gains in a header, not in the source
   //Recompute Setpoints
   switch(CurrCycleStep)
   {
@@ -164,6 +162,7 @@ void loop()
     break;
     case EXHALE:
     case IDLE:
+      // TODO: MEDIUM tune/fix. These gains are wack, yo.
       // Kp=700.00000, Ki=20.50000, Kd=25.250000;
       Kp=1000, Ki=500.00000, Kd=8.0000;
       CurrPressureSetpointCentimetersH2O = PeepPressureCentimetersH2O;  // low
@@ -178,6 +177,8 @@ void loop()
   // Output calculated pulse width to motor
   blower.write(blower_output);
 
+  // TODO: HIGH Rewrite solenoid state handling to be proportional, rather than binary
+  // TODO: HIGH break out solenoid handling into seperate file
   // Open expiration valve
   char NewSolenoidState = digitalRead(solenoid_pin); 
   if(CurrCycleStep == EXHALE)
@@ -205,20 +206,27 @@ void loop()
   {
     digitalWrite(solenoid_pin, HIGH);
   }
+  if( CurrCycleStep != IDLE )
+  {
+    if( millis() % 25 == 0 )
+    {
+      Serial.print(pressure_input);
+      Serial.print(" ");
+      Serial.print(CurrPressureSetpointCentimetersH2O);
+      // Serial.print(" ");
+      // Serial.print(Pressure_PID.GetKp());
+      // Serial.print(" ");
+      // Serial.print(Pressure_PID.GetKi());
+      // Serial.print(" ");
+      // Serial.print(Pressure_PID.GetKd());
+      // Serial.print(" ");
+      // Serial.print(blower_output);
+      Serial.println();
+    }
+  }
 
-  Serial.print(pressure_input);
-  Serial.print(" ");
-  Serial.print(CurrPressureSetpointCentimetersH2O);
-  // Serial.print(" ");
-  // Serial.print(Pressure_PID.GetKp());
-  // Serial.print(" ");
-  // Serial.print(Pressure_PID.GetKi());
-  // Serial.print(" ");
-  // Serial.print(Pressure_PID.GetKd());
-  // Serial.print(" ");
-  // Serial.print(blower_output);
-  Serial.println();
-
+  // TODO: HIGH Break out serial protocol into seperate file
+  // TODO: HIGH ensure serial operations do not dirupt control loop
   // $<property_name> <value><LF>
   // PEEP	cmH20
   // PIP	cmH20
@@ -228,11 +236,11 @@ void loop()
   // I/E	ratio (denominator) <1,2,3>
   if (Serial.available())
   {
-    string_from_pi = Serial.readStringUntil(0x0A);  // LF
+    string_from_pi = Serial.readStringUntil('*'); 
     if(string_from_pi[0] == '$')
     {
       property_name = string_from_pi.substring(string_from_pi.indexOf('$') + 1, string_from_pi.indexOf(' '));
-      value = string_from_pi.substring(string_from_pi.indexOf(' ') + 1, string_from_pi.indexOf(0x0A)).toFloat();
+      value = string_from_pi.substring(string_from_pi.indexOf(' ') + 1, string_from_pi.indexOf('*')).toFloat();
     }
 
     if(property_name.equalsIgnoreCase("PEEP"))
@@ -265,13 +273,13 @@ void loop()
 
     else if(property_name.equalsIgnoreCase("InhaleTime"))
     {
-      InhaleDurationMilliseconds = value*1000.00;
+      InhaleDurationMilliseconds = value;
       InhaleRampDurationMilliseconds = InhaleDurationMilliseconds*0.25;
     }
 
-    else if(property_name.equalsIgnoreCase("BreathRate"))
+    else if(property_name.equalsIgnoreCase("BreathDuration"))
     {
-      BreathCycleDurationMilliseconds = 60.0/value;
+      BreathCycleDurationMilliseconds = value;
       if( (InhaleDurationMilliseconds/BreathCycleDurationMilliseconds) >= 0.50 )
       {
         InhaleDurationMilliseconds = BreathCycleDurationMilliseconds*0.50;
@@ -290,8 +298,8 @@ void loop()
         Serial.println("Test Started");
         Serial.print("PEEP: ");              Serial.print(PeepPressureCentimetersH2O);                  Serial.println("cmH20");
         Serial.print("PIP: ");               Serial.print(PipPressureCentimetersH2O);                   Serial.println("cmH20");
-        Serial.print("Rate: ");              Serial.print(BreathCycleDurationMilliseconds/(60*1000)) ;  Serial.println("/min");
-        Serial.print("Inhale Duration: ");   Serial.print(InhaleDurationMilliseconds/1000) ;            Serial.println("s");
+        Serial.print("Breathcycle Duration: ");   Serial.print(BreathCycleDurationMilliseconds) ;  Serial.println("ms");
+        Serial.print("Inhale Duration: ");   Serial.print(InhaleDurationMilliseconds) ;            Serial.println("ms");
       }
     }
 
@@ -302,4 +310,6 @@ void loop()
     }
     
   }
+
+    // TODO: HIGH Implement alarms, with serial protocol to inform the GUI/HMI
 }

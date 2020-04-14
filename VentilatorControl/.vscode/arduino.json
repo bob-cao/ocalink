@@ -1,5 +1,5 @@
 {
-    "port": "COM20",
+    "port": "COM11",
     "board": "arduino:samd:mkrnb1500",
     "programmer": "Arduino as ISP"
 }
