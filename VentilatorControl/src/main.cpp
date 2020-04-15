@@ -8,6 +8,12 @@
 
 
 
+// ----------------------------------DEBUGGING--------------------------------------- //
+#define SYSTEM__SERIAL_DEBUG__STATEMACHINE 1
+// ----------------------------------DEBUGGING--------------------------------------- //
+
+
+
 // ----------------------------------CONSTANTS--------------------------------------- //
 #define INCHES_2_CM 2.54f
 
@@ -34,6 +40,15 @@
 #define DEFAULT_KP 1.000000
 #define DEFAULT_KI 1.000000
 #define DEFAULT_KD 0.000000
+
+#define DEFAULT_INHALE_RAMP (uint32_t)250
+#define DEFAULT_INHALE_DURATION (uint32_t)1000
+#define DEFAULT_BREATH_CYCLE_DURATION (uint32_t)6000
+#define DEFAULT_CONTROL_LOOP_INIT_STABILIZATION (uint32_t)3000
+
+#define DEFAULT_PINCH_VALVE_MIN_DWELL_TIME (uint32_t)250
+
+#define DEFAULT_PID_SAMPLE_TIME 10
 // ----------------------------------CONSTANTS--------------------------------------- //
 
 
@@ -56,13 +71,13 @@ PID Pressure_PID(&pressure_input, &blower_output_speed_in_percentage, &CurrPress
 
 uint32_t CycleStartTimeFromSysClockMilliseconds;  // Time that the current breath cycle started ( in terms of system clock millis() )
 uint32_t CurrTimeInCycleMilliseconds; // Time since the start of the current breath cycle. Resets at the beginning of every breath cycle
-uint32_t InhaleRampDurationMilliseconds = 250; // Length of the INHALE_RAMP period for a breath cycle. AKA Value of CurrTimeInCycleMilliseconds when the state changes to INHALE_HOLD .User configurable
-uint32_t InhaleDurationMilliseconds = 1000; // Combined length of the INHALE_RAMP and INHALE_HOLD periods. AKA Value of CurrTimeInCycleMilliseconds when the state changes to EXHALE. User configurable.
-uint32_t BreathCycleDurationMilliseconds = 6000; // Total length of breath cycle, AKA when cycle step resets to INHALE_RAMP and CurrTimeInCycleMilliseconds resets to 0
-uint32_t ControlLoopInitialStabilizationTimeMilliseconds = 1000; // Length of time after transitioning out of IDLE that the system waits before transitioning to INHALE_RAMP
+uint32_t InhaleRampDurationMilliseconds = DEFAULT_INHALE_RAMP; // Length of the INHALE_RAMP period for a breath cycle. AKA Value of CurrTimeInCycleMilliseconds when the state changes to INHALE_HOLD .User configurable
+uint32_t InhaleDurationMilliseconds = DEFAULT_INHALE_DURATION; // Combined length of the INHALE_RAMP and INHALE_HOLD periods. AKA Value of CurrTimeInCycleMilliseconds when the state changes to EXHALE. User configurable.
+uint32_t BreathCycleDurationMilliseconds = DEFAULT_BREATH_CYCLE_DURATION; // Total length of breath cycle, AKA when cycle step resets to INHALE_RAMP and CurrTimeInCycleMilliseconds resets to 0
+uint32_t ControlLoopInitialStabilizationTimeMilliseconds = DEFAULT_CONTROL_LOOP_INIT_STABILIZATION; // Length of time after transitioning out of IDLE that the system waits before transitioning to INHALE_RAMP
 uint32_t ControlLoopStartTimeMilliseconds; // Time, in terms of millis(), the state machine last switched out of IDLE
 uint32_t TimeOfLastSolenoidToggleMilliseconds = 0; // Time, in terms of millis(), that the solenoid last changed states
-uint32_t SolenoidMinimumDwellTimeMilliseconds = 250; // Minimum value of TimeOfLastSolenoidToggleMilliseconds before the solenoid may switch states again
+uint32_t SolenoidMinimumDwellTimeMilliseconds = DEFAULT_PINCH_VALVE_MIN_DWELL_TIME; // Minimum value of TimeOfLastSolenoidToggleMilliseconds before the solenoid may switch states again
 
 double PeepPressureCentimetersH2O = DEFAULT_PEEP;
 double PipPressureCentimetersH2O = DEFAULT_PIP;
@@ -73,7 +88,6 @@ typedef enum{
     EXHALE,
     IDLE
 }BreathCycleStep;
-
 BreathCycleStep CurrCycleStep;
 
 String string_from_pi;
@@ -88,31 +102,51 @@ void breath_cycle_timer_reset(void)
   ControlLoopStartTimeMilliseconds = CycleStartTimeFromSysClockMilliseconds = millis();
 }
 
-void setup()
+void blower_esc_init (void)
 {
-  pinMode(SOLENOID_PIN, OUTPUT);
-  digitalWrite(SOLENOID_PIN, LOW);
-
-  // Need a simulated throttle LOW for at least 1~3 seconds delay for ESC to start properly
+    // Need a simulated throttle LOW for at least 1~3 seconds delay for ESC to start properly
   blower.attach(BLOWER_PIN);
   blower.writeMicroseconds(BLOWER_DRIVER_MIN_PULSE_MICROSECONDS);
   delay(DEFAULT_ESC_INIT_TIME);
+}
 
-  //TODO: LOW Make for debugging ONLY
-  Serial.begin(115200);
+void pinch_valve_init (void)
+{
+  pinMode(SOLENOID_PIN, OUTPUT);
+  digitalWrite(SOLENOID_PIN, LOW);
+}
 
-  //TODO: LOW Change from I2C to SPI
+void pressure_sensors_init (void)
+{
   Wire.begin();
   gagePressure.setPressureUnit(AllSensors_DLHR::PressureUnit::IN_H2O);
   gagePressure.startMeasurement();
+}
 
+void pid_init (void)
+{
   // Set PID Mode to Automatic, may change later
   Pressure_PID.SetMode(AUTOMATIC);
-  // Pressure_PID.SetOutputLimits(15, 180);
   Pressure_PID.SetOutputLimits(MIN_PERCENTAGE, MAX_PERCENTAGE);
-  Pressure_PID.SetSampleTime(10);
+  Pressure_PID.SetSampleTime(DEFAULT_PID_SAMPLE_TIME);
+}
 
+void setup()
+{
+  // Inits
+  pinch_valve_init();
+  blower_esc_init();
+  pressure_sensors_init();
+  pid_init();
+
+  // Start cycle state to idle
   CurrCycleStep = IDLE;
+
+    // Serial Init
+  #if SYSTEM__SERIAL_DEBUG__STATEMACHINE
+  Serial.begin(DEFAULT_BAUD_RATE);
+  #endif
+
   breath_cycle_timer_reset();
 }
 
