@@ -58,6 +58,7 @@
 // Pressure Variables
 AllSensors_DLHR_L60D_8 gagePressure(&Wire);
 float pressure_cmH20;
+double pressure_reading;
 
 // Blower Variables
 double blower_speed;
@@ -65,9 +66,9 @@ Servo blower;
 
 // TODO: MEDIUM reorganize constants
 // Pressure Controlled Blower PID
-double pressure_input, blower_output_speed_in_percentage, CurrPressureSetpointCentimetersH2O;
+double pressure_system_input, blower_output_speed_in_percentage, CurrPressureSetpointCentimetersH2O;
 double Kp = DEFAULT_KP, Ki = DEFAULT_KI, Kd = DEFAULT_KD;
-PID Pressure_PID(&pressure_input,
+PID Pressure_PID(&pressure_system_input,
                 &blower_output_speed_in_percentage,
                 &CurrPressureSetpointCentimetersH2O,
                 Kp, Ki, Kd, DIRECT);
@@ -84,6 +85,10 @@ uint32_t SolenoidMinimumDwellTimeMilliseconds = DEFAULT_PINCH_VALVE_MIN_DWELL_TI
 
 double PeepPressureCentimetersH2O = DEFAULT_PEEP;
 double PipPressureCentimetersH2O = DEFAULT_PIP;
+
+//constants
+//user settings
+//state timings
 
 typedef enum{
     INHALE_RAMP,
@@ -133,6 +138,20 @@ void pid_init (void)
   Pressure_PID.SetSampleTime(DEFAULT_PID_SAMPLE_TIME);
 }
 
+double get_pressure_reading (void)
+{
+  // Get a pressure reading in units of cmH2O
+  if(!gagePressure.readData(!true))
+  {
+    gagePressure.startMeasurement();
+    pressure_reading = gagePressure.pressure * INCHES_2_CM;
+    // Serial.print("Pressure: ");
+    // Serial.println(pressure_system_input);
+  }
+
+  return pressure_reading;
+}
+
 void setup()
 {
   // Inits
@@ -154,14 +173,7 @@ void setup()
 
 void loop()
 {
-  // Get a pressure reading in units of cmH2O
-  if(!gagePressure.readData(!true))
-  {
-    gagePressure.startMeasurement();
-    pressure_input = gagePressure.pressure * INCHES_2_CM;
-    // Serial.print("Pressure: ");
-    // Serial.println(pressure_input);
-  }
+  pressure_system_input = get_pressure_reading();
 
   // TODO: break out into separate file and rewrite for better readability
   //TODO: LOW Make sure clock overflow is handled gracefully
@@ -245,12 +257,12 @@ void loop()
   char NewSolenoidState = digitalRead(SOLENOID_PIN); 
   if(CurrCycleStep == EXHALE)
   {
-    if((CurrPressureSetpointCentimetersH2O + EXPIRATION_OFFSET + EXPIRATION_HYSTERESIS) < (pressure_input))
+    if((CurrPressureSetpointCentimetersH2O + EXPIRATION_OFFSET + EXPIRATION_HYSTERESIS) < (pressure_system_input))
     {
       NewSolenoidState = LOW;
     }
     
-    else if((CurrPressureSetpointCentimetersH2O + EXPIRATION_OFFSET - EXPIRATION_HYSTERESIS)>= (pressure_input))
+    else if((CurrPressureSetpointCentimetersH2O + EXPIRATION_OFFSET - EXPIRATION_HYSTERESIS)>= (pressure_system_input))
     {
       NewSolenoidState = HIGH;
     }
@@ -272,7 +284,7 @@ void loop()
   {
     if( millis() % 25 == 0 )
     {
-      Serial.print(pressure_input);
+      Serial.print(pressure_system_input);
       Serial.print(" ");
       Serial.print(CurrPressureSetpointCentimetersH2O);
       // Serial.print(" ");
