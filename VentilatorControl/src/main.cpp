@@ -259,6 +259,53 @@ void print_pid_setpoint_and_current_value(void)
   }
 }
 
+void write_calculated_pid_blower_speed(void)
+{
+  // Set Kp, Ki, Kd and comute Pressure PID
+  Pressure_PID.SetTunings(Kp, Ki, Kd);
+  Pressure_PID.Compute();
+
+  // Output PID calculated 0-100% to motor
+  blower_speed = map(blower_output_speed_in_percentage,
+                    MIN_PERCENTAGE,
+                    MAX_PERCENTAGE,
+                    BLOWER_DRIVER_MIN_PULSE_MICROSECONDS,
+                    BLOWER_DRIVER_MAX_PULSE_MICROSECONDS);
+  blower.writeMicroseconds(blower_speed);
+}
+
+void pinch_valve_control(void)
+{
+  // TODO: HIGH Rewrite solenoid state handling to be proportional, rather than binary
+  // TODO: HIGH break out solenoid handling into seperate file
+  // Open expiration valve
+  char NewSolenoidState = digitalRead(SOLENOID_PIN); 
+  if(CurrCycleStep == EXHALE)
+  {
+    if((CurrPressureSetpointCentimetersH2O + EXPIRATION_OFFSET + EXPIRATION_HYSTERESIS) < (pressure_system_input))
+    {
+      NewSolenoidState = LOW;
+    }
+    
+    else if((CurrPressureSetpointCentimetersH2O + EXPIRATION_OFFSET - EXPIRATION_HYSTERESIS)>= (pressure_system_input))
+    {
+      NewSolenoidState = HIGH;
+    }
+
+    if((digitalRead(SOLENOID_PIN) != NewSolenoidState) && 
+       ((TimeOfLastSolenoidToggleMilliseconds + SolenoidMinimumDwellTimeMilliseconds) < millis()))
+    {
+      digitalWrite(SOLENOID_PIN, NewSolenoidState);
+      TimeOfLastSolenoidToggleMilliseconds = millis();
+    }
+  }
+
+  else // if inhale_ramp or inhale_hold
+  {
+    digitalWrite(SOLENOID_PIN, HIGH);
+  }
+}
+
 void setup()
 {
   // Inits
@@ -346,46 +393,9 @@ void loop()
     break;
   }
 
-  // Set Kp, Ki, Kd and comute Pressure PID
-  Pressure_PID.SetTunings(Kp, Ki, Kd);
-  Pressure_PID.Compute();
+  pinch_valve_control();
 
-  // Output PID calculated 0-100% to motor
-  blower_speed = map(blower_output_speed_in_percentage,
-                    MIN_PERCENTAGE,
-                    MAX_PERCENTAGE,
-                    BLOWER_DRIVER_MIN_PULSE_MICROSECONDS,
-                    BLOWER_DRIVER_MAX_PULSE_MICROSECONDS);
-  blower.writeMicroseconds(blower_speed);
-
-  // TODO: HIGH Rewrite solenoid state handling to be proportional, rather than binary
-  // TODO: HIGH break out solenoid handling into seperate file
-  // Open expiration valve
-  char NewSolenoidState = digitalRead(SOLENOID_PIN); 
-  if(CurrCycleStep == EXHALE)
-  {
-    if((CurrPressureSetpointCentimetersH2O + EXPIRATION_OFFSET + EXPIRATION_HYSTERESIS) < (pressure_system_input))
-    {
-      NewSolenoidState = LOW;
-    }
-    
-    else if((CurrPressureSetpointCentimetersH2O + EXPIRATION_OFFSET - EXPIRATION_HYSTERESIS)>= (pressure_system_input))
-    {
-      NewSolenoidState = HIGH;
-    }
-
-    if((digitalRead(SOLENOID_PIN) != NewSolenoidState) && 
-       ((TimeOfLastSolenoidToggleMilliseconds + SolenoidMinimumDwellTimeMilliseconds) < millis()))
-    {
-      digitalWrite(SOLENOID_PIN, NewSolenoidState);
-      TimeOfLastSolenoidToggleMilliseconds = millis();
-    }
-  }
-
-  else // if inhale_ramp or inhale_hold
-  {
-    digitalWrite(SOLENOID_PIN, HIGH);
-  }
+  write_calculated_pid_blower_speed();
 
   print_pid_setpoint_and_current_value();
 
