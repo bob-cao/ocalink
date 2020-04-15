@@ -287,14 +287,6 @@ void loop()
       Serial.print(pressure_system_input);
       Serial.print(" ");
       Serial.print(CurrPressureSetpointCentimetersH2O);
-      // Serial.print(" ");
-      // Serial.print(Pressure_PID.GetKp());
-      // Serial.print(" ");
-      // Serial.print(Pressure_PID.GetKi());
-      // Serial.print(" ");
-      // Serial.print(Pressure_PID.GetKd());
-      // Serial.print(" ");
-      // Serial.print(blower_output_speed_in_percentage);
       Serial.println();
     }
   }
