@@ -153,6 +153,112 @@ double get_pressure_reading (void)
   return pressure_reading;
 }
 
+void get_values_from_pi (void)
+{
+    // TODO: HIGH Break out serial protocol into seperate file
+  // TODO: HIGH ensure serial operations do not dirupt control loop
+  // $<property_name> <value><LF>
+  // PEEP	cmH20
+  // PIP	cmH20
+  // FI02	%
+  // F	b/m
+  // RISE	sec
+  // I/E	ratio (denominator) <1,2,3>
+  if (Serial.available())
+  {
+    string_from_pi = Serial.readStringUntil('*'); 
+    if(string_from_pi[0] == '$')
+    {
+      property_name = string_from_pi.substring(string_from_pi.indexOf('$') + 1, string_from_pi.indexOf(' '));
+      value = string_from_pi.substring(string_from_pi.indexOf(' ') + 1, string_from_pi.indexOf('*')).toFloat();
+    }
+
+    if(property_name.equalsIgnoreCase("PEEP"))
+    {
+      // PEEP Value
+      PeepPressureCentimetersH2O = value;
+    }
+
+    else if(property_name.equalsIgnoreCase("PIP"))
+    {
+      // PIP Value
+      PipPressureCentimetersH2O = value;
+    }
+
+    // else if(property_name == "FI02")
+    // {
+    //   // Flow of O2 in %
+    // }
+
+    // else if(property_name.equalsIgnoreCase("F"))
+    // {
+    //   // Breathes per minute in b/m
+    // }
+
+    else if(property_name.equalsIgnoreCase("Ramptime"))
+    {
+      // Rise time in seconds
+      InhaleRampDurationMilliseconds = value;
+    }
+
+    else if(property_name.equalsIgnoreCase("InhaleTime"))
+    {
+      InhaleDurationMilliseconds = value;
+
+      // arbitrarily default to having the ramp time be 25% of the inhale duration
+      InhaleRampDurationMilliseconds = InhaleDurationMilliseconds*0.25;
+    }
+
+    else if(property_name.equalsIgnoreCase("BreathDuration"))
+    {
+      BreathCycleDurationMilliseconds = value;
+
+      // if the I:E ratio exceeds 1:1 (e.g ~2:1), cap it at 1:1. The standards we are workign from  state an expected I:E of 1:1-1:3
+      if( (InhaleDurationMilliseconds/BreathCycleDurationMilliseconds) >= 0.50 )
+      {
+        InhaleDurationMilliseconds = BreathCycleDurationMilliseconds*0.50;
+        InhaleRampDurationMilliseconds = InhaleDurationMilliseconds*0.25;
+      }
+    }
+
+    else if( property_name.equalsIgnoreCase("Start") )
+    {
+      if(CurrCycleStep == IDLE)
+      {
+        CurrCycleStep = EXHALE;
+        CurrCycleStep = EXHALE;
+        breath_cycle_timer_reset();
+        Serial.println("Test Started");
+        Serial.print("PEEP: ");              Serial.print(PeepPressureCentimetersH2O);                  Serial.println("cmH20");
+        Serial.print("PIP: ");               Serial.print(PipPressureCentimetersH2O);                   Serial.println("cmH20");
+        Serial.print("Breathcycle Duration: ");   Serial.print(BreathCycleDurationMilliseconds) ;  Serial.println("ms");
+        Serial.print("Inhale Duration: ");   Serial.print(InhaleDurationMilliseconds) ;            Serial.println("ms");
+      }
+    }
+
+    else if( property_name.equalsIgnoreCase("Stop") )
+    {
+      Serial.println("Test Stopped");
+      CurrCycleStep = IDLE;
+    }
+    
+  }
+}
+
+void print_pid_setpoint_and_current_value(void)
+{
+  if( CurrCycleStep != IDLE )
+  {
+    if( millis() % 25 == 0 )
+    {
+      Serial.print(pressure_system_input);
+      Serial.print(" ");
+      Serial.print(CurrPressureSetpointCentimetersH2O);
+      Serial.println();
+    }
+  }
+}
+
 void setup()
 {
   // Inits
@@ -281,105 +387,9 @@ void loop()
     digitalWrite(SOLENOID_PIN, HIGH);
   }
 
-  if( CurrCycleStep != IDLE )
-  {
-    if( millis() % 25 == 0 )
-    {
-      Serial.print(pressure_system_input);
-      Serial.print(" ");
-      Serial.print(CurrPressureSetpointCentimetersH2O);
-      Serial.println();
-    }
-  }
+  print_pid_setpoint_and_current_value();
 
-  // TODO: HIGH Break out serial protocol into seperate file
-  // TODO: HIGH ensure serial operations do not dirupt control loop
-  // $<property_name> <value><LF>
-  // PEEP	cmH20
-  // PIP	cmH20
-  // FI02	%
-  // F	b/m
-  // RISE	sec
-  // I/E	ratio (denominator) <1,2,3>
-  if (Serial.available())
-  {
-    string_from_pi = Serial.readStringUntil('*'); 
-    if(string_from_pi[0] == '$')
-    {
-      property_name = string_from_pi.substring(string_from_pi.indexOf('$') + 1, string_from_pi.indexOf(' '));
-      value = string_from_pi.substring(string_from_pi.indexOf(' ') + 1, string_from_pi.indexOf('*')).toFloat();
-    }
-
-    if(property_name.equalsIgnoreCase("PEEP"))
-    {
-      // PEEP Value
-      PeepPressureCentimetersH2O = value;
-    }
-
-    else if(property_name.equalsIgnoreCase("PIP"))
-    {
-      // PIP Value
-      PipPressureCentimetersH2O = value;
-    }
-
-    // else if(property_name == "FI02")
-    // {
-    //   // Flow of O2 in %
-    // }
-
-    // else if(property_name.equalsIgnoreCase("F"))
-    // {
-    //   // Breathes per minute in b/m
-    // }
-
-    else if(property_name.equalsIgnoreCase("Ramptime"))
-    {
-      // Rise time in seconds
-      InhaleRampDurationMilliseconds = value;
-    }
-
-    else if(property_name.equalsIgnoreCase("InhaleTime"))
-    {
-      InhaleDurationMilliseconds = value;
-
-      // arbitrarily default to having the ramp time be 25% of the inhale duration
-      InhaleRampDurationMilliseconds = InhaleDurationMilliseconds*0.25;
-    }
-
-    else if(property_name.equalsIgnoreCase("BreathDuration"))
-    {
-      BreathCycleDurationMilliseconds = value;
-
-      // if the I:E ratio exceeds 1:1 (e.g ~2:1), cap it at 1:1. The standards we are workign from  state an expected I:E of 1:1-1:3
-      if( (InhaleDurationMilliseconds/BreathCycleDurationMilliseconds) >= 0.50 )
-      {
-        InhaleDurationMilliseconds = BreathCycleDurationMilliseconds*0.50;
-        InhaleRampDurationMilliseconds = InhaleDurationMilliseconds*0.25;
-      }
-    }
-
-    else if( property_name.equalsIgnoreCase("Start") )
-    {
-      if(CurrCycleStep == IDLE)
-      {
-        CurrCycleStep = EXHALE;
-        CurrCycleStep = EXHALE;
-        breath_cycle_timer_reset();
-        Serial.println("Test Started");
-        Serial.print("PEEP: ");              Serial.print(PeepPressureCentimetersH2O);                  Serial.println("cmH20");
-        Serial.print("PIP: ");               Serial.print(PipPressureCentimetersH2O);                   Serial.println("cmH20");
-        Serial.print("Breathcycle Duration: ");   Serial.print(BreathCycleDurationMilliseconds) ;  Serial.println("ms");
-        Serial.print("Inhale Duration: ");   Serial.print(InhaleDurationMilliseconds) ;            Serial.println("ms");
-      }
-    }
-
-    else if( property_name.equalsIgnoreCase("Stop") )
-    {
-      Serial.println("Test Stopped");
-      CurrCycleStep = IDLE;
-    }
-    
-  }
+  get_values_from_pi();
 
     // TODO: HIGH Implement alarms, with serial protocol to inform the GUI/HMI
 }
