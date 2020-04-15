@@ -6,10 +6,13 @@
 #include <Servo.h>
 #include <PID_v1.h>
 
+#define PEEP 5.000000f
+#define PIP 15.000000f
+
 // ESC Pulse Widths (using OTS hobby ESCs)
 // TODO: HIGH Use later instead of Servo library
-// #define BLOWER_DRIVER__MIN_PULSE__MICROSECONDS 1000
-// #define BLOWER_DRIVER__MAX_PULSE__MICROSECONDS 2000
+#define BLOWER_DRIVER__MIN_PULSE__MICROSECONDS 1000
+#define BLOWER_DRIVER__MAX_PULSE__MICROSECONDS 2000
 
 //TODO: LOW Refactor to have all variables extremely modular and not hard coded (later)
 
@@ -30,10 +33,10 @@ Servo blower;
 
 // TODO: MEDIUM rerganize constants
 // Pressure Controlled Blower PID
-double pressure_input, blower_output;
+double pressure_input, blower_output_speed_in_percentage;
 double CurrPressureSetpointCentimetersH2O;
 double Kp=1.000000, Ki=1.000000, Kd=0.0000000;
-PID Pressure_PID(&pressure_input, &blower_output, &CurrPressureSetpointCentimetersH2O, Kp, Ki, Kd, DIRECT);
+PID Pressure_PID(&pressure_input, &blower_output_speed_in_percentage, &CurrPressureSetpointCentimetersH2O, Kp, Ki, Kd, DIRECT);
 
 uint32_t CycleStartTimeFromSysClockMilliseconds;
 uint32_t CurrTimeInCycleMilliseconds;
@@ -41,13 +44,13 @@ uint32_t InhaleRampDurationMilliseconds = 250;
 uint32_t InhaleDurationMilliseconds = 1000;
 //uint32_t ExhaleDurationMilliseconds = 10000;
 uint32_t BreathCycleDurationMilliseconds = 6000;
-uint32_t ControlLoopInitialStabilizationTImeMilliseconds = 1000;;
+uint32_t ControlLoopInitialStabilizationTimeMilliseconds = 1000;;
 uint32_t ControlLoopStartTimeMilliseconds;
 uint32_t TimeOfLastSolenoidToggleMilliseconds = 0;
 uint32_t SolenoidMinimumDwellTimeMilliseconds = 250;
 
-double PeepPressureCentimetersH2O = 5.000000;
-double PipPressureCentimetersH2O = 15.500000;
+double PeepPressureCentimetersH2O = PEEP;
+double PipPressureCentimetersH2O = PIP;
 
 typedef enum{
     INHALE_RAMP,
@@ -71,7 +74,8 @@ void setup()
 
   // Need a simulated throttle LOW for at least 1 second delay for ESC to start properly
   blower.attach(blower_pin);
-  blower.write(10);
+  // blower.write(10);
+  blower.writeMicroseconds(BLOWER_DRIVER__MIN_PULSE__MICROSECONDS);
   delay(2000);
 
   //TODO: LOW Make for debugging ONLY
@@ -110,7 +114,7 @@ void loop()
   if( CurrCycleStep != IDLE )
   {
     CurrTimeInCycleMilliseconds = millis()-CycleStartTimeFromSysClockMilliseconds;
-    if(millis()-ControlLoopStartTimeMilliseconds > ControlLoopInitialStabilizationTImeMilliseconds)
+    if(millis()-ControlLoopStartTimeMilliseconds > ControlLoopInitialStabilizationTimeMilliseconds)
     {
       if(CurrTimeInCycleMilliseconds <= InhaleRampDurationMilliseconds)
       {
@@ -175,7 +179,9 @@ void loop()
   Pressure_PID.Compute();
 
   // Output calculated pulse width to motor
-  blower.write(blower_output);
+  // blower.write(blower_output);
+  blower_speed = map(blower_output_speed_in_percentage, 0, 100, BLOWER_DRIVER__MIN_PULSE__MICROSECONDS, BLOWER_DRIVER__MAX_PULSE__MICROSECONDS);
+  blower.writeMicroseconds(blower_speed);
 
   // TODO: HIGH Rewrite solenoid state handling to be proportional, rather than binary
   // TODO: HIGH break out solenoid handling into seperate file
@@ -220,7 +226,7 @@ void loop()
       // Serial.print(" ");
       // Serial.print(Pressure_PID.GetKd());
       // Serial.print(" ");
-      // Serial.print(blower_output);
+      // Serial.print(blower_output_speed_in_percentage);
       Serial.println();
     }
   }
