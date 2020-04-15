@@ -115,7 +115,7 @@ void breath_cycle_timer_reset(void)
 
 void blower_esc_init (void)
 {
-    // Need to hold throttle LOW for ESC to start properly
+    // Hold throttle LOW for ESC to initialize properly
   blower.attach(BLOWER_PIN);
   blower.writeMicroseconds(BLOWER_DRIVER_MIN_PULSE_MICROSECONDS);
   delay(DEFAULT_ESC_INIT_TIME);
