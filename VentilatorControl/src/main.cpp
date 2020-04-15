@@ -11,8 +11,11 @@
 // ----------------------------------CONSTANTS--------------------------------------- //
 #define INCHES_2_CM 2.54f
 
-#define BLOWER_DRIVER__MIN_PULSE__MICROSECONDS (double)1000
-#define BLOWER_DRIVER__MAX_PULSE__MICROSECONDS (double)2000
+#define DEFAULT_BAUD_RATE 115200
+
+#define BLOWER_DRIVER_MIN_PULSE_MICROSECONDS (double)1000
+#define BLOWER_DRIVER_MAX_PULSE_MICROSECONDS (double)2000
+#define DEFAULT_ESC_INIT_TIME 3000
 
 #define MIN_PERCENTAGE (double)0
 #define MAX_PERCENTAGE (double)100
@@ -27,7 +30,10 @@
 #define DEFAULT_PIP 20.000000f
 #define DEFAULT_BM 10  // breaths per minute
 #define DEFAULT_RISE 1000  // 1 second
-#define DEFAULT_IE 2 // inhale/exhale ratio (in )
+#define DEFAULT_IE 2 // inhale/exhale ratio
+#define DEFAULT_KP 1.000000
+#define DEFAULT_KI 1.000000
+#define DEFAULT_KD 0.000000
 // ----------------------------------CONSTANTS--------------------------------------- //
 
 
@@ -37,21 +43,15 @@
 // Pressure Variables
 AllSensors_DLHR_L60D_8 gagePressure(&Wire);
 float pressure_cmH20;
-double peep = DEFAULT_PEEP;
-double pip = DEFAULT_PIP;
-
-// 10 b/m
-// 1sec rise time
-// 1:2 i/e
 
 // Blower Variables
-byte blower_speed;
+double blower_speed;
 Servo blower;
 
 // TODO: MEDIUM reorganize constants
 // Pressure Controlled Blower PID
 double pressure_input, blower_output_speed_in_percentage, CurrPressureSetpointCentimetersH2O;
-double Kp=1.000000, Ki=1.000000, Kd=0.0000000;
+double Kp = DEFAULT_KP, Ki = DEFAULT_KI, Kd = DEFAULT_KD;
 PID Pressure_PID(&pressure_input, &blower_output_speed_in_percentage, &CurrPressureSetpointCentimetersH2O, Kp, Ki, Kd, DIRECT);
 
 uint32_t CycleStartTimeFromSysClockMilliseconds;  // Time that the current breath cycle started ( in terms of system clock millis() )
@@ -64,8 +64,8 @@ uint32_t ControlLoopStartTimeMilliseconds; // Time, in terms of millis(), the st
 uint32_t TimeOfLastSolenoidToggleMilliseconds = 0; // Time, in terms of millis(), that the solenoid last changed states
 uint32_t SolenoidMinimumDwellTimeMilliseconds = 250; // Minimum value of TimeOfLastSolenoidToggleMilliseconds before the solenoid may switch states again
 
-double PeepPressureCentimetersH2O = peep;
-double PipPressureCentimetersH2O = pip;
+double PeepPressureCentimetersH2O = DEFAULT_PEEP;
+double PipPressureCentimetersH2O = DEFAULT_PIP;
 
 typedef enum{
     INHALE_RAMP,
@@ -82,7 +82,7 @@ byte pi_string_index_asterik;
 String property_name;
 double value;
 
-void timer_reset(void)
+void breath_cycle_timer_reset(void)
 {
   CurrTimeInCycleMilliseconds = 0;
   ControlLoopStartTimeMilliseconds = CycleStartTimeFromSysClockMilliseconds = millis();
@@ -93,11 +93,10 @@ void setup()
   pinMode(SOLENOID_PIN, OUTPUT);
   digitalWrite(SOLENOID_PIN, LOW);
 
-  // Need a simulated throttle LOW for at least 1 second delay for ESC to start properly
+  // Need a simulated throttle LOW for at least 1~3 seconds delay for ESC to start properly
   blower.attach(BLOWER_PIN);
-  // blower.write(10);
-  blower.writeMicroseconds(BLOWER_DRIVER__MIN_PULSE__MICROSECONDS);
-  delay(2000);
+  blower.writeMicroseconds(BLOWER_DRIVER_MIN_PULSE_MICROSECONDS);
+  delay(DEFAULT_ESC_INIT_TIME);
 
   //TODO: LOW Make for debugging ONLY
   Serial.begin(115200);
@@ -114,9 +113,7 @@ void setup()
   Pressure_PID.SetSampleTime(10);
 
   CurrCycleStep = IDLE;
-  timer_reset();
-  // CurrTimeInCycleMilliseconds = 0;
-  // ControlLoopStartTimeMilliseconds = CycleStartTimeFromSysClockMilliseconds = millis();
+  breath_cycle_timer_reset();
 }
 
 void loop()
@@ -159,9 +156,7 @@ void loop()
       {
         CurrCycleStep = INHALE_RAMP;
         // Serial.println("INHALE_RAMP");
-        timer_reset();
-        // CurrTimeInCycleMilliseconds = 0;
-        // CycleStartTimeFromSysClockMilliseconds = millis();
+        breath_cycle_timer_reset();
       }
     }
     else // if idle == true
@@ -201,14 +196,12 @@ void loop()
   Pressure_PID.SetTunings(Kp, Ki, Kd);
   Pressure_PID.Compute();
 
-  // Output calculated pulse width to motor
-  // blower.write(blower_output);
+  // Output PID calculated 0-100% to motor
   blower_speed = map(blower_output_speed_in_percentage,
                     MIN_PERCENTAGE,
                     MAX_PERCENTAGE,
-                    BLOWER_DRIVER__MIN_PULSE__MICROSECONDS,
-                    BLOWER_DRIVER__MAX_PULSE__MICROSECONDS);
-
+                    BLOWER_DRIVER_MIN_PULSE_MICROSECONDS,
+                    BLOWER_DRIVER_MAX_PULSE_MICROSECONDS);
   blower.writeMicroseconds(blower_speed);
 
   // TODO: HIGH Rewrite solenoid state handling to be proportional, rather than binary
@@ -327,9 +320,7 @@ void loop()
       {
         CurrCycleStep = EXHALE;
         CurrCycleStep = EXHALE;
-        timer_reset();
-        // CurrTimeInCycleMilliseconds = 0;
-        // ControlLoopStartTimeMilliseconds = CycleStartTimeFromSysClockMilliseconds = millis();
+        breath_cycle_timer_reset();
         Serial.println("Test Started");
         Serial.print("PEEP: ");              Serial.print(PeepPressureCentimetersH2O);                  Serial.println("cmH20");
         Serial.print("PIP: ");               Serial.print(PipPressureCentimetersH2O);                   Serial.println("cmH20");
