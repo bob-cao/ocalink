@@ -29,7 +29,8 @@
 #define EXPIRATION_OFFSET (double)3.0f
 #define EXPIRATION_HYSTERESIS (double)0.25f
 
-#define SOLENOID_PIN 4
+#define PINCH_VALVE_PIN 3
+// #define SOLENOID_PIN 4
 #define BLOWER_PIN 5
 
 #define DEFAULT_PEEP 5.000000f
@@ -59,6 +60,7 @@ typedef enum{
 BreathCycleStep CurrCycleStep;
 
 Servo blower;
+Servo pinch_valve;
 
 AllSensors_DLHR_L60D_8 gagePressure(&Wire);
 // ----------------------------------CONSTANTS--------------------------------------- //
@@ -125,8 +127,13 @@ void blower_esc_init (void)
 
 void pinch_valve_init (void)
 {
-  pinMode(SOLENOID_PIN, OUTPUT);
-  digitalWrite(SOLENOID_PIN, LOW);
+  pinMode(PINCH_VALVE_PIN, OUTPUT);
+  blower.attach(PINCH_VALVE_PIN);
+  blower.writeMicroseconds(BLOWER_DRIVER_MIN_PULSE_MICROSECONDS);
+
+  // pinMode(SOLENOID_PIN, OUTPUT);
+  // digitalWrite(SOLENOID_PIN, LOW);
+
 }
 
 void pressure_sensors_init (void)
@@ -276,7 +283,7 @@ void write_calculated_pid_blower_speed(void)
   blower.writeMicroseconds(blower_speed);
 }
 
-void pinch_valve_control(void)
+/*void pinch_valve_control(void)
 {
   // TODO: HIGH Rewrite solenoid state handling to be proportional, rather than binary
   // TODO: HIGH break out solenoid handling into seperate file
@@ -306,26 +313,7 @@ void pinch_valve_control(void)
   {
     digitalWrite(SOLENOID_PIN, HIGH);
   }
-}
-
-void setup()
-{
-  // Inits
-  pinch_valve_init();
-  blower_esc_init();
-  pressure_sensors_init();
-  pid_init();
-
-  // Start cycle state to idle
-  CurrCycleStep = IDLE;
-
-    // Serial Init
-  #if SYSTEM__SERIAL_DEBUG__STATEMACHINE
-  Serial.begin(DEFAULT_BAUD_RATE);
-  #endif
-
-  breath_cycle_timer_reset();
-}
+}*/
 
 void cycle_state_handler (void)
 {
@@ -394,6 +382,25 @@ void cycle_state_setpoint_handler(void)
   }
 }
 
+void setup()
+{
+  // Inits
+  pinch_valve_init();
+  blower_esc_init();
+  pressure_sensors_init();
+  pid_init();
+
+  // Start cycle state to idle
+  CurrCycleStep = IDLE;
+
+    // Serial Init
+  #if SYSTEM__SERIAL_DEBUG__STATEMACHINE
+  Serial.begin(DEFAULT_BAUD_RATE);
+  #endif
+
+  breath_cycle_timer_reset();
+}
+
 void loop()
 {
   pressure_system_input = get_pressure_reading();
@@ -402,7 +409,7 @@ void loop()
 
   cycle_state_setpoint_handler();
 
-  pinch_valve_control();
+  // pinch_valve_control();
 
   write_calculated_pid_blower_speed();
 
