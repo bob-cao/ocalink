@@ -128,8 +128,11 @@ void blower_esc_init (void)
 void pinch_valve_init (void)
 {
   pinMode(PINCH_VALVE_PIN, OUTPUT);
-  blower.attach(PINCH_VALVE_PIN);
-  blower.writeMicroseconds(BLOWER_DRIVER_MIN_PULSE_MICROSECONDS);
+  pinch_valve.attach(PINCH_VALVE_PIN);
+  pinch_valve.writeMicroseconds(1450);
+
+  //1650 fully closed
+  //1450 fully open
 
   // pinMode(SOLENOID_PIN, OUTPUT);
   // digitalWrite(SOLENOID_PIN, LOW);
@@ -403,19 +406,21 @@ void setup()
 
 void loop()
 {
-  pressure_system_input = get_pressure_reading();
+  pinch_valve.writeMicroseconds(1650);
 
-  cycle_state_handler();
+  // pressure_system_input = get_pressure_reading();
 
-  cycle_state_setpoint_handler();
+  // cycle_state_handler();
 
-  // pinch_valve_control();
+  // cycle_state_setpoint_handler();
 
-  write_calculated_pid_blower_speed();
+  // // pinch_valve_control();
 
-  print_pid_setpoint_and_current_value();
+  // write_calculated_pid_blower_speed();
 
-  get_values_from_raspberry_pi();
+  // print_pid_setpoint_and_current_value();
 
-    // TODO: HIGH Implement alarms, with serial protocol to inform the GUI/HMI
+  // get_values_from_raspberry_pi();
+
+  //   // TODO: HIGH Implement alarms, with serial protocol to inform the GUI/HMI
 }
