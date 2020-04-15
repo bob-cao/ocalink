@@ -325,12 +325,10 @@ void setup()
   breath_cycle_timer_reset();
 }
 
-void loop()
+void cycle_state_handler (void)
 {
-  pressure_system_input = get_pressure_reading();
-
-  // TODO: break out into separate file and rewrite for better readability
-  //TODO: LOW Make sure clock overflow is handled gracefully
+    // TODO: break out into separate file and rewrite for better readability
+  // TODO: LOW Make sure clock overflow is handled gracefully
   if( CurrCycleStep != IDLE )
   {
     CurrTimeInCycleMilliseconds = millis()-CycleStartTimeFromSysClockMilliseconds;
@@ -339,24 +337,20 @@ void loop()
       if(CurrTimeInCycleMilliseconds <= InhaleRampDurationMilliseconds)
       {
         CurrCycleStep = INHALE_RAMP;
-        // Serial.println("INHALE_RAMP");
       }
       else if((InhaleRampDurationMilliseconds < CurrTimeInCycleMilliseconds) &&
               (CurrTimeInCycleMilliseconds <= InhaleDurationMilliseconds))
       { 
         CurrCycleStep = INHALE_HOLD;
-        // Serial.println("INHALE_HOLD");
       }
       else if((InhaleDurationMilliseconds < CurrTimeInCycleMilliseconds) &&
             (CurrTimeInCycleMilliseconds <= BreathCycleDurationMilliseconds))
       {
         CurrCycleStep = EXHALE;
-        // Serial.println("EXHALE");
       }
       else if(CurrTimeInCycleMilliseconds > BreathCycleDurationMilliseconds)
       {
         CurrCycleStep = INHALE_RAMP;
-        // Serial.println("INHALE_RAMP");
         breath_cycle_timer_reset();
       }
     }
@@ -365,8 +359,11 @@ void loop()
       CurrCycleStep = EXHALE;
     }
   }
+}
 
-  // TODO: HIGH breakout into separate file and rewrite for readability.
+void cycle_state_setpoint_handler(void)
+{
+    // TODO: HIGH breakout into separate file and rewrite for readability.
   // TODO: MEDIUM put gains in a header, not in the source
   //Recompute Setpoints
   switch(CurrCycleStep)
@@ -393,6 +390,15 @@ void loop()
       // Serial.println("EXHALE");
     break;
   }
+}
+
+void loop()
+{
+  pressure_system_input = get_pressure_reading();
+
+  cycle_state_handler();
+
+  cycle_state_setpoint_handler();
 
   pinch_valve_control();
 
