@@ -10,7 +10,6 @@
 #define PIP 15.000000f
 
 // ESC Pulse Widths (using OTS hobby ESCs)
-// TODO: HIGH Use later instead of Servo library
 #define BLOWER_DRIVER__MIN_PULSE__MICROSECONDS 1000
 #define BLOWER_DRIVER__MAX_PULSE__MICROSECONDS 2000
 
