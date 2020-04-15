@@ -148,8 +148,6 @@ double get_pressure_reading (void)
   {
     gagePressure.startMeasurement();
     pressure_reading = gagePressure.pressure * INCHES_2_CM;
-    // Serial.print("Pressure: ");
-    // Serial.println(pressure_system_input);
   }
 
   return pressure_reading;
