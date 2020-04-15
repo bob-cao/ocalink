@@ -67,7 +67,10 @@ Servo blower;
 // Pressure Controlled Blower PID
 double pressure_input, blower_output_speed_in_percentage, CurrPressureSetpointCentimetersH2O;
 double Kp = DEFAULT_KP, Ki = DEFAULT_KI, Kd = DEFAULT_KD;
-PID Pressure_PID(&pressure_input, &blower_output_speed_in_percentage, &CurrPressureSetpointCentimetersH2O, Kp, Ki, Kd, DIRECT);
+PID Pressure_PID(&pressure_input,
+                &blower_output_speed_in_percentage,
+                &CurrPressureSetpointCentimetersH2O,
+                Kp, Ki, Kd, DIRECT);
 
 uint32_t CycleStartTimeFromSysClockMilliseconds;  // Time that the current breath cycle started ( in terms of system clock millis() )
 uint32_t CurrTimeInCycleMilliseconds; // Time since the start of the current breath cycle. Resets at the beginning of every breath cycle
@@ -104,7 +107,7 @@ void breath_cycle_timer_reset(void)
 
 void blower_esc_init (void)
 {
-    // Need a simulated throttle LOW for at least 1~3 seconds delay for ESC to start properly
+    // Need to hold throttle LOW for ESC to start properly
   blower.attach(BLOWER_PIN);
   blower.writeMicroseconds(BLOWER_DRIVER_MIN_PULSE_MICROSECONDS);
   delay(DEFAULT_ESC_INIT_TIME);
@@ -118,15 +121,14 @@ void pinch_valve_init (void)
 
 void pressure_sensors_init (void)
 {
-  Wire.begin();
+  Wire.begin();  // Each pressure sensor will be unique I2C addresses based on MPN
   gagePressure.setPressureUnit(AllSensors_DLHR::PressureUnit::IN_H2O);
   gagePressure.startMeasurement();
 }
 
 void pid_init (void)
 {
-  // Set PID Mode to Automatic, may change later
-  Pressure_PID.SetMode(AUTOMATIC);
+  Pressure_PID.SetMode(AUTOMATIC);  // Set PID Mode to Automatic, may change later
   Pressure_PID.SetOutputLimits(MIN_PERCENTAGE, MAX_PERCENTAGE);
   Pressure_PID.SetSampleTime(DEFAULT_PID_SAMPLE_TIME);
 }
@@ -153,7 +155,6 @@ void setup()
 void loop()
 {
   // Get a pressure reading in units of cmH2O
-  // gagePressure.startMeasurement();
   if(!gagePressure.readData(!true))
   {
     gagePressure.startMeasurement();
