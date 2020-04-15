@@ -115,6 +115,8 @@ void breath_cycle_timer_reset(void)
 
 void blower_esc_init (void)
 {
+  pinMode(BLOWER_PIN, OUTPUT);
+  digitalWrite(BLOWER_PIN, LOW);
     // Hold throttle LOW for ESC to initialize properly
   blower.attach(BLOWER_PIN);
   blower.writeMicroseconds(BLOWER_DRIVER_MIN_PULSE_MICROSECONDS);
