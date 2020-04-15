@@ -385,6 +385,7 @@ void loop()
     break;
     case EXHALE:
     case IDLE:
+    default:
       // TODO: MEDIUM tune/fix. These gains are wack, yo.
       // Kp=700.00000, Ki=20.50000, Kd=25.250000;
       Kp=1000, Ki=500.00000, Kd=8.0000;
