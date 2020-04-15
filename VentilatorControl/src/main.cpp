@@ -49,46 +49,6 @@
 #define DEFAULT_PINCH_VALVE_MIN_DWELL_TIME (uint32_t)250
 
 #define DEFAULT_PID_SAMPLE_TIME 10
-// ----------------------------------CONSTANTS--------------------------------------- //
-
-
-
-//TODO: LOW Refactor to have all variables extremely modular and not hard coded (later)
-
-// Pressure Variables
-AllSensors_DLHR_L60D_8 gagePressure(&Wire);
-float pressure_cmH20;
-double pressure_reading;
-
-// Blower Variables
-double blower_speed;
-Servo blower;
-
-// TODO: MEDIUM reorganize constants
-// Pressure Controlled Blower PID
-double pressure_system_input, blower_output_speed_in_percentage, CurrPressureSetpointCentimetersH2O;
-double Kp = DEFAULT_KP, Ki = DEFAULT_KI, Kd = DEFAULT_KD;
-PID Pressure_PID(&pressure_system_input,
-                &blower_output_speed_in_percentage,
-                &CurrPressureSetpointCentimetersH2O,
-                Kp, Ki, Kd, DIRECT);
-
-uint32_t CycleStartTimeFromSysClockMilliseconds;  // Time that the current breath cycle started ( in terms of system clock millis() )
-uint32_t CurrTimeInCycleMilliseconds; // Time since the start of the current breath cycle. Resets at the beginning of every breath cycle
-uint32_t InhaleRampDurationMilliseconds = DEFAULT_INHALE_RAMP; // Length of the INHALE_RAMP period for a breath cycle. AKA Value of CurrTimeInCycleMilliseconds when the state changes to INHALE_HOLD .User configurable
-uint32_t InhaleDurationMilliseconds = DEFAULT_INHALE_DURATION; // Combined length of the INHALE_RAMP and INHALE_HOLD periods. AKA Value of CurrTimeInCycleMilliseconds when the state changes to EXHALE. User configurable.
-uint32_t BreathCycleDurationMilliseconds = DEFAULT_BREATH_CYCLE_DURATION; // Total length of breath cycle, AKA when cycle step resets to INHALE_RAMP and CurrTimeInCycleMilliseconds resets to 0
-uint32_t ControlLoopInitialStabilizationTimeMilliseconds = DEFAULT_CONTROL_LOOP_INIT_STABILIZATION; // Length of time after transitioning out of IDLE that the system waits before transitioning to INHALE_RAMP
-uint32_t ControlLoopStartTimeMilliseconds; // Time, in terms of millis(), the state machine last switched out of IDLE
-uint32_t TimeOfLastSolenoidToggleMilliseconds = 0; // Time, in terms of millis(), that the solenoid last changed states
-uint32_t SolenoidMinimumDwellTimeMilliseconds = DEFAULT_PINCH_VALVE_MIN_DWELL_TIME; // Minimum value of TimeOfLastSolenoidToggleMilliseconds before the solenoid may switch states again
-
-double PeepPressureCentimetersH2O = DEFAULT_PEEP;
-double PipPressureCentimetersH2O = DEFAULT_PIP;
-
-//constants
-//user settings
-//state timings
 
 typedef enum{
     INHALE_RAMP,
@@ -98,11 +58,58 @@ typedef enum{
 }BreathCycleStep;
 BreathCycleStep CurrCycleStep;
 
+Servo blower;
+
+AllSensors_DLHR_L60D_8 gagePressure(&Wire);
+// ----------------------------------CONSTANTS--------------------------------------- //
+
+
+
+// --------------------------------USER SETTINGS------------------------------------- //
+double pressure_reading;
+double blower_speed;
+
+double PeepPressureCentimetersH2O = DEFAULT_PEEP;
+double PipPressureCentimetersH2O = DEFAULT_PIP;
+
 String string_from_pi;
-byte pi_string_index_comma;
-byte pi_string_index_asterik;
 String property_name;
 double value;
+// --------------------------------USER SETTINGS------------------------------------- //
+
+
+
+// --------------------------------STATE TIMINGS------------------------------------- //
+
+// --------------------------------STATE TIMINGS------------------------------------- //
+
+
+
+// --------------------------------PID SETTINGS-------------------------------------- //
+// TODO: MEDIUM reorganize constants
+// Pressure Controlled Blower PID
+double pressure_system_input, blower_output_speed_in_percentage, CurrPressureSetpointCentimetersH2O;
+double Kp = DEFAULT_KP, Ki = DEFAULT_KI, Kd = DEFAULT_KD;
+PID Pressure_PID(&pressure_system_input,
+                &blower_output_speed_in_percentage,
+                &CurrPressureSetpointCentimetersH2O,
+                Kp, Ki, Kd, DIRECT);
+// --------------------------------PID SETTINGS-------------------------------------- //
+
+
+
+//TODO: LOW Refactor to have all variables extremely modular and not hard coded (later)
+
+uint32_t CurrTimeInCycleMilliseconds; // Time since the start of the current breath cycle. Resets at the beginning of every breath cycle
+uint32_t CycleStartTimeFromSysClockMilliseconds;  // Time that the current breath cycle started ( in terms of system clock millis() )
+uint32_t ControlLoopStartTimeMilliseconds; // Time, in terms of millis(), the state machine last switched out of IDLE
+uint32_t ControlLoopInitialStabilizationTimeMilliseconds = DEFAULT_CONTROL_LOOP_INIT_STABILIZATION; // Length of time after transitioning out of IDLE that the system waits before transitioning to INHALE_RAMP
+uint32_t InhaleRampDurationMilliseconds = DEFAULT_INHALE_RAMP; // Length of the INHALE_RAMP period for a breath cycle. AKA Value of CurrTimeInCycleMilliseconds when the state changes to INHALE_HOLD .User configurable
+uint32_t InhaleDurationMilliseconds = DEFAULT_INHALE_DURATION; // Combined length of the INHALE_RAMP and INHALE_HOLD periods. AKA Value of CurrTimeInCycleMilliseconds when the state changes to EXHALE. User configurable.
+uint32_t BreathCycleDurationMilliseconds = DEFAULT_BREATH_CYCLE_DURATION; // Total length of breath cycle, AKA when cycle step resets to INHALE_RAMP and CurrTimeInCycleMilliseconds resets to 0
+
+uint32_t TimeOfLastSolenoidToggleMilliseconds = 0; // Time, in terms of millis(), that the solenoid last changed states
+uint32_t SolenoidMinimumDwellTimeMilliseconds = DEFAULT_PINCH_VALVE_MIN_DWELL_TIME; // Minimum value of TimeOfLastSolenoidToggleMilliseconds before the solenoid may switch states again
 
 void breath_cycle_timer_reset(void)
 {
@@ -273,13 +280,13 @@ void loop()
       digitalWrite(SOLENOID_PIN, NewSolenoidState);
       TimeOfLastSolenoidToggleMilliseconds = millis();
     }
-
   }
 
   else // if inhale_ramp or inhale_hold
   {
     digitalWrite(SOLENOID_PIN, HIGH);
   }
+
   if( CurrCycleStep != IDLE )
   {
     if( millis() % 25 == 0 )
@@ -340,12 +347,16 @@ void loop()
     else if(property_name.equalsIgnoreCase("InhaleTime"))
     {
       InhaleDurationMilliseconds = value;
+
+      // arbitrarily default to having the ramp time be 25% of the inhale duration
       InhaleRampDurationMilliseconds = InhaleDurationMilliseconds*0.25;
     }
 
     else if(property_name.equalsIgnoreCase("BreathDuration"))
     {
       BreathCycleDurationMilliseconds = value;
+
+      // if the I:E ratio exceeds 1:1 (e.g ~2:1), cap it at 1:1. The standards we are workign from  state an expected I:E of 1:1-1:3
       if( (InhaleDurationMilliseconds/BreathCycleDurationMilliseconds) >= 0.50 )
       {
         InhaleDurationMilliseconds = BreathCycleDurationMilliseconds*0.50;
