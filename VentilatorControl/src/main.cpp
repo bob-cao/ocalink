@@ -153,7 +153,7 @@ double get_pressure_reading (void)
   return pressure_reading;
 }
 
-void get_values_from_pi (void)
+void get_values_from_raspberry_pi (void)
 {
     // TODO: HIGH Break out serial protocol into seperate file
   // TODO: HIGH ensure serial operations do not dirupt control loop
@@ -406,7 +406,7 @@ void loop()
 
   print_pid_setpoint_and_current_value();
 
-  get_values_from_pi();
+  get_values_from_raspberry_pi();
 
     // TODO: HIGH Implement alarms, with serial protocol to inform the GUI/HMI
 }
