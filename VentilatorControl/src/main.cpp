@@ -23,6 +23,9 @@
 #define BLOWER_DRIVER_MAX_PULSE_MICROSECONDS (double)2000
 #define DEFAULT_ESC_INIT_TIME 3000
 
+#define PINCH_VALVE_DRIVER_MIN_PULSE_MICROSECONDS (double)1450
+#define PINCH_VALVE_DRIVER_MAX_PULSE_MICROSECONDS (double)1675
+
 #define MIN_PERCENTAGE (double)0
 #define MAX_PERCENTAGE (double)100
 
@@ -129,14 +132,10 @@ void pinch_valve_init (void)
 {
   pinMode(PINCH_VALVE_PIN, OUTPUT);
   pinch_valve.attach(PINCH_VALVE_PIN);
-  pinch_valve.writeMicroseconds(1450);
-
-  //1650 fully closed
-  //1450 fully open
+  pinch_valve.writeMicroseconds(PINCH_VALVE_DRIVER_MIN_PULSE_MICROSECONDS);
 
   // pinMode(SOLENOID_PIN, OUTPUT);
   // digitalWrite(SOLENOID_PIN, LOW);
-
 }
 
 void pressure_sensors_init (void)
@@ -389,24 +388,30 @@ void setup()
 {
   // Inits
   pinch_valve_init();
-  blower_esc_init();
-  pressure_sensors_init();
-  pid_init();
+  // blower_esc_init();
+  // pressure_sensors_init();
+  // pid_init();
 
-  // Start cycle state to idle
-  CurrCycleStep = IDLE;
+  // // Start cycle state to idle
+  // CurrCycleStep = IDLE;
 
-    // Serial Init
-  #if SYSTEM__SERIAL_DEBUG__STATEMACHINE
-  Serial.begin(DEFAULT_BAUD_RATE);
-  #endif
+  //   // Serial Init
+  // #if SYSTEM__SERIAL_DEBUG__STATEMACHINE
+  // Serial.begin(DEFAULT_BAUD_RATE);
+  // #endif
 
-  breath_cycle_timer_reset();
+  // breath_cycle_timer_reset();
 }
 
 void loop()
 {
-  pinch_valve.writeMicroseconds(1650);
+  pinch_valve.writeMicroseconds(PINCH_VALVE_DRIVER_MIN_PULSE_MICROSECONDS);
+
+  delay(5000);
+
+  pinch_valve.writeMicroseconds(PINCH_VALVE_DRIVER_MAX_PULSE_MICROSECONDS);
+
+  delay(5000);
 
   // pressure_system_input = get_pressure_reading();
 
