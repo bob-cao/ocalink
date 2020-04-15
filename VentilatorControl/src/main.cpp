@@ -1,55 +1,71 @@
-//TODO: LOW Refactor to have all includes in one include file (later)
-// Libraries
-#include <Arduino.h>
-#include <Wire.h>
-#include <AllSensors_DLHR.h>
-#include <Servo.h>
-#include <PID_v1.h>
+// ------------------------------VENTILATOR CONTROL---------------------------------- //
 
-#define PEEP 5.000000f
-#define PIP 15.000000f
 
-// ESC Pulse Widths (using OTS hobby ESCs)
-#define BLOWER_DRIVER__MIN_PULSE__MICROSECONDS 1000
-#define BLOWER_DRIVER__MAX_PULSE__MICROSECONDS 2000
+
+// ----------------------------------LIBRARIES--------------------------------------- //
+#include "includes.h"
+// ----------------------------------LIBRARIES--------------------------------------- //
+
+
+
+// ----------------------------------CONSTANTS--------------------------------------- //
+#define INCHES_2_CM 2.54f
+
+#define BLOWER_DRIVER__MIN_PULSE__MICROSECONDS (double)1000
+#define BLOWER_DRIVER__MAX_PULSE__MICROSECONDS (double)2000
+
+#define MIN_PERCENTAGE (double)0
+#define MAX_PERCENTAGE (double)100
+
+#define EXPIRATION_OFFSET (double)3.0f
+#define EXPIRATION_HYSTERESIS (double)0.25f
+
+#define SOLENOID_PIN 4
+#define BLOWER_PIN 5
+
+#define DEFAULT_PEEP 5.000000f
+#define DEFAULT_PIP 20.000000f
+#define DEFAULT_BM 10  // breaths per minute
+#define DEFAULT_RISE 1000  // 1 second
+#define DEFAULT_IE 2 // inhale/exhale ratio (in )
+// ----------------------------------CONSTANTS--------------------------------------- //
+
+
 
 //TODO: LOW Refactor to have all variables extremely modular and not hard coded (later)
 
 // Pressure Variables
 AllSensors_DLHR_L60D_8 gagePressure(&Wire);
 float pressure_cmH20;
-double expiration_offset = 3.0;
-double expiration_hysteresis = 0.25;
+double peep = DEFAULT_PEEP;
+double pip = DEFAULT_PIP;
 
-//Solenoid
-byte solenoid_pin = 4;
+// 10 b/m
+// 1sec rise time
+// 1:2 i/e
 
 // Blower Variables
-byte blower_pin = 5;
 byte blower_speed;
-//TODO: HIGH Temporary measure, Servo library only uses 8b, pulse width can be ~10b
 Servo blower;
 
-// TODO: MEDIUM rerganize constants
+// TODO: MEDIUM reorganize constants
 // Pressure Controlled Blower PID
-double pressure_input, blower_output_speed_in_percentage;
-double CurrPressureSetpointCentimetersH2O;
+double pressure_input, blower_output_speed_in_percentage, CurrPressureSetpointCentimetersH2O;
 double Kp=1.000000, Ki=1.000000, Kd=0.0000000;
 PID Pressure_PID(&pressure_input, &blower_output_speed_in_percentage, &CurrPressureSetpointCentimetersH2O, Kp, Ki, Kd, DIRECT);
 
-uint32_t CycleStartTimeFromSysClockMilliseconds;
-uint32_t CurrTimeInCycleMilliseconds;
-uint32_t InhaleRampDurationMilliseconds = 250;
-uint32_t InhaleDurationMilliseconds = 1000;
-//uint32_t ExhaleDurationMilliseconds = 10000;
-uint32_t BreathCycleDurationMilliseconds = 6000;
-uint32_t ControlLoopInitialStabilizationTimeMilliseconds = 1000;;
-uint32_t ControlLoopStartTimeMilliseconds;
-uint32_t TimeOfLastSolenoidToggleMilliseconds = 0;
-uint32_t SolenoidMinimumDwellTimeMilliseconds = 250;
+uint32_t CycleStartTimeFromSysClockMilliseconds;  // Time that the current breath cycle started ( in terms of system clock millis() )
+uint32_t CurrTimeInCycleMilliseconds; // Time since the start of the current breath cycle. Resets at the beginning of every breath cycle
+uint32_t InhaleRampDurationMilliseconds = 250; // Length of the INHALE_RAMP period for a breath cycle. AKA Value of CurrTimeInCycleMilliseconds when the state changes to INHALE_HOLD .User configurable
+uint32_t InhaleDurationMilliseconds = 1000; // Combined length of the INHALE_RAMP and INHALE_HOLD periods. AKA Value of CurrTimeInCycleMilliseconds when the state changes to EXHALE. User configurable.
+uint32_t BreathCycleDurationMilliseconds = 6000; // Total length of breath cycle, AKA when cycle step resets to INHALE_RAMP and CurrTimeInCycleMilliseconds resets to 0
+uint32_t ControlLoopInitialStabilizationTimeMilliseconds = 1000; // Length of time after transitioning out of IDLE that the system waits before transitioning to INHALE_RAMP
+uint32_t ControlLoopStartTimeMilliseconds; // Time, in terms of millis(), the state machine last switched out of IDLE
+uint32_t TimeOfLastSolenoidToggleMilliseconds = 0; // Time, in terms of millis(), that the solenoid last changed states
+uint32_t SolenoidMinimumDwellTimeMilliseconds = 250; // Minimum value of TimeOfLastSolenoidToggleMilliseconds before the solenoid may switch states again
 
-double PeepPressureCentimetersH2O = PEEP;
-double PipPressureCentimetersH2O = PIP;
+double PeepPressureCentimetersH2O = peep;
+double PipPressureCentimetersH2O = pip;
 
 typedef enum{
     INHALE_RAMP,
@@ -66,13 +82,19 @@ byte pi_string_index_asterik;
 String property_name;
 double value;
 
+void timer_reset(void)
+{
+  CurrTimeInCycleMilliseconds = 0;
+  ControlLoopStartTimeMilliseconds = CycleStartTimeFromSysClockMilliseconds = millis();
+}
+
 void setup()
 {
-  pinMode(solenoid_pin, OUTPUT);
-  digitalWrite(solenoid_pin, LOW);
+  pinMode(SOLENOID_PIN, OUTPUT);
+  digitalWrite(SOLENOID_PIN, LOW);
 
   // Need a simulated throttle LOW for at least 1 second delay for ESC to start properly
-  blower.attach(blower_pin);
+  blower.attach(BLOWER_PIN);
   // blower.write(10);
   blower.writeMicroseconds(BLOWER_DRIVER__MIN_PULSE__MICROSECONDS);
   delay(2000);
@@ -87,13 +109,14 @@ void setup()
 
   // Set PID Mode to Automatic, may change later
   Pressure_PID.SetMode(AUTOMATIC);
-  Pressure_PID.SetOutputLimits(15, 180);
+  // Pressure_PID.SetOutputLimits(15, 180);
+  Pressure_PID.SetOutputLimits(MIN_PERCENTAGE, MAX_PERCENTAGE);
   Pressure_PID.SetSampleTime(10);
 
   CurrCycleStep = IDLE;
-  //TODO: MED Make control loop timing handled by a single function
-  CurrTimeInCycleMilliseconds = 0;
-  ControlLoopStartTimeMilliseconds = CycleStartTimeFromSysClockMilliseconds = millis();
+  timer_reset();
+  // CurrTimeInCycleMilliseconds = 0;
+  // ControlLoopStartTimeMilliseconds = CycleStartTimeFromSysClockMilliseconds = millis();
 }
 
 void loop()
@@ -103,7 +126,7 @@ void loop()
   if(!gagePressure.readData(!true))
   {
     gagePressure.startMeasurement();
-    pressure_input = gagePressure.pressure * 2.54;
+    pressure_input = gagePressure.pressure * INCHES_2_CM;
     // Serial.print("Pressure: ");
     // Serial.println(pressure_input);
   }
@@ -136,8 +159,9 @@ void loop()
       {
         CurrCycleStep = INHALE_RAMP;
         // Serial.println("INHALE_RAMP");
-        CurrTimeInCycleMilliseconds = 0;
-        CycleStartTimeFromSysClockMilliseconds = millis();
+        timer_reset();
+        // CurrTimeInCycleMilliseconds = 0;
+        // CycleStartTimeFromSysClockMilliseconds = millis();
       }
     }
     else // if idle == true
@@ -179,29 +203,34 @@ void loop()
 
   // Output calculated pulse width to motor
   // blower.write(blower_output);
-  blower_speed = map(blower_output_speed_in_percentage, 0, 100, BLOWER_DRIVER__MIN_PULSE__MICROSECONDS, BLOWER_DRIVER__MAX_PULSE__MICROSECONDS);
+  blower_speed = map(blower_output_speed_in_percentage,
+                    MIN_PERCENTAGE,
+                    MAX_PERCENTAGE,
+                    BLOWER_DRIVER__MIN_PULSE__MICROSECONDS,
+                    BLOWER_DRIVER__MAX_PULSE__MICROSECONDS);
+
   blower.writeMicroseconds(blower_speed);
 
   // TODO: HIGH Rewrite solenoid state handling to be proportional, rather than binary
   // TODO: HIGH break out solenoid handling into seperate file
   // Open expiration valve
-  char NewSolenoidState = digitalRead(solenoid_pin); 
+  char NewSolenoidState = digitalRead(SOLENOID_PIN); 
   if(CurrCycleStep == EXHALE)
   {
-    if((CurrPressureSetpointCentimetersH2O + expiration_offset + expiration_hysteresis) < (pressure_input))
+    if((CurrPressureSetpointCentimetersH2O + EXPIRATION_OFFSET + EXPIRATION_HYSTERESIS) < (pressure_input))
     {
       NewSolenoidState = LOW;
     }
     
-    else if((CurrPressureSetpointCentimetersH2O + expiration_offset - expiration_hysteresis)>= (pressure_input))
+    else if((CurrPressureSetpointCentimetersH2O + EXPIRATION_OFFSET - EXPIRATION_HYSTERESIS)>= (pressure_input))
     {
       NewSolenoidState = HIGH;
     }
 
-    if((digitalRead(solenoid_pin) != NewSolenoidState) && 
+    if((digitalRead(SOLENOID_PIN) != NewSolenoidState) && 
        ((TimeOfLastSolenoidToggleMilliseconds + SolenoidMinimumDwellTimeMilliseconds) < millis()))
     {
-      digitalWrite(solenoid_pin, NewSolenoidState);
+      digitalWrite(SOLENOID_PIN, NewSolenoidState);
       TimeOfLastSolenoidToggleMilliseconds = millis();
     }
 
@@ -209,7 +238,7 @@ void loop()
 
   else // if inhale_ramp or inhale_hold
   {
-    digitalWrite(solenoid_pin, HIGH);
+    digitalWrite(SOLENOID_PIN, HIGH);
   }
   if( CurrCycleStep != IDLE )
   {
@@ -298,8 +327,9 @@ void loop()
       {
         CurrCycleStep = EXHALE;
         CurrCycleStep = EXHALE;
-        CurrTimeInCycleMilliseconds = 0;
-        ControlLoopStartTimeMilliseconds = CycleStartTimeFromSysClockMilliseconds = millis();
+        timer_reset();
+        // CurrTimeInCycleMilliseconds = 0;
+        // ControlLoopStartTimeMilliseconds = CycleStartTimeFromSysClockMilliseconds = millis();
         Serial.println("Test Started");
         Serial.print("PEEP: ");              Serial.print(PeepPressureCentimetersH2O);                  Serial.println("cmH20");
         Serial.print("PIP: ");               Serial.print(PipPressureCentimetersH2O);                   Serial.println("cmH20");
