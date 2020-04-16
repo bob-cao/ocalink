@@ -417,10 +417,10 @@ void alarms_settings(void)
   pip_alarm = PIP_ALARM;
 
   // FOR TESTING
-  CurrCycleStep = EXHALE_HOLD;
-  // CurrCycleStep = INHALE_HOLD;
+  // CurrCycleStep = EXHALE_HOLD;
+  CurrCycleStep = INHALE_HOLD;
 
-  pressure_system_input = 8.0;
+  pressure_system_input = 5.0;
   // FOR TESTING
 
   // 1 & 2a: High and Low PIP
