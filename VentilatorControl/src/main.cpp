@@ -114,10 +114,14 @@ PID Pressure_PID(&pressure_system_input,
 
 
 
-void breath_cycle_timer_reset(void)
+void breath_cycle_timer_reset(bool hardreset = false)
 {
   CurrTimeInCycleMilliseconds = 0;
-  ControlLoopStartTimeMilliseconds = CycleStartTimeFromSysClockMilliseconds = millis();
+  CycleStartTimeFromSysClockMilliseconds = millis();
+  if(hardreset)
+  {
+    ControlLoopStartTimeMilliseconds = CycleStartTimeFromSysClockMilliseconds;
+  }
 }
 
 void blower_esc_init (void)
@@ -240,7 +244,7 @@ void get_values_from_raspberry_pi (void)
       {
         CurrCycleStep = EXHALE;
         CurrCycleStep = EXHALE;
-        breath_cycle_timer_reset();
+        breath_cycle_timer_reset(true);
         Serial.println("Test Started");
         Serial.print("PEEP: ");              Serial.print(PeepPressureCentimetersH2O);                  Serial.println("cmH20");
         Serial.print("PIP: ");               Serial.print(PipPressureCentimetersH2O);                   Serial.println("cmH20");
@@ -287,51 +291,54 @@ void write_calculated_pid_blower_speed(void)
   blower.writeMicroseconds(blower_speed);
 }
 
-void pinch_valve_control(double valve_position_input, double valve_state)
+void pinch_valve_control(void)
 {
   // TODO: HIGH Rewrite solenoid state handling to be proportional, rather than binary
-  if(valve_position_input == 1)  // open valve
-  {
-    pinch_valve.writeMicroseconds(PINCH_VALVE_DRIVER_MIN_PULSE_MICROSECONDS);
-  }
+  // if(valve_position_input == 1)  // open valve
+  // {
+  //   pinch_valve.writeMicroseconds(PINCH_VALVE_DRIVER_MIN_PULSE_MICROSECONDS);
+  // }
 
-  else if(valve_position_input == 0)  // close valve
-  {
-    pinch_valve.writeMicroseconds(PINCH_VALVE_DRIVER_MAX_PULSE_MICROSECONDS);
-  }
+  // else if(valve_position_input == 0)  // close valve
+  // {
+  //   pinch_valve.writeMicroseconds(PINCH_VALVE_DRIVER_MAX_PULSE_MICROSECONDS);
+  // }
 
-  else
-  {
-    pinch_valve.writeMicroseconds(PINCH_VALVE_DRIVER_MIN_PULSE_MICROSECONDS);
-  }
+  // else
+  // {
+  //   pinch_valve.writeMicroseconds(PINCH_VALVE_DRIVER_MIN_PULSE_MICROSECONDS);
+  // }
+
+  static bool solenoidIsOpen = true; // initialize to open
 
   // TODO: HIGH break out solenoid handling into seperate file
   // Open expiration valve
-  // char NewSolenoidState = digitalRead(SOLENOID_PIN);
-  // if(CurrCycleStep == EXHALE)
-  // {
-  //   if((CurrPressureSetpointCentimetersH2O + EXPIRATION_OFFSET + EXPIRATION_HYSTERESIS) < (pressure_system_input))
-  //   {
-  //     NewSolenoidState = LOW;
-  //   }
+  char NewSolenoidState = solenoidIsOpen;
+  if(CurrCycleStep == EXHALE)
+  {
+    if((CurrPressureSetpointCentimetersH2O + EXPIRATION_OFFSET + EXPIRATION_HYSTERESIS) < (pressure_system_input))
+    {
+      NewSolenoidState = true;
+    }
     
-  //   else if((CurrPressureSetpointCentimetersH2O + EXPIRATION_OFFSET - EXPIRATION_HYSTERESIS)>= (pressure_system_input))
-  //   {
-  //     NewSolenoidState = HIGH;
-  //   }
+    else if((CurrPressureSetpointCentimetersH2O + EXPIRATION_OFFSET - EXPIRATION_HYSTERESIS)>= (pressure_system_input))
+    {
+      NewSolenoidState = false;
+    }
 
-  //   if((digitalRead(SOLENOID_PIN) != NewSolenoidState) && 
-  //      ((TimeOfLastSolenoidToggleMilliseconds + SolenoidMinimumDwellTimeMilliseconds) < millis()))
-  //   {
-  //     digitalWrite(SOLENOID_PIN, NewSolenoidState);
-  //     TimeOfLastSolenoidToggleMilliseconds = millis();
-  //   }
-  // }
+    if((solenoidIsOpen != NewSolenoidState) && 
+       ((TimeOfLastSolenoidToggleMilliseconds + SolenoidMinimumDwellTimeMilliseconds) < millis()))
+    {
+      pinch_valve.writeMicroseconds(NewSolenoidState?PINCH_VALVE_DRIVER_MIN_PULSE_MICROSECONDS:PINCH_VALVE_DRIVER_MAX_PULSE_MICROSECONDS);
+      TimeOfLastSolenoidToggleMilliseconds = millis();
+      solenoidIsOpen = NewSolenoidState;
+    }
+  }
 
-  // else // if inhale_ramp or inhale_hold
-  // {
-  //   digitalWrite(SOLENOID_PIN, HIGH);
-  // }
+  else // if inhale_ramp or inhale_hold
+  {
+    pinch_valve.writeMicroseconds(PINCH_VALVE_DRIVER_MAX_PULSE_MICROSECONDS);
+  }
 }
 
 void cycle_state_handler (void)
@@ -419,7 +426,7 @@ void setup()
   Serial.begin(DEFAULT_BAUD_RATE);
   #endif
 
-  breath_cycle_timer_reset();
+  breath_cycle_timer_reset(true);
 }
 
 void loop()
@@ -430,7 +437,7 @@ void loop()
 
   cycle_state_setpoint_handler();
 
-  pinch_valve_control(valve_position, valve_state);
+  pinch_valve_control();
 
   write_calculated_pid_blower_speed();
 
