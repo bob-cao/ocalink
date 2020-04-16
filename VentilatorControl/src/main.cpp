@@ -128,8 +128,8 @@ void blower_esc_init (void)
 {
   pinMode(BLOWER_PIN, OUTPUT);
   digitalWrite(BLOWER_PIN, LOW);
-    // Hold throttle LOW for ESC to initialize properly
   blower.attach(BLOWER_PIN);
+  // Hold throttle LOW for ESC to initialize properly
   blower.writeMicroseconds(BLOWER_DRIVER_MIN_PULSE_MICROSECONDS);
   delay(DEFAULT_ESC_INIT_TIME);
 }
@@ -139,9 +139,6 @@ void pinch_valve_init (void)
   pinMode(PINCH_VALVE_PIN, OUTPUT);
   pinch_valve.attach(PINCH_VALVE_PIN);
   pinch_valve.writeMicroseconds(PINCH_VALVE_DRIVER_MIN_PULSE_MICROSECONDS);
-
-  // pinMode(SOLENOID_PIN, OUTPUT);
-  // digitalWrite(SOLENOID_PIN, LOW);
 }
 
 void pressure_sensors_init (void)
@@ -160,13 +157,12 @@ void pid_init (void)
 
 double get_pressure_reading (void)
 {
-  // Get a pressure reading in units of cmH2O
   if(!gagePressure.readData(false))
   {
     gagePressure.startMeasurement();
+    // Get a pressure reading in units of cmH2O
     pressure_reading = gagePressure.pressure * INCHES_2_CM;
   }
-
   return pressure_reading;
 }
 
@@ -294,21 +290,6 @@ void write_calculated_pid_blower_speed(void)
 void pinch_valve_control(void)
 {
   // TODO: HIGH Rewrite solenoid state handling to be proportional, rather than binary
-  // if(valve_position_input == 1)  // open valve
-  // {
-  //   pinch_valve.writeMicroseconds(PINCH_VALVE_DRIVER_MIN_PULSE_MICROSECONDS);
-  // }
-
-  // else if(valve_position_input == 0)  // close valve
-  // {
-  //   pinch_valve.writeMicroseconds(PINCH_VALVE_DRIVER_MAX_PULSE_MICROSECONDS);
-  // }
-
-  // else
-  // {
-  //   pinch_valve.writeMicroseconds(PINCH_VALVE_DRIVER_MIN_PULSE_MICROSECONDS);
-  // }
-
   static bool solenoidIsOpen = true; // initialize to open
 
   // TODO: HIGH break out solenoid handling into seperate file
@@ -343,7 +324,6 @@ void pinch_valve_control(void)
 
 void cycle_state_handler (void)
 {
-    // TODO: break out into separate file and rewrite for better readability
   // TODO: LOW Make sure clock overflow is handled gracefully
   if( CurrCycleStep != IDLE )
   {
@@ -379,8 +359,9 @@ void cycle_state_handler (void)
 
 void cycle_state_setpoint_handler(void)
 {
-    // TODO: HIGH breakout into separate file and rewrite for readability.
+  // TODO: HIGH breakout into separate file and rewrite for readability
   // TODO: MEDIUM put gains in a header, not in the source
+
   //Recompute Setpoints
   switch(CurrCycleStep)
   {
@@ -389,39 +370,36 @@ void cycle_state_setpoint_handler(void)
       // PRESSURE_SETPOINT(t) = t*(PIP/RAMP_DURATION)+PEEP
       Kp=64.000000, Ki=1.800000, Kd=13.000000;
       CurrPressureSetpointCentimetersH2O = (((float)CurrTimeInCycleMilliseconds/(float)InhaleRampDurationMilliseconds)*(PipPressureCentimetersH2O-PeepPressureCentimetersH2O))+PeepPressureCentimetersH2O;
-      // Serial.println("INHALE_RAMP");
     break;
     case INHALE_HOLD:
       Kp=14.000000, Ki=12.000000, Kd=0.000000;
       CurrPressureSetpointCentimetersH2O = PipPressureCentimetersH2O;  // high
-      // Serial.println("INHALE_HOLD");
     break;
     case EXHALE:
     case IDLE:
     default:
-      // TODO: MEDIUM tune/fix. These gains are wack, yo.
-      // Kp=700.00000, Ki=20.50000, Kd=25.250000;
-      Kp=1000, Ki=500.00000, Kd=8.0000;
+      // TODO: MEDIUM tune/fix
+      // Kp=1000, Ki=500.00000, Kd=8.0000;
+      Kp=1.000000, Ki=0.500000, Kd=0.008000;
       CurrPressureSetpointCentimetersH2O = PeepPressureCentimetersH2O;  // low
-      // Serial.println("EXHALE");
     break;
   }
 }
 
 void setup()
 {
-  // Inits
+  // Initializations
   pinch_valve_init();
   blower_esc_init();
   pressure_sensors_init();
   pid_init();
 
-  // Start cycle state to idle
+  // Start cycle state in IDLE state
   CurrCycleStep = IDLE;
   valve_position = PINCH_VALVE_DRIVER_MIN_PULSE_MICROSECONDS;
   valve_state = true;
 
-    // Serial Init
+  // Serial initialization
   #if SYSTEM__SERIAL_DEBUG__STATEMACHINE
   Serial.begin(DEFAULT_BAUD_RATE);
   #endif
