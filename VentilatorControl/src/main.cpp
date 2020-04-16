@@ -32,6 +32,7 @@
 #define EXPIRATION_OFFSET (double)3.0f
 #define EXPIRATION_HYSTERESIS (double)0.25f
 
+#define BUZZER_PIN 2
 #define PINCH_VALVE_PIN 3
 // #define SOLENOID_PIN 4
 #define BLOWER_PIN 5
@@ -385,9 +386,25 @@ void cycle_state_setpoint_handler(void)
   }
 }
 
+void alarms_settings(void)
+{
+  if((CurrCycleStep == EXHALE && CurrCycleStep != INHALE_RAMP) && (pressure_system_input >= -1 && pressure_system_input <= 1))
+  {
+    // make sound and send Raspberry Pi alarm status flag
+    digitalWrite(BUZZER_PIN, HIGH);
+  }
+}
+
+void alarms_faults(void)
+{
+  //
+}
+
 void setup()
 {
-  // Initializations
+  pinMode(BUZZER_PIN, OUTPUT);
+
+  /*// Initializations
   pinch_valve_init();
   blower_esc_init();
   pressure_sensors_init();
@@ -403,12 +420,18 @@ void setup()
   Serial.begin(DEFAULT_BAUD_RATE);
   #endif
 
-  breath_cycle_timer_reset(true);
+  breath_cycle_timer_reset(true);*/
 }
 
 void loop()
 {
-  pressure_system_input = get_pressure_reading();
+  CurrCycleStep = EXHALE;
+
+  pressure_system_input = 0.1;
+
+  alarms_settings();
+
+  /*pressure_system_input = get_pressure_reading();
 
   cycle_state_handler();
 
@@ -422,5 +445,5 @@ void loop()
 
   get_values_from_raspberry_pi();
 
-    // TODO: HIGH Implement alarms, with serial protocol to inform the GUI/HMI
+    // TODO: HIGH Implement alarms, with serial protocol to inform the GUI/HMI*/
 }
