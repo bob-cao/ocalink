@@ -160,7 +160,7 @@ double get_pressure_reading (void)
   if(!gagePressure.readData(false))
   {
     gagePressure.startMeasurement();
-    // Get a pressure reading in units of cmH2O
+    // Get a pressure reading and convert to units of cmH2O
     pressure_reading = gagePressure.pressure * INCHES_2_CM;
   }
   return pressure_reading;
@@ -368,20 +368,19 @@ void cycle_state_setpoint_handler(void)
     case INHALE_RAMP:
       // calculate new setpoint based on linear ramp from PEEP pressure to PIP pressure over set duration
       // PRESSURE_SETPOINT(t) = t*(PIP/RAMP_DURATION)+PEEP
-      Kp=64.000000, Ki=1.800000, Kd=13.000000;
+      // Kp=64.000000, Ki=1.800000, Kd=13.000000;
+      Kp=1.000000, Ki=0.028125, Kd=0.203125;
       CurrPressureSetpointCentimetersH2O = (((float)CurrTimeInCycleMilliseconds/(float)InhaleRampDurationMilliseconds)*(PipPressureCentimetersH2O-PeepPressureCentimetersH2O))+PeepPressureCentimetersH2O;
     break;
     case INHALE_HOLD:
-      Kp=14.000000, Ki=12.000000, Kd=0.000000;
-      CurrPressureSetpointCentimetersH2O = PipPressureCentimetersH2O;  // high
+      Kp=1.000000, Ki=0.857143, Kd=0.000000;
+      CurrPressureSetpointCentimetersH2O = PipPressureCentimetersH2O;
     break;
     case EXHALE:
     case IDLE:
     default:
-      // TODO: MEDIUM tune/fix
-      // Kp=1000, Ki=500.00000, Kd=8.0000;
       Kp=1.000000, Ki=0.500000, Kd=0.008000;
-      CurrPressureSetpointCentimetersH2O = PeepPressureCentimetersH2O;  // low
+      CurrPressureSetpointCentimetersH2O = PeepPressureCentimetersH2O;
     break;
   }
 }
