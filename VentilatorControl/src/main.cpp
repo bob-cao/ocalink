@@ -416,12 +416,12 @@ void alarms_settings(void)
   peep_alarm = PEEP_ALARM;
   pip_alarm = PIP_ALARM;
 
-  // FOR TESTING
-  // CurrCycleStep = EXHALE_HOLD;
-  CurrCycleStep = INHALE_HOLD;
+  // // FOR TESTING
+  // // CurrCycleStep = EXHALE_HOLD;
+  // CurrCycleStep = INHALE_HOLD;
 
-  pressure_system_input = 5.0;
-  // FOR TESTING
+  // pressure_system_input = 5.0;
+  // // FOR TESTING
 
   // 1 & 2a: High and Low PIP
   if((CurrCycleStep == EXHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
