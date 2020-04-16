@@ -95,6 +95,7 @@ double peep_low_alarm, peep_alarm, pip_alarm;
 bool buzzer_state = 1;
 double RespritoryRate;
 double InhalationExhalationRatio;
+double FlowOfOxygen;
 // --------------------------------USER SETTINGS------------------------------------- //
 
 
@@ -218,10 +219,11 @@ void get_values_from_raspberry_pi (void)
       PeepPressureCentimetersH2O = value;
     }
 
-    // else if(property_name == "FI02")
-    // {
-    //   // Flow of O2 in %
-    // }
+    else if(property_name == "FI02")
+    {
+      // Flow of O2 in %
+      FlowOfOxygen = value;
+    }
 
     else if(property_name.equalsIgnoreCase("TRISE"))
     {
@@ -250,15 +252,12 @@ void get_values_from_raspberry_pi (void)
         CurrCycleStep = EXHALE_HOLD;
         breath_cycle_timer_reset(true);
         Serial.println("TEST STARTED");
-        Serial.print("PEEP: ");         Serial.print(PeepPressureCentimetersH2O);       Serial.println("cmH20");
-        Serial.print("PIP: ");          Serial.print(PipPressureCentimetersH2O);        Serial.println("cmH20");
-        // Serial.print("FIO2: ");         Serial.print(PipPressureCentimetersH2O);        Serial.println("cmH20");
-        // Serial.print("TRISE: ");        Serial.print(PipPressureCentimetersH2O);        Serial.println("cmH20");
-        // Serial.print("RR: ");           Serial.print(PipPressureCentimetersH2O);        Serial.println("cmH20");
-        // Serial.print("IE: ");           Serial.print(PipPressureCentimetersH2O);        Serial.println("cmH20");
-
-        // Serial.print("Breathcycle Duration: ");   Serial.print(BreathCycleDurationMilliseconds) ;  Serial.println("ms");
-        // Serial.print("Inhale Duration: ");   Serial.print(InhaleDurationMilliseconds) ;            Serial.println("ms");
+        Serial.print("PEEP: ");         Serial.print(PeepPressureCentimetersH2O);                     Serial.println("cmH20");
+        Serial.print("PIP: ");          Serial.print(PipPressureCentimetersH2O);                      Serial.println("cmH20");
+        Serial.print("FIO2: ");         Serial.print(FlowOfOxygen);                                   Serial.println("cmH20");
+        Serial.print("TRISE: ");        Serial.print(InhaleRampDurationMilliseconds);                 Serial.println("ms");
+        Serial.print("RR: ");           Serial.print(RespritoryRate);                                 Serial.println("b/m");
+        Serial.print("IE: ");           Serial.print((1.00 / InhalationExhalationRatio) * 100.00);    Serial.println("%");
       }
     }
 
