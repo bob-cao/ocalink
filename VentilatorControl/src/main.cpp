@@ -17,7 +17,7 @@
 // ----------------------------------CONSTANTS--------------------------------------- //
 #define INCHES_2_CM 2.54f
 
-#define DEFAULT_BAUD_RATE 115200
+#define DEFAULT_BAUD_RATE 256000
 
 #define BLOWER_DRIVER_MIN_PULSE_MICROSECONDS (double)1000
 #define BLOWER_DRIVER_MAX_PULSE_MICROSECONDS (double)2000
@@ -25,7 +25,7 @@
 #define DEFAULT_ESC_INIT_TIME 3000
 
 #define PINCH_VALVE_DRIVER_FULL_OPEN_PULSE_MICROSECONDS (double)1450
-#define PINCH_VALVE_DRIVER_FULL_CLOSE_PULSE_MICROSECONDS (double)1675
+#define PINCH_VALVE_DRIVER_FULL_CLOSE_PULSE_MICROSECONDS (double)1725
 
 #define MIN_PERCENTAGE (double)0
 #define MAX_PERCENTAGE (double)100
@@ -44,11 +44,11 @@
 #define DEFAULT_KD 0.000000
 
 #define DEFAULT_INHALE_RAMP (uint32_t)250
-#define DEFAULT_INHALE_DURATION (uint32_t)3000
+#define DEFAULT_INHALE_DURATION (uint32_t)1500
 #define DEFAULT_BREATH_CYCLE_DURATION (uint32_t)6000
 #define DEFAULT_CONTROL_LOOP_INIT_STABILIZATION (uint32_t)3000
 
-#define DEFAULT_PID_SAMPLE_TIME 15
+#define DEFAULT_PID_SAMPLE_TIME 1.5
 
 typedef enum{
     INHALE_RAMP,
@@ -103,7 +103,7 @@ uint32_t TimeOfLastSolenoidToggleMilliseconds = 0; // Time, in terms of millis()
 double pressure_system_input, blower_output_speed_in_percentage, pinch_valve_output_openness_in_percentage, CurrPressureSetpointCentimetersH2O;
 //double Blower_Kp = DEFAULT_KP, Blower_Ki = DEFAULT_KI, Blower_Kd = DEFAULT_KD;
 double Blower_Kp=10.010000, Blower_Ki=0, Blower_Kd=0.008000;
-double PinchValve_Kp = DEFAULT_KP, PinchValve_Ki = DEFAULT_KI, PinchValve_Kd = DEFAULT_KD;
+double PinchValve_Kp = 5, PinchValve_Ki = 0, PinchValve_Kd = 1;
 PID Blower_PID(&pressure_system_input,
                 &blower_output_speed_in_percentage,
                 &CurrPressureSetpointCentimetersH2O,
@@ -176,9 +176,9 @@ double get_pressure_reading (void)
 {
   if(!gagePressure.readData(false))
   {
-    gagePressure.startMeasurement();
     // Get a pressure reading and convert to units of cmH2O
     pressure_reading = gagePressure.pressure * INCHES_2_CM;
+    gagePressure.startMeasurement();
   }
   return pressure_reading;
 }
@@ -320,31 +320,65 @@ void print_pid_setpoint_and_current_value(void)
 {
   if( CurrCycleStep != IDLE )
   {
-    if( millis() % 25 == 0 )
+    if( millis() % 50 == 0 )
     {
       Serial.print(pressure_system_input);
       Serial.print(" ");
-      Serial.print(CurrPressureSetpointCentimetersH2O);
+      switch(CurrCycleStep)
+      {
+        case INHALE_RAMP:
+          
+          Serial.print(CurrPressureSetpointCentimetersH2O);
+        break;
+        case INHALE_HOLD:
+          Serial.print(PipPressureCentimetersH2O);
+        break;
+        case EXHALE_RAMP:
+        case EXHALE_HOLD:
+        case IDLE:
+        default:
+          Serial.print(PeepPressureCentimetersH2O);
+        break;
+      }
       Serial.println();
     }
   }
 }
 
+void reset_blower_pid_integrator(void)
+{
+  Blower_PID.SetMode(MANUAL);
+  blower_output_speed_in_percentage = 0;
+  Blower_PID.SetMode(AUTOMATIC);
+}
 
 void write_calculated_pid_blower_speed(void)
 {
- // static float BlowerSpeedExhaleWeightedAverage = -1;
-  // Set Blower_Kp, Blower_Ki, Blower_Kd and comute Pressure PID
-  Blower_PID.SetTunings(Blower_Kp, Blower_Ki, Blower_Kd);
-  Blower_PID.Compute();
-  
-  // Output PID calcuslated 0-100% to motor
-  blower_speed = map(blower_output_speed_in_percentage,
-                    MIN_PERCENTAGE,
-                    MAX_PERCENTAGE,
-                    BLOWER_DRIVER_MIN_PULSE_MICROSECONDS,
-                    BLOWER_DRIVER_MAX_PULSE_MICROSECONDS);
-  blower.writeMicroseconds(blower_speed);
+
+  switch( CurrCycleStep)
+  {
+    case INHALE_RAMP:
+    case INHALE_HOLD:
+    case EXHALE_HOLD:
+      // static float BlowerSpeedExhaleWeightedAverage = -1;
+      // Set Blower_Kp, Blower_Ki, Blower_Kd and comute Pressure PID
+      Blower_PID.SetTunings(Blower_Kp, Blower_Ki, Blower_Kd);
+      Blower_PID.Compute();
+      
+    break;
+    case IDLE:
+    case EXHALE_RAMP:
+      reset_blower_pid_integrator();
+      blower_output_speed_in_percentage = 0;
+    break;
+  }
+      // Output PID calcuslated 0-100% to motor
+      blower_speed = map(blower_output_speed_in_percentage,
+                        MIN_PERCENTAGE,
+                        MAX_PERCENTAGE,
+                        BLOWER_DRIVER_MIN_PULSE_MICROSECONDS,
+                        BLOWER_DRIVER_MAX_PULSE_MICROSECONDS);
+      blower.writeMicroseconds(blower_speed);
 }
 
 // Write percent openness to the pinch valve
@@ -366,17 +400,18 @@ void pinch_valve_control(void)
   switch (CurrCycleStep)
   {
   case EXHALE_RAMP:
-    PinchValve_PID.SetTunings(PinchValve_Kp,PinchValve_Ki,PinchValve_Kd);
-    PinchValve_PID.Compute();
+    pinch_valve_output_openness_in_percentage = 100.0;
     break;
   case EXHALE_HOLD:
-    PinchValve_PID.SetTunings(PinchValve_Kp*0.01,PinchValve_Ki*0.01,PinchValve_Kd*0.01);
+    PinchValve_PID.SetTunings(PinchValve_Kp,PinchValve_Ki,PinchValve_Kd);
     PinchValve_PID.Compute();
     break;
   case INHALE_HOLD:
   case INHALE_RAMP:
+    pinch_valve_output_openness_in_percentage = 0.0;
+    break;
   default:
-    pinch_valve_output_openness_in_percentage = 0;
+    pinch_valve_output_openness_in_percentage = 100.0;
     break;
   }
 
@@ -403,7 +438,7 @@ void cycle_state_handler (void)
       else if((InhaleDurationMilliseconds < CurrTimeInCycleMilliseconds) &&
             (CurrTimeInCycleMilliseconds <= BreathCycleDurationMilliseconds))
       {
-        if( pressure_system_input > (PeepPressureCentimetersH2O + 1) )
+        if( pressure_system_input > (PeepPressureCentimetersH2O + 5) )
         {
           CurrCycleStep = EXHALE_RAMP;
         }
@@ -435,20 +470,24 @@ void cycle_state_setpoint_handler(void)
   switch(CurrCycleStep)
   {
     case INHALE_RAMP:
-      Blower_Kp=10, Blower_Ki=0, Blower_Kd=0.00;
+      Blower_Kp=mapf(PipPressureCentimetersH2O, 15, 45, 240, 1000);
+      Blower_Ki=0;
+      Blower_Kd = mapf(PipPressureCentimetersH2O, 15, 45, .3, 24);
       CurrPressureSetpointCentimetersH2O = (((float)CurrTimeInCycleMilliseconds/(float)InhaleRampDurationMilliseconds)*(PipPressureCentimetersH2O-PeepPressureCentimetersH2O))+PeepPressureCentimetersH2O;
     break;
     case INHALE_HOLD:
-      Blower_Kp=10, Blower_Ki=0, Blower_Kd=1;
-      CurrPressureSetpointCentimetersH2O = PipPressureCentimetersH2O;
+      Blower_Kp = mapf(PipPressureCentimetersH2O, 25, 45, 2, 48);
+      Blower_Ki = mapf(PipPressureCentimetersH2O, 25, 45, 0, 0);
+      Blower_Kd= 0.1;
+      CurrPressureSetpointCentimetersH2O = PipPressureCentimetersH2O*mapf(PipPressureCentimetersH2O, 15, 45, 1.2, 1);
     break;
     case EXHALE_RAMP:
       Blower_Kp=10, Blower_Ki=0, Blower_Kd=0.3;
     case EXHALE_HOLD:
     case IDLE:
-      Blower_Kp=10, Blower_Ki=0, Blower_Kd=1;
+      Blower_Kp=10, Blower_Ki=0, Blower_Kd=0.5;
     default:
-      CurrPressureSetpointCentimetersH2O = PeepPressureCentimetersH2O;
+      CurrPressureSetpointCentimetersH2O = PeepPressureCentimetersH2O*1.25;
     break;
   }
 }
