@@ -177,7 +177,8 @@ double get_pressure_reading (void)
   if(!gagePressure.readData(false))
   {
     // Get a pressure reading and convert to units of cmH2O
-    pressure_reading = gagePressure.pressure * INCHES_2_CM;
+    if( gagePressure.pressure > 0 )
+       pressure_reading = gagePressure.pressure * INCHES_2_CM;
     gagePressure.startMeasurement();
   }
   return pressure_reading;
@@ -340,7 +341,10 @@ void print_pid_setpoint_and_current_value(void)
           Serial.print(PeepPressureCentimetersH2O);
         break;
       }
+      Serial.print(" ");
+      Serial.print(blower_output_speed_in_percentage);
       Serial.println();
+
     }
   }
 }
@@ -461,6 +465,11 @@ void cycle_state_handler (void)
   }
 }
 
+double linear_remap_setpoint_compensation(double setpoint)
+{
+  return (1.116785714*setpoint)-0.5892857143;
+}
+
 void cycle_state_setpoint_handler(void)
 {
   // TODO: HIGH breakout into separate file and rewrite for readability
@@ -473,13 +482,14 @@ void cycle_state_setpoint_handler(void)
       Blower_Kp=mapf(PipPressureCentimetersH2O, 15, 45, 240, 1000);
       Blower_Ki=0;
       Blower_Kd = mapf(PipPressureCentimetersH2O, 15, 45, .3, 24);
+      //CurrPressureSetpointCentimetersH2O = PipPressureCentimetersH2O*mapf(PipPressureCentimetersH2O, 25, 45, 1.30, 1);
       CurrPressureSetpointCentimetersH2O = (((float)CurrTimeInCycleMilliseconds/(float)InhaleRampDurationMilliseconds)*(PipPressureCentimetersH2O-PeepPressureCentimetersH2O))+PeepPressureCentimetersH2O;
     break;
     case INHALE_HOLD:
-      Blower_Kp = mapf(PipPressureCentimetersH2O, 25, 45, 2, 48);
-      Blower_Ki = mapf(PipPressureCentimetersH2O, 25, 45, 0, 0);
+      Blower_Kp = mapf(PipPressureCentimetersH2O, 15, 45, 2, 48);
+      Blower_Ki = mapf(PipPressureCentimetersH2O, 15, 45, 0, 0);
       Blower_Kd= 0.1;
-      CurrPressureSetpointCentimetersH2O = PipPressureCentimetersH2O*mapf(PipPressureCentimetersH2O, 15, 45, 1.2, 1);
+      CurrPressureSetpointCentimetersH2O = PipPressureCentimetersH2O;
     break;
     case EXHALE_RAMP:
       Blower_Kp=10, Blower_Ki=0, Blower_Kd=0.3;
@@ -487,9 +497,11 @@ void cycle_state_setpoint_handler(void)
     case IDLE:
       Blower_Kp=10, Blower_Ki=0, Blower_Kd=0.5;
     default:
-      CurrPressureSetpointCentimetersH2O = PeepPressureCentimetersH2O*1.25;
+      CurrPressureSetpointCentimetersH2O = PeepPressureCentimetersH2O;
     break;
   }
+
+  CurrPressureSetpointCentimetersH2O = linear_remap_setpoint_compensation(CurrPressureSetpointCentimetersH2O);
 }
 
 void setup()
