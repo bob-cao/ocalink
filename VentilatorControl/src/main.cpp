@@ -90,6 +90,7 @@ double value;
 double valve_position, valve_state;
 
 double peep_low_alarm, peep_alarm, pip_alarm;
+bool buzzer_state = 1;
 // --------------------------------USER SETTINGS------------------------------------- //
 
 
@@ -398,6 +399,17 @@ void cycle_state_setpoint_handler(void)
   }
 }
 
+void buzzer_toggle(void)
+{
+  static unsigned long lastBuzzerToggle = 0;
+  if( millis()-lastBuzzerToggle > 500 )
+  {
+    digitalWrite(BUZZER_PIN, buzzer_state);
+    buzzer_state = !buzzer_state;
+    lastBuzzerToggle = millis();
+  }
+}
+
 void alarms_settings(void)
 {
   peep_low_alarm = PEEP_LOW_ALARM;
@@ -405,10 +417,10 @@ void alarms_settings(void)
   pip_alarm = PIP_ALARM;
 
   // FOR TESTING
-  // CurrCycleStep = EXHALE_HOLD;
-  // // CurrCycleStep = INHALE_HOLD;
+  CurrCycleStep = EXHALE_HOLD;
+  // CurrCycleStep = INHALE_HOLD;
 
-  // pressure_system_input = 5.0;
+  pressure_system_input = 8.0;
   // FOR TESTING
 
   // 1 & 2a: High and Low PIP
@@ -417,11 +429,7 @@ void alarms_settings(void)
       || pressure_system_input >= PipPressureCentimetersH2O + pip_alarm))
   {
     // make sound and send Raspberry Pi alarm status flag
-    // TODO: Change to millis(), not delay
-    digitalWrite(BUZZER_PIN, HIGH);
-    delay(500);
-    digitalWrite(BUZZER_PIN, LOW);
-    delay(500);
+    buzzer_toggle();
   }
 
   // 2b & 2c: High and Low PEEP
@@ -430,11 +438,7 @@ void alarms_settings(void)
       || pressure_system_input >= PeepPressureCentimetersH2O + peep_alarm))
   {
     // make sound and send Raspberry Pi alarm status flag
-    // TODO: Change to millis(), not delay
-    digitalWrite(BUZZER_PIN, HIGH);
-    delay(500);
-    digitalWrite(BUZZER_PIN, LOW);
-    delay(500);
+    buzzer_toggle();
   }
 
   // 2g: Disconnect Alarm
