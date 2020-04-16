@@ -80,6 +80,8 @@ double PipPressureCentimetersH2O = DEFAULT_PIP;
 String string_from_pi;
 String property_name;
 double value;
+
+double valve_position, valve_state;
 // --------------------------------USER SETTINGS------------------------------------- //
 
 
@@ -155,7 +157,7 @@ void pid_init (void)
 double get_pressure_reading (void)
 {
   // Get a pressure reading in units of cmH2O
-  if(!gagePressure.readData(!true))
+  if(!gagePressure.readData(false))
   {
     gagePressure.startMeasurement();
     pressure_reading = gagePressure.pressure * INCHES_2_CM;
@@ -285,37 +287,52 @@ void write_calculated_pid_blower_speed(void)
   blower.writeMicroseconds(blower_speed);
 }
 
-/*void pinch_valve_control(void)
+void pinch_valve_control(double valve_position_input, double valve_state)
 {
   // TODO: HIGH Rewrite solenoid state handling to be proportional, rather than binary
+  if(valve_position_input == 1)  // open valve
+  {
+    pinch_valve.writeMicroseconds(PINCH_VALVE_DRIVER_MIN_PULSE_MICROSECONDS);
+  }
+
+  else if(valve_position_input == 0)  // close valve
+  {
+    pinch_valve.writeMicroseconds(PINCH_VALVE_DRIVER_MAX_PULSE_MICROSECONDS);
+  }
+
+  else
+  {
+    pinch_valve.writeMicroseconds(PINCH_VALVE_DRIVER_MIN_PULSE_MICROSECONDS);
+  }
+
   // TODO: HIGH break out solenoid handling into seperate file
   // Open expiration valve
-  char NewSolenoidState = digitalRead(SOLENOID_PIN); 
-  if(CurrCycleStep == EXHALE)
-  {
-    if((CurrPressureSetpointCentimetersH2O + EXPIRATION_OFFSET + EXPIRATION_HYSTERESIS) < (pressure_system_input))
-    {
-      NewSolenoidState = LOW;
-    }
+  // char NewSolenoidState = digitalRead(SOLENOID_PIN);
+  // if(CurrCycleStep == EXHALE)
+  // {
+  //   if((CurrPressureSetpointCentimetersH2O + EXPIRATION_OFFSET + EXPIRATION_HYSTERESIS) < (pressure_system_input))
+  //   {
+  //     NewSolenoidState = LOW;
+  //   }
     
-    else if((CurrPressureSetpointCentimetersH2O + EXPIRATION_OFFSET - EXPIRATION_HYSTERESIS)>= (pressure_system_input))
-    {
-      NewSolenoidState = HIGH;
-    }
+  //   else if((CurrPressureSetpointCentimetersH2O + EXPIRATION_OFFSET - EXPIRATION_HYSTERESIS)>= (pressure_system_input))
+  //   {
+  //     NewSolenoidState = HIGH;
+  //   }
 
-    if((digitalRead(SOLENOID_PIN) != NewSolenoidState) && 
-       ((TimeOfLastSolenoidToggleMilliseconds + SolenoidMinimumDwellTimeMilliseconds) < millis()))
-    {
-      digitalWrite(SOLENOID_PIN, NewSolenoidState);
-      TimeOfLastSolenoidToggleMilliseconds = millis();
-    }
-  }
+  //   if((digitalRead(SOLENOID_PIN) != NewSolenoidState) && 
+  //      ((TimeOfLastSolenoidToggleMilliseconds + SolenoidMinimumDwellTimeMilliseconds) < millis()))
+  //   {
+  //     digitalWrite(SOLENOID_PIN, NewSolenoidState);
+  //     TimeOfLastSolenoidToggleMilliseconds = millis();
+  //   }
+  // }
 
-  else // if inhale_ramp or inhale_hold
-  {
-    digitalWrite(SOLENOID_PIN, HIGH);
-  }
-}*/
+  // else // if inhale_ramp or inhale_hold
+  // {
+  //   digitalWrite(SOLENOID_PIN, HIGH);
+  // }
+}
 
 void cycle_state_handler (void)
 {
@@ -388,44 +405,38 @@ void setup()
 {
   // Inits
   pinch_valve_init();
-  // blower_esc_init();
-  // pressure_sensors_init();
-  // pid_init();
+  blower_esc_init();
+  pressure_sensors_init();
+  pid_init();
 
-  // // Start cycle state to idle
-  // CurrCycleStep = IDLE;
+  // Start cycle state to idle
+  CurrCycleStep = IDLE;
+  valve_position = PINCH_VALVE_DRIVER_MIN_PULSE_MICROSECONDS;
+  valve_state = true;
 
-  //   // Serial Init
-  // #if SYSTEM__SERIAL_DEBUG__STATEMACHINE
-  // Serial.begin(DEFAULT_BAUD_RATE);
-  // #endif
+    // Serial Init
+  #if SYSTEM__SERIAL_DEBUG__STATEMACHINE
+  Serial.begin(DEFAULT_BAUD_RATE);
+  #endif
 
-  // breath_cycle_timer_reset();
+  breath_cycle_timer_reset();
 }
 
 void loop()
 {
-  pinch_valve.writeMicroseconds(PINCH_VALVE_DRIVER_MIN_PULSE_MICROSECONDS);
+  pressure_system_input = get_pressure_reading();
 
-  delay(5000);
+  cycle_state_handler();
 
-  pinch_valve.writeMicroseconds(PINCH_VALVE_DRIVER_MAX_PULSE_MICROSECONDS);
+  cycle_state_setpoint_handler();
 
-  delay(5000);
+  pinch_valve_control(valve_position, valve_state);
 
-  // pressure_system_input = get_pressure_reading();
+  write_calculated_pid_blower_speed();
 
-  // cycle_state_handler();
+  print_pid_setpoint_and_current_value();
 
-  // cycle_state_setpoint_handler();
+  get_values_from_raspberry_pi();
 
-  // // pinch_valve_control();
-
-  // write_calculated_pid_blower_speed();
-
-  // print_pid_setpoint_and_current_value();
-
-  // get_values_from_raspberry_pi();
-
-  //   // TODO: HIGH Implement alarms, with serial protocol to inform the GUI/HMI
+    // TODO: HIGH Implement alarms, with serial protocol to inform the GUI/HMI
 }
