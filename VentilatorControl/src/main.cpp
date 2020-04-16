@@ -55,10 +55,15 @@
 
 #define DEFAULT_PID_SAMPLE_TIME 10
 
+#define PEEP_LOW_ALARM 1
+#define PIP_ALARM 2
+#define PEEP_ALARM 2
+
 typedef enum{
     INHALE_RAMP,
     INHALE_HOLD,
-    EXHALE,
+    EXHALE_RAMP,
+    EXHALE_HOLD,
     IDLE
 }BreathCycleStep;
 BreathCycleStep CurrCycleStep;
@@ -83,6 +88,8 @@ String property_name;
 double value;
 
 double valve_position, valve_state;
+
+double peep_low_alarm, peep_alarm, pip_alarm;
 // --------------------------------USER SETTINGS------------------------------------- //
 
 
@@ -93,7 +100,7 @@ uint32_t CycleStartTimeFromSysClockMilliseconds;  // Time that the current breat
 uint32_t ControlLoopStartTimeMilliseconds; // Time, in terms of millis(), the state machine last switched out of IDLE
 uint32_t ControlLoopInitialStabilizationTimeMilliseconds = DEFAULT_CONTROL_LOOP_INIT_STABILIZATION; // Length of time after transitioning out of IDLE that the system waits before transitioning to INHALE_RAMP
 uint32_t InhaleRampDurationMilliseconds = DEFAULT_INHALE_RAMP; // Length of the INHALE_RAMP period for a breath cycle. AKA Value of CurrTimeInCycleMilliseconds when the state changes to INHALE_HOLD .User configurable
-uint32_t InhaleDurationMilliseconds = DEFAULT_INHALE_DURATION; // Combined length of the INHALE_RAMP and INHALE_HOLD periods. AKA Value of CurrTimeInCycleMilliseconds when the state changes to EXHALE. User configurable.
+uint32_t InhaleDurationMilliseconds = DEFAULT_INHALE_DURATION; // Combined length of the INHALE_RAMP and INHALE_HOLD periods. AKA Value of CurrTimeInCycleMilliseconds when the state changes to EXHALE_HOLD. User configurable.
 uint32_t BreathCycleDurationMilliseconds = DEFAULT_BREATH_CYCLE_DURATION; // Total length of breath cycle, AKA when cycle step resets to INHALE_RAMP and CurrTimeInCycleMilliseconds resets to 0
 
 uint32_t TimeOfLastSolenoidToggleMilliseconds = 0; // Time, in terms of millis(), that the solenoid last changed states
@@ -154,6 +161,12 @@ void pid_init (void)
   Pressure_PID.SetMode(AUTOMATIC);  // Set PID Mode to Automatic, may change later
   Pressure_PID.SetOutputLimits(MIN_PERCENTAGE, MAX_PERCENTAGE);
   Pressure_PID.SetSampleTime(DEFAULT_PID_SAMPLE_TIME);
+}
+
+void buzzer_init(void)
+{
+  pinMode(BUZZER_PIN, OUTPUT);
+  digitalWrite(BUZZER_PIN, LOW);
 }
 
 double get_pressure_reading (void)
@@ -239,8 +252,7 @@ void get_values_from_raspberry_pi (void)
     {
       if(CurrCycleStep == IDLE)
       {
-        CurrCycleStep = EXHALE;
-        CurrCycleStep = EXHALE;
+        CurrCycleStep = EXHALE_HOLD;
         breath_cycle_timer_reset(true);
         Serial.println("Test Started");
         Serial.print("PEEP: ");              Serial.print(PeepPressureCentimetersH2O);                  Serial.println("cmH20");
@@ -296,7 +308,7 @@ void pinch_valve_control(void)
   // TODO: HIGH break out solenoid handling into seperate file
   // Open expiration valve
   char NewSolenoidState = solenoidIsOpen;
-  if(CurrCycleStep == EXHALE)
+  if(CurrCycleStep == EXHALE_HOLD)
   {
     if((CurrPressureSetpointCentimetersH2O + EXPIRATION_OFFSET + EXPIRATION_HYSTERESIS) < (pressure_system_input))
     {
@@ -343,7 +355,7 @@ void cycle_state_handler (void)
       else if((InhaleDurationMilliseconds < CurrTimeInCycleMilliseconds) &&
             (CurrTimeInCycleMilliseconds <= BreathCycleDurationMilliseconds))
       {
-        CurrCycleStep = EXHALE;
+        CurrCycleStep = EXHALE_HOLD;
       }
       else if(CurrTimeInCycleMilliseconds > BreathCycleDurationMilliseconds)
       {
@@ -353,7 +365,7 @@ void cycle_state_handler (void)
     }
     else // if idle == true
     {
-      CurrCycleStep = EXHALE;
+      CurrCycleStep = EXHALE_HOLD;
     }
   }
 }
@@ -377,7 +389,7 @@ void cycle_state_setpoint_handler(void)
       Kp=1.000000, Ki=0.857143, Kd=0.000000;
       CurrPressureSetpointCentimetersH2O = PipPressureCentimetersH2O;
     break;
-    case EXHALE:
+    case EXHALE_HOLD:
     case IDLE:
     default:
       Kp=1.000000, Ki=0.500000, Kd=0.008000;
@@ -388,7 +400,47 @@ void cycle_state_setpoint_handler(void)
 
 void alarms_settings(void)
 {
-  if((CurrCycleStep == EXHALE && CurrCycleStep != INHALE_RAMP) && (pressure_system_input >= -1 && pressure_system_input <= 1))
+  peep_low_alarm = PEEP_LOW_ALARM;
+  peep_alarm = PEEP_ALARM;
+  pip_alarm = PIP_ALARM;
+
+  // FOR TESTING
+  // CurrCycleStep = EXHALE_HOLD;
+  // // CurrCycleStep = INHALE_HOLD;
+
+  // pressure_system_input = 5.0;
+  // FOR TESTING
+
+  // 1 & 2a: High and Low PIP
+  if((CurrCycleStep == EXHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
+      && (pressure_system_input <= PipPressureCentimetersH2O - pip_alarm
+      || pressure_system_input >= PipPressureCentimetersH2O + pip_alarm))
+  {
+    // make sound and send Raspberry Pi alarm status flag
+    // TODO: Change to millis(), not delay
+    digitalWrite(BUZZER_PIN, HIGH);
+    delay(500);
+    digitalWrite(BUZZER_PIN, LOW);
+    delay(500);
+  }
+
+  // 2b & 2c: High and Low PEEP
+  if((CurrCycleStep == INHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
+      && (pressure_system_input <= PeepPressureCentimetersH2O - peep_alarm
+      || pressure_system_input >= PeepPressureCentimetersH2O + peep_alarm))
+  {
+    // make sound and send Raspberry Pi alarm status flag
+    // TODO: Change to millis(), not delay
+    digitalWrite(BUZZER_PIN, HIGH);
+    delay(500);
+    digitalWrite(BUZZER_PIN, LOW);
+    delay(500);
+  }
+
+  // 2g: Disconnect Alarm
+  if((CurrCycleStep == EXHALE_HOLD && CurrCycleStep != INHALE_RAMP)
+      && (pressure_system_input >= -peep_low_alarm
+      && pressure_system_input <= peep_low_alarm))
   {
     // make sound and send Raspberry Pi alarm status flag
     digitalWrite(BUZZER_PIN, HIGH);
@@ -402,7 +454,7 @@ void alarms_faults(void)
 
 void setup()
 {
-  pinMode(BUZZER_PIN, OUTPUT);
+  buzzer_init();
 
   /*// Initializations
   pinch_valve_init();
@@ -425,10 +477,6 @@ void setup()
 
 void loop()
 {
-  CurrCycleStep = EXHALE;
-
-  pressure_system_input = 0.1;
-
   alarms_settings();
 
   /*pressure_system_input = get_pressure_reading();
