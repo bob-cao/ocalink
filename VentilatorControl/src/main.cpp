@@ -191,6 +191,7 @@ void get_values_from_raspberry_pi (void)
 {
     // TODO: HIGH Break out serial protocol into seperate file
   // TODO: HIGH ensure serial operations do not dirupt control loop
+  // TODO: Add error checking
   // $<property_name> <value><LF>
   // PEEP	cmH20
   // PIP	cmH20
