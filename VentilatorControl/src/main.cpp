@@ -158,7 +158,6 @@ void blower_esc_init (void)
   blower.attach(BLOWER_PIN);
 
   // Hold throttle LOW and toggle for ESC to initialize properly
-
   blower.writeMicroseconds(BLOWER_DRIVER_MIN_PULSE_MICROSECONDS);
 
   delay(DEFAULT_ESC_INIT_TIME*0.90);
