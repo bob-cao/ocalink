@@ -156,7 +156,8 @@ void blower_esc_init (void)
   pinMode(BLOWER_PIN, OUTPUT);
   digitalWrite(BLOWER_PIN, LOW);
   blower.attach(BLOWER_PIN);
-  // Hold throttle LOW for ESC to initialize properly
+
+  // Hold throttle LOW and toggle for ESC to initialize properly
 
   blower.writeMicroseconds(BLOWER_DRIVER_MIN_PULSE_MICROSECONDS);
 
