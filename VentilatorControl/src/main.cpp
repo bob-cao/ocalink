@@ -99,6 +99,7 @@ double RespritoryRate;
 double InhalationExhalationRatio;
 double FlowOfOxygen;
 double IEScalingFactor = IE_DEFAULT_SCALING_FACTOR;
+bool CMD;
 // --------------------------------USER SETTINGS------------------------------------- //
 
 
@@ -252,48 +253,45 @@ void get_values_from_raspberry_pi (void)
         Serial.println(ExhaleDurationMilliseconds);
       }
 
-      // else if( property_name.equalsIgnoreCase("CMD") == 1 )
-      // {
-      //   if(CurrCycleStep == IDLE)
-      //   {
-      //     CurrCycleStep = EXHALE_HOLD;
-      //     breath_cycle_timer_reset(true);
-      //     Serial.println("TEST STARTED");
-      //     Serial.print("PEEP: ");         Serial.print(PeepPressureCentimetersH2O);                     Serial.println("cmH20");
-      //     Serial.print("PIP: ");          Serial.print(PipPressureCentimetersH2O);                      Serial.println("cmH20");
-      //     Serial.print("FIO2: ");         Serial.print(FlowOfOxygen);                                   Serial.println("cmH20");
-      //     Serial.print("TRISE: ");        Serial.print(InhaleRampDurationMilliseconds);                 Serial.println("ms");
-      //     Serial.print("RR: ");           Serial.print(RespritoryRate);                                 Serial.println("b/m");
-      //     Serial.print("IE: ");           Serial.print((1.00 / InhalationExhalationRatio) * 100.00);    Serial.println("%");
-      //   }
-      // }
+      else if( property_name.equalsIgnoreCase("CMD") )
+      {
+        CMD = value;
 
-      // else if( property_name.equalsIgnoreCase("CMD") == 0 )
-      // {
-      //   Serial.println("TEST STOPPED");
-      //   CurrCycleStep = IDLE;
-      // }
+        if(CMD == 0)
+        {
+          Serial.println("TEST STOPPED");
+          CurrCycleStep = IDLE;
+        }
+
+        else if(CMD == 1)
+        {
+          if(CurrCycleStep == IDLE)
+          {
+            CurrCycleStep = EXHALE_HOLD;
+            breath_cycle_timer_reset(true);
+            Serial.println("TEST STARTED");
+            Serial.print("PEEP: ");         Serial.print(PeepPressureCentimetersH2O);                     Serial.println("cmH20");
+            Serial.print("PIP: ");          Serial.print(PipPressureCentimetersH2O);                      Serial.println("cmH20");
+            Serial.print("FIO2: ");         Serial.print(FlowOfOxygen);                                   Serial.println("cmH20");
+            Serial.print("TRISE: ");        Serial.print(InhaleRampDurationMilliseconds);                 Serial.println("ms");
+            Serial.print("RR: ");           Serial.print(RespritoryRate);                                 Serial.println("b/m");
+            Serial.print("IE: ");           Serial.print((1.00 / InhalationExhalationRatio) * 100.00);    Serial.println("%");
+          }
+        }
+
+        else
+        {
+          Serial.println("UNKNOWN CMD CODE, GOING TO IDLE STATE");
+          CurrCycleStep = IDLE;
+        }
+      }
+
+      else
+      {
+        Serial.println("UNKNOWN MESSAGE, GOING TO IDLE STATE");
+        CurrCycleStep = IDLE;
+      }
     }
-
-    // else if(property_name.equalsIgnoreCase("InhaleTime"))
-    // {
-    //   InhaleDurationMilliseconds = value;
-
-    //   // arbitrarily default to having the ramp time be 25% of the inhale duration
-    //   InhaleRampDurationMilliseconds = InhaleDurationMilliseconds*0.25;
-    // }
-
-    // else if(property_name.equalsIgnoreCase("BreathDuration"))
-    // {
-    //   BreathCycleDurationMilliseconds = value;
-
-    //   // if the I:E ratio exceeds 1:1 (e.g ~2:1), cap it at 1:1. The standards we are workign from  state an expected I:E of 1:1-1:3
-    //   if( (InhaleDurationMilliseconds/BreathCycleDurationMilliseconds) >= 0.50 )
-    //   {
-    //     InhaleDurationMilliseconds = BreathCycleDurationMilliseconds*0.50;
-    //     InhaleRampDurationMilliseconds = InhaleDurationMilliseconds*0.25;
-    //   }
-    // }
   }
 }
 
