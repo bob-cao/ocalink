@@ -195,7 +195,9 @@ void get_values_from_raspberry_pi (void)
 {
   // TODO: HIGH Break out serial protocol into seperate file
   // TODO: HIGH ensure serial operations do not dirupt control loop
-  // TODO: Add error checking
+  // TODO: Add error checking for data out of range
+  // TODO: Ensure that all fields are populated before going into running test
+
   // $<property_name>,<value><LF>
 
   if (Serial.available())
@@ -243,7 +245,6 @@ void get_values_from_raspberry_pi (void)
 
       else if(property_name.equalsIgnoreCase("IE"))
       {
-        RespritoryRate = 5.0;
         InhalationExhalationRatio = value / IEScalingFactor;  // Inhalation/Exhalation Ratio
         InhaleDurationMilliseconds = (BREATHS_PER_MINUTE_TO_SEC * SEC_TO_MS) / ((InhalationExhalationRatio + 1.0) * RespritoryRate);
         ExhaleDurationMilliseconds = (BREATHS_PER_MINUTE_TO_SEC * SEC_TO_MS * (1.0 - (1.0 / (InhalationExhalationRatio + 1.0)))) / RespritoryRate;
