@@ -59,6 +59,7 @@
 
 #define DEFAULT_INHALE_DURATION (uint32_t)1500
 #define DEFAULT_BREATH_CYCLE_DURATION (uint32_t)6000
+#define DEFAULT_EXHALE_DURATION (DEFAULT_BREATH_CYCLE_DURATION - DEFAULT_INHALE_DURATION)
 #define DEFAULT_CONTROL_LOOP_INIT_STABILIZATION (uint32_t)3000
 
 #define DEFAULT_PID_SAMPLE_TIME 1.5
@@ -577,10 +578,9 @@ void alarms_faults(void)
 
 void setup()
 {
-  // buzzer_init();
-
   // Initializations
   blower_esc_init();
+  buzzer_init();
   pinch_valve_init();
   pressure_sensors_init();
   pid_init();
@@ -593,15 +593,11 @@ void setup()
   Serial.begin(DEFAULT_BAUD_RATE);
   #endif
 
-  // breath_cycle_timer_reset(true);
+   breath_cycle_timer_reset(true);
 }
 
 void loop()
 {
-  get_values_from_raspberry_pi();
-
-  // alarms_settings();
-
   pressure_system_input = get_pressure_reading();
 
   cycle_state_handler();
@@ -613,6 +609,8 @@ void loop()
   write_calculated_pid_blower_speed();
 
   print_pid_setpoint_and_current_value();
+
+  alarms_settings();
 
   get_values_from_raspberry_pi();
 
