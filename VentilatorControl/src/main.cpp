@@ -64,6 +64,23 @@
 
 #define DEFAULT_PID_SAMPLE_TIME 1.5
 
+#define PIP_MIN_RECEIVE 15
+#define PIP_MAX_RECEIVE 55
+#define PEEP_MIN_RECEIVE 5
+#define PEEP_MAX_RECEIVE 25
+#define FIO2_MIN_RECEIVE 0.2
+#define FIO2_MAX_RECEIVE 1
+#define TRISE_MIN_RECEIVE 0.5
+#define TRISE_MAX_RECEIVE 4
+#define RR_MIN_RECEIVE 5
+#define RR_MAX_RECEIVE 50
+#define IE_MIN_RECEIVE 1
+#define IE_MAX_RECEIVE 4
+
+#define TRISE_MULTIPLIER (double)10
+#define FIO2_MULTIPLIER (double)100
+#define IE_MULTIPLIER (double)10
+
 typedef enum{
     INHALE_RAMP,
     INHALE_HOLD,
@@ -90,7 +107,8 @@ double PipPressureCentimetersH2O = DEFAULT_PIP;
 
 String string_from_pi;
 String property_name;
-double value;
+String argument;
+double argument_value;
 
 double valve_position, valve_state;
 
@@ -100,7 +118,6 @@ double RespritoryRate;
 double InhalationExhalationRatio;
 double FlowOfOxygen;
 double IEScalingFactor = IE_DEFAULT_SCALING_FACTOR;
-bool CMD;
 // --------------------------------USER SETTINGS------------------------------------- //
 
 
@@ -220,7 +237,7 @@ void get_values_from_raspberry_pi (void)
   // TODO: Add error checking for data out of range
   // TODO: Ensure that all fields are populated before going into running test
 
-  // $<property_name>,<value><LF>
+  // $<property_name>,<argument_value><LF>
 
   if (Serial.available())
   {
@@ -228,63 +245,70 @@ void get_values_from_raspberry_pi (void)
     if(string_from_pi[0] == '$')
     {
       property_name = string_from_pi.substring(string_from_pi.indexOf('$') + 1, string_from_pi.indexOf(','));
-      value = string_from_pi.substring(string_from_pi.indexOf(',') + 1, string_from_pi.indexOf('*')).toFloat();
+      argument = string_from_pi.substring(string_from_pi.indexOf(',') + 1, string_from_pi.indexOf('*'));
+      if(isDigit(argument[0]))
+        argument_value = argument.toFloat();
+      else
+        argument_value = NAN;
 
-      if(property_name.equalsIgnoreCase("PIP"))
+      if(property_name.equalsIgnoreCase("PIP") && !isnan(argument_value))
       {
-        if(value >= 15.0 && value <= 55.0)
+        if(argument_value >= PIP_MIN_RECEIVE && argument_value <= PIP_MAX_RECEIVE)
         {
-          PipPressureCentimetersH2O = value;  // PIP Value
+          PipPressureCentimetersH2O = argument_value;  // PIP Value
           Serial.print("PIP: ");
           Serial.println(PipPressureCentimetersH2O);
         }
       }
 
-      else if(property_name.equalsIgnoreCase("PEEP"))
+      else if(property_name.equalsIgnoreCase("PEEP") && !isnan(argument_value))
       {
-        if(value >= 5.0 && value <= 25.0)
+        if(argument_value >= PEEP_MIN_RECEIVE && argument_value <= PEEP_MAX_RECEIVE)
         {
-          PeepPressureCentimetersH2O = value;  // PEEP Value
+          PeepPressureCentimetersH2O = argument_value;  // PEEP Value
           Serial.print("PEEP: ");
           Serial.println(PeepPressureCentimetersH2O);
         }
       }
 
-      else if(property_name == "FIO2")
+      else if(property_name.equalsIgnoreCase("FIO2") && !isnan(argument_value))
       {
-        if(value >= 20 && value <= 100)
+        double fio2_requested = argument_value/FIO2_MULTIPLIER;
+        if(fio2_requested >= FIO2_MIN_RECEIVE && fio2_requested <= FIO2_MAX_RECEIVE)
         {
-          FlowOfOxygen = value;  // Flow of O2 in %
+          FlowOfOxygen = fio2_requested;  // Flow of O2 in %
           Serial.print("FIO2: ");
           Serial.println(FlowOfOxygen);
         }
       }
 
-      else if(property_name.equalsIgnoreCase("TRISE"))
+      else if(property_name.equalsIgnoreCase("TRISE") && !isnan(argument_value))
       {
-        if(value >= 5 && value <= 40)
+        double trise_requested = argument_value/TRISE_MULTIPLIER;
+        if(trise_requested >= TRISE_MIN_RECEIVE && trise_requested <= TRISE_MAX_RECEIVE)
         {
-          InhaleRampDurationMilliseconds = value * (double)100;  // Rise time in seconds
+          InhaleRampDurationMilliseconds = trise_requested * 1000.0;  // Rise time in seconds
           Serial.print("TRISE: ");
           Serial.println(InhaleRampDurationMilliseconds);
         }
       }
 
-      else if(property_name.equalsIgnoreCase("RR"))
+      else if(property_name.equalsIgnoreCase("RR") && !isnan(argument_value))
       {
-        if(value >= 5 && value <= 50)
+        if(argument_value >= RR_MIN_RECEIVE && argument_value <= RR_MAX_RECEIVE)
         {
-          RespritoryRate = value;  // Respritory Rate in breathes per minute
+          RespritoryRate = argument_value;  // Respritory Rate in breathes per minute
           Serial.print("RR: ");
           Serial.println(RespritoryRate);
         }
       }
 
-      else if(property_name.equalsIgnoreCase("IE"))
+      else if(property_name.equalsIgnoreCase("IE") && !isnan(argument_value))
       {
-        if(value >= 10 && value <= 40)
+        double ie_requested = argument_value/IE_MULTIPLIER;
+        if(ie_requested >= IE_MIN_RECEIVE && ie_requested <= IE_MAX_RECEIVE)
         {
-          InhalationExhalationRatio = value / IEScalingFactor;  // Inhalation/Exhalation Ratio
+          InhalationExhalationRatio = ie_requested;  // Inhalation/Exhalation Ratio
           InhaleDurationMilliseconds = (BREATHS_PER_MINUTE_TO_SEC * SEC_TO_MS) / ((InhalationExhalationRatio + 1.0) * RespritoryRate);
           ExhaleDurationMilliseconds = (BREATHS_PER_MINUTE_TO_SEC * SEC_TO_MS * (1.0 - (1.0 / (InhalationExhalationRatio + 1.0)))) / RespritoryRate;
           Serial.print("IE: ");
@@ -296,17 +320,15 @@ void get_values_from_raspberry_pi (void)
 
       else if( property_name.equalsIgnoreCase("CMD") )
       {
-        if(value == 0 || value == 1)
+        if(argument.equalsIgnoreCase("START") || argument.equalsIgnoreCase("STOP"))
         {
-          CMD = value;
-
-          if(CMD == 0)
+          if(argument.equalsIgnoreCase("STOP"))
           {
             Serial.println("TEST STOPPED");
             CurrCycleStep = IDLE;
           }
 
-          else if(CMD == 1)
+          else if(argument.equalsIgnoreCase("START"))
           {
             if(CurrCycleStep == IDLE)
             {
@@ -324,15 +346,14 @@ void get_values_from_raspberry_pi (void)
 
           else
           {
-            Serial.println("UNKNOWN CMD CODE, GOING TO IDLE STATE");
-            CurrCycleStep = IDLE;
+            Serial.println("UNKNOWN CMD CODE");
           }
         }
       }
 
       else if( property_name.equalsIgnoreCase("A_STATE") )
       {
-        if(value == 0 || value == 1)
+        if(argument_value == 0 || argument_value == 1)
         {
           // Clear alarms
         }
@@ -340,8 +361,7 @@ void get_values_from_raspberry_pi (void)
 
       else
       {
-        Serial.println("UNKNOWN MESSAGE, GOING TO IDLE STATE");
-        CurrCycleStep = IDLE;
+        Serial.println("UNKNOWN MESSAGE");
       }
     }
   }
