@@ -214,32 +214,28 @@ void get_values_from_raspberry_pi (void)
 
       else if(property_name.equalsIgnoreCase("PEEP"))
       {
-        // PEEP Value
-        PeepPressureCentimetersH2O = value;
+        PeepPressureCentimetersH2O = value;  // PEEP Value
         Serial.print("PEEP: ");
         Serial.println(PeepPressureCentimetersH2O);
       }
 
       else if(property_name == "FIO2")
       {
-        // Flow of O2 in %
-        FlowOfOxygen = value;
+        FlowOfOxygen = value;  // Flow of O2 in %
         Serial.print("FIO2: ");
         Serial.println(FlowOfOxygen);
       }
 
       else if(property_name.equalsIgnoreCase("TRISE"))
       {
-        // Rise time in seconds
-        InhaleRampDurationMilliseconds = value * (double)100;
+        InhaleRampDurationMilliseconds = value * (double)100;  // Rise time in seconds
         Serial.print("TRISE: ");
         Serial.println(InhaleRampDurationMilliseconds);
       }
 
       else if(property_name.equalsIgnoreCase("RR"))
       {
-        // Respritory Rate in breathes per minute
-        RespritoryRate = value;
+        RespritoryRate = value;  // Respritory Rate in breathes per minute
         Serial.print("RR: ");
         Serial.println(RespritoryRate);
       }
@@ -247,8 +243,7 @@ void get_values_from_raspberry_pi (void)
       else if(property_name.equalsIgnoreCase("IE"))
       {
         RespritoryRate = 5.0;
-        // Inhalation/Exhalation Ratio
-        InhalationExhalationRatio = value / IEScalingFactor;
+        InhalationExhalationRatio = value / IEScalingFactor;  // Inhalation/Exhalation Ratio
         InhaleDurationMilliseconds = (BREATHS_PER_MINUTE_TO_SEC * SEC_TO_MS) / ((InhalationExhalationRatio + 1.0) * RespritoryRate);
         ExhaleDurationMilliseconds = (BREATHS_PER_MINUTE_TO_SEC * SEC_TO_MS * (1.0 - (1.0 / (InhalationExhalationRatio + 1.0)))) / RespritoryRate;
         Serial.print("IE: ");
