@@ -493,7 +493,7 @@ void cycle_state_setpoint_handler(void)
     case INHALE_RAMP:
       Blower_Kp = mapf(PipPressureCentimetersH2O, 15, 45, 240, 1000);
       Blower_Ki = 0;
-      Blower_Kd = mapf(PipPressureCentimetersH2O, 15, 45, .3, 24);
+      Blower_Kd = mapf(PipPressureCentimetersH2O, 15, 45, 0.3, 24);
       //CurrPressureSetpointCentimetersH2O = PipPressureCentimetersH2O*mapf(PipPressureCentimetersH2O, 25, 45, 1.30, 1);
       CurrPressureSetpointCentimetersH2O = (((float)CurrTimeInCycleMilliseconds/(float)InhaleRampDurationMilliseconds)*(PipPressureCentimetersH2O-PeepPressureCentimetersH2O))+PeepPressureCentimetersH2O;
     break;
@@ -532,6 +532,9 @@ void alarms_settings(void)
   peep_low_alarm = PEEP_LOW_ALARM;
   peep_alarm = PEEP_ALARM;
   pip_alarm = PIP_ALARM;
+  static unsigned long PrevAlarmTimePipError = 0;
+  static unsigned long PrevAlarmTimePeepError = 0;
+  static unsigned long PrevAlarmTimeDisconnectError = 0;
 
   // // FOR TESTING
   // // CurrCycleStep = EXHALE_HOLD;
@@ -541,33 +544,37 @@ void alarms_settings(void)
   // // FOR TESTING
 
   // 1 & 2a: High and Low PIP
-  if((CurrCycleStep == EXHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
+  
+  if((millis()-PrevAlarmTimePipError > 100) && (CurrCycleStep == EXHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
       && (pressure_system_input <= PipPressureCentimetersH2O - pip_alarm
       || pressure_system_input >= PipPressureCentimetersH2O + pip_alarm))
   {
     // make sound and send Raspberry Pi alarm status flag
     buzzer_toggle();
     Serial.write("PIP ERROR");
+    PrevAlarmTimePipError = millis();
   }
 
   // 2b & 2c: High and Low PEEP
-  if((CurrCycleStep == INHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
+  if((millis()-PrevAlarmTimePeepError > 500) && (CurrCycleStep == INHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
       && (pressure_system_input <= PeepPressureCentimetersH2O - peep_alarm
       || pressure_system_input >= PeepPressureCentimetersH2O + peep_alarm))
   {
     // make sound and send Raspberry Pi alarm status flag
     buzzer_toggle();
     Serial.write("PEEP ERROR");
+    PrevAlarmTimePeepError = millis();
   }
 
   // 2g: Disconnect Alarm
-  if((CurrCycleStep == EXHALE_HOLD && CurrCycleStep != INHALE_RAMP)
+  if((millis()-PrevAlarmTimeDisconnectError > 500) && (CurrCycleStep == EXHALE_HOLD && CurrCycleStep != INHALE_RAMP)
       && (pressure_system_input >= -peep_low_alarm
       && pressure_system_input <= peep_low_alarm))
   {
     // make sound and send Raspberry Pi alarm status flag
     digitalWrite(BUZZER_PIN, HIGH);
     Serial.write("DISCONNECT ERROR");
+    PrevAlarmTimeDisconnectError = millis();
   }
 }
 
