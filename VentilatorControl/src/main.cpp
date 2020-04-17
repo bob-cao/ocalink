@@ -232,80 +232,109 @@ void get_values_from_raspberry_pi (void)
 
       if(property_name.equalsIgnoreCase("PIP"))
       {
-        PipPressureCentimetersH2O = value;  // PIP Value
-        Serial.print("PIP: ");
-        Serial.println(PipPressureCentimetersH2O);
+        if(value >= 15.0 && value <= 55.0)
+        {
+          PipPressureCentimetersH2O = value;  // PIP Value
+          Serial.print("PIP: ");
+          Serial.println(PipPressureCentimetersH2O);
+        }
       }
 
       else if(property_name.equalsIgnoreCase("PEEP"))
       {
-        PeepPressureCentimetersH2O = value;  // PEEP Value
-        Serial.print("PEEP: ");
-        Serial.println(PeepPressureCentimetersH2O);
+        if(value >= 5.0 && value <= 25.0)
+        {
+          PeepPressureCentimetersH2O = value;  // PEEP Value
+          Serial.print("PEEP: ");
+          Serial.println(PeepPressureCentimetersH2O);
+        }
       }
 
       else if(property_name == "FIO2")
       {
-        FlowOfOxygen = value;  // Flow of O2 in %
-        Serial.print("FIO2: ");
-        Serial.println(FlowOfOxygen);
+        if(value >= 20 && value <= 100)
+        {
+          FlowOfOxygen = value;  // Flow of O2 in %
+          Serial.print("FIO2: ");
+          Serial.println(FlowOfOxygen);
+        }
       }
 
       else if(property_name.equalsIgnoreCase("TRISE"))
       {
-        InhaleRampDurationMilliseconds = value * (double)100;  // Rise time in seconds
-        Serial.print("TRISE: ");
-        Serial.println(InhaleRampDurationMilliseconds);
+        if(value >= 5 && value <= 40)
+        {
+          InhaleRampDurationMilliseconds = value * (double)100;  // Rise time in seconds
+          Serial.print("TRISE: ");
+          Serial.println(InhaleRampDurationMilliseconds);
+        }
       }
 
       else if(property_name.equalsIgnoreCase("RR"))
       {
-        RespritoryRate = value;  // Respritory Rate in breathes per minute
-        Serial.print("RR: ");
-        Serial.println(RespritoryRate);
+        if(value >= 5 && value <= 50)
+        {
+          RespritoryRate = value;  // Respritory Rate in breathes per minute
+          Serial.print("RR: ");
+          Serial.println(RespritoryRate);
+        }
       }
 
       else if(property_name.equalsIgnoreCase("IE"))
       {
-        InhalationExhalationRatio = value / IEScalingFactor;  // Inhalation/Exhalation Ratio
-        InhaleDurationMilliseconds = (BREATHS_PER_MINUTE_TO_SEC * SEC_TO_MS) / ((InhalationExhalationRatio + 1.0) * RespritoryRate);
-        ExhaleDurationMilliseconds = (BREATHS_PER_MINUTE_TO_SEC * SEC_TO_MS * (1.0 - (1.0 / (InhalationExhalationRatio + 1.0)))) / RespritoryRate;
-        Serial.print("IE: ");
-        Serial.println(InhalationExhalationRatio);
-        Serial.println(InhaleDurationMilliseconds);
-        Serial.println(ExhaleDurationMilliseconds);
+        if(value >= 10 && value <= 40)
+        {
+          InhalationExhalationRatio = value / IEScalingFactor;  // Inhalation/Exhalation Ratio
+          InhaleDurationMilliseconds = (BREATHS_PER_MINUTE_TO_SEC * SEC_TO_MS) / ((InhalationExhalationRatio + 1.0) * RespritoryRate);
+          ExhaleDurationMilliseconds = (BREATHS_PER_MINUTE_TO_SEC * SEC_TO_MS * (1.0 - (1.0 / (InhalationExhalationRatio + 1.0)))) / RespritoryRate;
+          Serial.print("IE: ");
+          Serial.println(InhalationExhalationRatio);
+          Serial.println(InhaleDurationMilliseconds);
+          Serial.println(ExhaleDurationMilliseconds);
+        }
       }
 
       else if( property_name.equalsIgnoreCase("CMD") )
       {
-        CMD = value;
-
-        if(CMD == 0)
+        if(value == 0 || value == 1)
         {
-          Serial.println("TEST STOPPED");
-          CurrCycleStep = IDLE;
-        }
+          CMD = value;
 
-        else if(CMD == 1)
-        {
-          if(CurrCycleStep == IDLE)
+          if(CMD == 0)
           {
-            CurrCycleStep = EXHALE_HOLD;
-            breath_cycle_timer_reset(true);
-            Serial.println("TEST STARTED");
-            Serial.print("PEEP: ");         Serial.print(PeepPressureCentimetersH2O);                     Serial.println("cmH20");
-            Serial.print("PIP: ");          Serial.print(PipPressureCentimetersH2O);                      Serial.println("cmH20");
-            Serial.print("FIO2: ");         Serial.print(FlowOfOxygen);                                   Serial.println("cmH20");
-            Serial.print("TRISE: ");        Serial.print(InhaleRampDurationMilliseconds);                 Serial.println("ms");
-            Serial.print("RR: ");           Serial.print(RespritoryRate);                                 Serial.println("b/m");
-            Serial.print("IE: ");           Serial.print((1.00 / InhalationExhalationRatio) * 100.00);    Serial.println("%");
+            Serial.println("TEST STOPPED");
+            CurrCycleStep = IDLE;
+          }
+
+          else if(CMD == 1)
+          {
+            if(CurrCycleStep == IDLE)
+            {
+              CurrCycleStep = EXHALE_HOLD;
+              breath_cycle_timer_reset(true);
+              Serial.println("TEST STARTED");
+              Serial.print("PEEP: ");         Serial.print(PeepPressureCentimetersH2O);                     Serial.println("cmH20");
+              Serial.print("PIP: ");          Serial.print(PipPressureCentimetersH2O);                      Serial.println("cmH20");
+              Serial.print("FIO2: ");         Serial.print(FlowOfOxygen);                                   Serial.println("cmH20");
+              Serial.print("TRISE: ");        Serial.print(InhaleRampDurationMilliseconds);                 Serial.println("ms");
+              Serial.print("RR: ");           Serial.print(RespritoryRate);                                 Serial.println("b/m");
+              Serial.print("IE: ");           Serial.print((1.00 / InhalationExhalationRatio) * 100.00);    Serial.println("%");
+            }
+          }
+
+          else
+          {
+            Serial.println("UNKNOWN CMD CODE, GOING TO IDLE STATE");
+            CurrCycleStep = IDLE;
           }
         }
+      }
 
-        else
+      else if( property_name.equalsIgnoreCase("A_STATE") )
+      {
+        if(value == 0 || value == 1)
         {
-          Serial.println("UNKNOWN CMD CODE, GOING TO IDLE STATE");
-          CurrCycleStep = IDLE;
+          // Clear alarms
         }
       }
 
@@ -345,7 +374,6 @@ void print_pid_setpoint_and_current_value(void)
       Serial.print(" ");
       Serial.print(blower_output_speed_in_percentage);
       Serial.println();
-
     }
   }
 }
@@ -573,7 +601,8 @@ void alarms_settings(void)
 
 void alarms_faults(void)
 {
-  //
+  // Send Raspberry Pi an Alarm Signal
+  // A - J
 }
 
 void setup()
