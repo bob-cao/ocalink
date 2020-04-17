@@ -57,6 +57,7 @@
 #define DEFAULT_PINCH_VALVE_MIN_DWELL_TIME (uint32_t)250
 
 #define DEFAULT_PID_SAMPLE_TIME 10
+#define IE_DEFAULT_SCALING_FACTOR (double)10.000000
 
 #define PEEP_LOW_ALARM 1
 #define PIP_ALARM 2
@@ -97,6 +98,7 @@ bool buzzer_state = 1;
 double RespritoryRate;
 double InhalationExhalationRatio;
 double FlowOfOxygen;
+double IEScalingFactor = IE_DEFAULT_SCALING_FACTOR;
 // --------------------------------USER SETTINGS------------------------------------- //
 
 
@@ -236,23 +238,24 @@ void get_values_from_raspberry_pi (void)
 
       else if(property_name.equalsIgnoreCase("RR"))
       {
-        // Respritory Rate in (breathes per minute in b/m)
-        RespritoryRate = (value * SEC_TO_MS) / BREATHS_PER_MINUTE_TO_SEC;
+        // Respritory Rate in breathes per minute
+        RespritoryRate = value;
         Serial.print("RR: ");
         Serial.println(RespritoryRate);
       }
 
-      // else if(property_name.equalsIgnoreCase("IE"))
-      // {
-      //   // Inhalation/Exhalation Ratio
-      //   InhalationExhalationRatio = value;
-      //   InhaleDurationMilliseconds = (1 / RespritoryRate) * (1 / InhalationExhalationRatio) * (1.000000 / BREATHS_PER_MINUTE_TO_MS);
-      //   ExhaleDurationMilliseconds = (1 / RespritoryRate) * (1.000000 - (1 / InhalationExhalationRatio)) * (1.000000 / BREATHS_PER_MINUTE_TO_MS);
-      //   Serial.print("IE: ");
-      //   Serial.println(InhalationExhalationRatio);
-      //   Serial.println(InhaleDurationMilliseconds);
-      //   Serial.println(ExhaleDurationMilliseconds);
-      // }
+      else if(property_name.equalsIgnoreCase("IE"))
+      {
+        RespritoryRate = 5.0;
+        // Inhalation/Exhalation Ratio
+        InhalationExhalationRatio = value / IEScalingFactor;
+        InhaleDurationMilliseconds = (BREATHS_PER_MINUTE_TO_SEC * SEC_TO_MS) / ((InhalationExhalationRatio + 1.0) * RespritoryRate);
+        ExhaleDurationMilliseconds = (BREATHS_PER_MINUTE_TO_SEC * SEC_TO_MS * (1.0 - (1.0 / (InhalationExhalationRatio + 1.0)))) / RespritoryRate;
+        Serial.print("IE: ");
+        Serial.println(InhalationExhalationRatio);
+        Serial.println(InhaleDurationMilliseconds);
+        Serial.println(ExhaleDurationMilliseconds);
+      }
 
       // else if( property_name.equalsIgnoreCase("CMD") == 1 )
       // {
