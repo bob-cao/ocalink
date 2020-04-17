@@ -196,24 +196,18 @@ void get_values_from_raspberry_pi (void)
 
   if (Serial.available())
   {
-    string_from_pi = Serial.readString();
-    Serial.println(string_from_pi);
-
-    // string_from_pi = Serial.readStringUntil('*');
-    // if(string_from_pi[0] == '$')
-    // {
-    //   property_name = string_from_pi.substring(string_from_pi.indexOf('$') + 1, string_from_pi.indexOf(','));
-    //   value = string_from_pi.substring(string_from_pi.indexOf(',') + 1, string_from_pi.indexOf('*')).toFloat();
-    //   // CLEAR SERIAL BUFFER
-    // }
-
-    if(property_name.equalsIgnoreCase("PIP"))
+    string_from_pi = Serial.readStringUntil('*');
+    if(string_from_pi[0] == '$')
     {
-      // PIP Value
-      PipPressureCentimetersH2O = value;
-      Serial.println("PIP");
-      Serial.println(string_from_pi);
-      // Serial.println(PipPressureCentimetersH2O);
+      property_name = string_from_pi.substring(string_from_pi.indexOf('$') + 1, string_from_pi.indexOf(','));
+      value = string_from_pi.substring(string_from_pi.indexOf(',') + 1, string_from_pi.indexOf('*')).toFloat();
+
+      if(property_name.equalsIgnoreCase("PIP"))
+      {
+        PipPressureCentimetersH2O = value;  // PIP Value
+        Serial.println("PIP: ");
+        Serial.println(PipPressureCentimetersH2O);
+      }
     }
 
     // else if(property_name.equalsIgnoreCase("PEEP"))
