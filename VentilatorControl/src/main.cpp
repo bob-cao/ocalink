@@ -189,7 +189,7 @@ double get_pressure_reading (void)
 
 void get_values_from_raspberry_pi (void)
 {
-    // TODO: HIGH Break out serial protocol into seperate file
+  // TODO: HIGH Break out serial protocol into seperate file
   // TODO: HIGH ensure serial operations do not dirupt control loop
   // TODO: Add error checking
   // $<property_name>,<value><LF>
@@ -205,64 +205,76 @@ void get_values_from_raspberry_pi (void)
       if(property_name.equalsIgnoreCase("PIP"))
       {
         PipPressureCentimetersH2O = value;  // PIP Value
-        Serial.println("PIP: ");
+        Serial.print("PIP: ");
         Serial.println(PipPressureCentimetersH2O);
       }
+
+      else if(property_name.equalsIgnoreCase("PEEP"))
+      {
+        // PEEP Value
+        PeepPressureCentimetersH2O = value;
+        Serial.print("PEEP: ");
+        Serial.println(PeepPressureCentimetersH2O);
+      }
+
+      else if(property_name == "FI02")
+      {
+        // Flow of O2 in %
+        FlowOfOxygen = value;
+        Serial.print("FI02: ");
+        Serial.println(FlowOfOxygen);
+      }
+
+      else if(property_name.equalsIgnoreCase("TRISE"))
+      {
+        // Rise time in seconds
+        InhaleRampDurationMilliseconds = value * (1.000000 / BREATHS_PER_MINUTE_TO_MS);
+        Serial.print("TRISE: ");
+        Serial.println(InhaleRampDurationMilliseconds);
+      }
+
+      else if(property_name.equalsIgnoreCase("RR"))
+      {
+        // Respritory Rate in (breathes per minute in b/m)
+        RespritoryRate = value * (1.000000 / BREATHS_PER_MINUTE_TO_MS);
+        Serial.print("RR: ");
+        Serial.println(RespritoryRate);
+      }
+
+      else if(property_name.equalsIgnoreCase("IE"))
+      {
+        // Inhalation/Exhalation Ratio
+        InhalationExhalationRatio = value;
+        InhaleDurationMilliseconds = (1 / RespritoryRate) * (1 / InhalationExhalationRatio) * (1.000000 / BREATHS_PER_MINUTE_TO_MS);
+        ExhaleDurationMilliseconds = (1 / RespritoryRate) * (1.000000 - (1 / InhalationExhalationRatio)) * (1.000000 / BREATHS_PER_MINUTE_TO_MS);
+        Serial.print("IE: ");
+        Serial.println(InhalationExhalationRatio);
+        Serial.println(InhaleDurationMilliseconds);
+        Serial.println(ExhaleDurationMilliseconds);
+      }
+
+      else if( property_name.equalsIgnoreCase("CMD") == 1 )
+      {
+        if(CurrCycleStep == IDLE)
+        {
+          CurrCycleStep = EXHALE_HOLD;
+          breath_cycle_timer_reset(true);
+          Serial.println("TEST STARTED");
+          Serial.print("PEEP: ");         Serial.print(PeepPressureCentimetersH2O);                     Serial.println("cmH20");
+          Serial.print("PIP: ");          Serial.print(PipPressureCentimetersH2O);                      Serial.println("cmH20");
+          Serial.print("FIO2: ");         Serial.print(FlowOfOxygen);                                   Serial.println("cmH20");
+          Serial.print("TRISE: ");        Serial.print(InhaleRampDurationMilliseconds);                 Serial.println("ms");
+          Serial.print("RR: ");           Serial.print(RespritoryRate);                                 Serial.println("b/m");
+          Serial.print("IE: ");           Serial.print((1.00 / InhalationExhalationRatio) * 100.00);    Serial.println("%");
+        }
+      }
+
+      else if( property_name.equalsIgnoreCase("CMD") == 0 )
+      {
+        Serial.println("TEST STOPPED");
+        CurrCycleStep = IDLE;
+      }
     }
-
-    // else if(property_name.equalsIgnoreCase("PEEP"))
-    // {
-    //   // PEEP Value
-    //   PeepPressureCentimetersH2O = value;
-    // }
-
-    // else if(property_name == "FI02")
-    // {
-    //   // Flow of O2 in %
-    //   FlowOfOxygen = value;
-    // }
-
-    // else if(property_name.equalsIgnoreCase("TRISE"))
-    // {
-    //   // Rise time in seconds
-    //   InhaleRampDurationMilliseconds = value * (1.000000 / BREATHS_PER_MINUTE_TO_MS);
-    // }
-
-    // else if(property_name.equalsIgnoreCase("RR"))
-    // {
-    //   // Respritory Rate in (breathes per minute in b/m)
-    //   RespritoryRate = value * (1.000000 / BREATHS_PER_MINUTE_TO_MS);
-    // }
-
-    // else if(property_name.equalsIgnoreCase("IE"))
-    // {
-    //   // Inhalation/Exhalation Ratio
-    //   InhalationExhalationRatio = value;
-    //   InhaleDurationMilliseconds = (1 / RespritoryRate) * (1 / InhalationExhalationRatio) * (1.000000 / BREATHS_PER_MINUTE_TO_MS);
-    //   ExhaleDurationMilliseconds = (1 / RespritoryRate) * (1.000000 - (1 / InhalationExhalationRatio)) * (1.000000 / BREATHS_PER_MINUTE_TO_MS);
-    // }
-
-    // else if( property_name.equalsIgnoreCase("START") )
-    // {
-    //   if(CurrCycleStep == IDLE)
-    //   {
-    //     CurrCycleStep = EXHALE_HOLD;
-    //     breath_cycle_timer_reset(true);
-    //     Serial.println("TEST STARTED");
-    //     Serial.print("PEEP: ");         Serial.print(PeepPressureCentimetersH2O);                     Serial.println("cmH20");
-    //     Serial.print("PIP: ");          Serial.print(PipPressureCentimetersH2O);                      Serial.println("cmH20");
-    //     Serial.print("FIO2: ");         Serial.print(FlowOfOxygen);                                   Serial.println("cmH20");
-    //     Serial.print("TRISE: ");        Serial.print(InhaleRampDurationMilliseconds);                 Serial.println("ms");
-    //     Serial.print("RR: ");           Serial.print(RespritoryRate);                                 Serial.println("b/m");
-    //     Serial.print("IE: ");           Serial.print((1.00 / InhalationExhalationRatio) * 100.00);    Serial.println("%");
-    //   }
-    // }
-
-    // else if( property_name.equalsIgnoreCase("STOP") )
-    // {
-    //   Serial.println("Test Stopped");
-    //   CurrCycleStep = IDLE;
-    // }
 
     // else if(property_name.equalsIgnoreCase("InhaleTime"))
     // {
