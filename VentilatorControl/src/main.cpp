@@ -536,13 +536,6 @@ void alarms_settings(void)
   static unsigned long PrevAlarmTimePeepError = 0;
   static unsigned long PrevAlarmTimeDisconnectError = 0;
 
-  // // FOR TESTING
-  // // CurrCycleStep = EXHALE_HOLD;
-  // CurrCycleStep = INHALE_HOLD;
-
-  // pressure_system_input = 5.0;
-  // // FOR TESTING
-
   // 1 & 2a: High and Low PIP
   
   if((millis()-PrevAlarmTimePipError > 100) && (CurrCycleStep == EXHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
