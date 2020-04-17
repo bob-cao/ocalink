@@ -465,6 +465,18 @@ void cycle_state_handler (void)
   }
 }
 
+// Compensation for DC offset in pressure achieved.
+// Found by linear regression of the following experimental datapoints:
+// Target Val	Setpoint Req'd
+// 15       	16
+// 20	        21
+// 25	        27.9
+// 30	        33.5
+// 35	        38.5
+// 40	        44.5
+// 45	        49.25
+// 50	        55
+
 double linear_remap_setpoint_compensation(double setpoint)
 {
   return (1.116785714*setpoint)-0.5892857143;
@@ -488,7 +500,7 @@ void cycle_state_setpoint_handler(void)
     case INHALE_HOLD:
       Blower_Kp = mapf(PipPressureCentimetersH2O, 15, 45, 2, 48);
       Blower_Ki = mapf(PipPressureCentimetersH2O, 15, 45, 0, 0);
-      Blower_Kd= 0.1;
+      Blower_Kd= 1.25;
       CurrPressureSetpointCentimetersH2O = PipPressureCentimetersH2O;
     break;
     case EXHALE_RAMP:
