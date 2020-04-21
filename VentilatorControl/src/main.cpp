@@ -218,12 +218,6 @@ void pid_init (void)
 
 }
 
-void buzzer_init(void)
-{
-  pinMode(BUZZER_PIN, OUTPUT);
-  digitalWrite(BUZZER_PIN, LOW);
-}
-
 double get_pressure_reading (void)
 {
   if(!gagePressure.readData(false))
@@ -666,7 +660,6 @@ void alarms_handler(void)
   }
 
   // TODO (today): Add Apnea Alarm
-  // F
   // no spontaneous breath for x amount of time
   // Time is user set, still deciding on venturi flow or intake pressure as trigger
   if(millis()-PrevAlarmTimeApneaError > ApneaUserSetTime)
@@ -685,14 +678,16 @@ void alarms_handler(void)
 
 void alarms_init(void)
 {
-  pinMode(BATTERY_BACKUP_PIN, INPUT);
+  pinMode(BUZZER_PIN, OUTPUT);
+  digitalWrite(BUZZER_PIN, LOW);  // Buzzer is a piezo with a built in driver
+
+  pinMode(BATTERY_BACKUP_PIN, INPUT);  // Battery UPS backup has a NC relay
 }
 
 void setup()
 {
   // Initializations
   blower_esc_init();
-  buzzer_init();
   alarms_init();
   pinch_valve_init();
   pressure_sensors_init();
