@@ -592,7 +592,7 @@ void buzzer_toggle(void)
 // H - I:E Ratio Alarm
 // I - Battery Backup Activated Alarm
 
-void alarms_settings(void)
+void alarms_handler(void)
 {
   peep_low_alarm = PEEP_LOW_ALARM;
   peep_alarm = PEEP_ALARM;
@@ -723,9 +723,7 @@ void loop()
 
   print_pid_setpoint_and_current_value();
 
-  alarms_settings();
+  alarms_handler();
 
   get_values_from_raspberry_pi();
-
-  // TODO: HIGH Implement alarms, with serial protocol to inform the GUI/HMI
 }
