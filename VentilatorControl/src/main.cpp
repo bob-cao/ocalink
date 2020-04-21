@@ -192,6 +192,14 @@ void blower_esc_init (void)
   blower.writeMicroseconds(BLOWER_DRIVER_MIN_PULSE_MICROSECONDS);
 }
 
+void alarms_init(void)
+{
+  pinMode(BUZZER_PIN, OUTPUT);
+  digitalWrite(BUZZER_PIN, LOW);  // Buzzer is a piezo with a built in driver
+
+  pinMode(BATTERY_BACKUP_PIN, INPUT);  // Battery UPS backup has a NC relay
+}
+
 void pinch_valve_init (void)
 {
   pinMode(PINCH_VALVE_PIN, OUTPUT);
@@ -674,14 +682,6 @@ void alarms_handler(void)
 
   // TODO (tomorrow): Add I:E ratio Alarm
   // H
-}
-
-void alarms_init(void)
-{
-  pinMode(BUZZER_PIN, OUTPUT);
-  digitalWrite(BUZZER_PIN, LOW);  // Buzzer is a piezo with a built in driver
-
-  pinMode(BATTERY_BACKUP_PIN, INPUT);  // Battery UPS backup has a NC relay
 }
 
 void setup()
