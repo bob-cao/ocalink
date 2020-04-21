@@ -64,6 +64,7 @@
 #define DEFAULT_CONTROL_LOOP_INIT_STABILIZATION (uint32_t)3000
 
 #define DEFAULT_PID_SAMPLE_TIME 1.5
+#define DEFAULT_APNEA_TIME 3000
 
 #define PIP_MIN_RECEIVE 15
 #define PIP_MAX_RECEIVE 55
@@ -135,6 +136,9 @@ uint32_t ExhaleDurationMilliseconds = DEFAULT_EXHALE_DURATION; // Combined lengt
 uint32_t BreathCycleDurationMilliseconds = InhaleDurationMilliseconds + ExhaleDurationMilliseconds; // Total length of breath cycle, AKA when cycle step resets to INHALE_RAMP and CurrTimeInCycleMilliseconds resets to 0
 
 uint32_t TimeOfLastSolenoidToggleMilliseconds = 0; // Time, in terms of millis(), that the solenoid last changed states
+
+double PrevAlarmTimeApneaError;
+double ApneaUserSetTime = DEFAULT_APNEA_TIME;
 // --------------------------------STATE TIMINGS------------------------------------- //
 
 
@@ -625,6 +629,8 @@ void alarms_settings(void)
     else if (pressure_system_input >= PipPressureCentimetersH2O + pip_alarm)
     {
       Serial.write("$ALARMS,A*");  // HIGH PIP ALARM
+      // exhale immedietly to PEEP pressure and continue breathing cycle, don't reset alarm
+      CurrCycleStep = EXHALE_HOLD;
     }
 
     PrevAlarmTimePipError = millis();
@@ -663,6 +669,12 @@ void alarms_settings(void)
   // F
   // no spontaneous breath for x amount of time
   // Time is user set, still deciding on venturi flow or intake pressure as trigger
+  if(millis()-PrevAlarmTimeApneaError > ApneaUserSetTime)
+  {
+    PrevAlarmTimeApneaError = millis();
+    buzzer_toggle();
+    Serial.write("$ALARMS,F*");  // APNEA ALARM
+  }
 
   // TODO (tomorrow): Add High/Low RR Alarm
   // E
