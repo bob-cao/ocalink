@@ -34,6 +34,7 @@
 #define PINCH_VALVE_PIN 3
 // #define SOLENOID_PIN 4
 #define BLOWER_PIN 5
+#define BATTERY_BACKUP_PIN 6
 
 #define DEFAULT_PEEP (double)5.000000
 #define DEFAULT_PIP (double)20.000000
@@ -118,6 +119,7 @@ double RespritoryRate;
 double InhalationExhalationRatio;
 double FlowOfOxygen;
 double IEScalingFactor = IE_DEFAULT_SCALING_FACTOR;
+bool isBatteryActivated = false;
 // --------------------------------USER SETTINGS------------------------------------- //
 
 
@@ -575,6 +577,18 @@ void buzzer_toggle(void)
   }
 }
 
+// ALARMS
+// 1d - High PIP
+// 2a - Low PIP
+// 2b - High PEEP
+// 2c - Low PEEP
+// 2d - High/Low RR, based on graph (not tested tmr)
+// 2e - High/Low MV, based on graph (not tested tmr)
+// 2f - no spontaneous breath for x amount of time
+// 2g - disconnect alarm
+// 2h - I:E ratio, based on graph (not tested tmr)
+// 2i - battery backup
+
 void alarms_settings(void)
 {
   peep_low_alarm = PEEP_LOW_ALARM;
@@ -584,31 +598,9 @@ void alarms_settings(void)
   static unsigned long PrevAlarmTimePeepError = 0;
   static unsigned long PrevAlarmTimeDisconnectError = 0;
 
-  // 1 & 2a: High and Low PIP
-  
-  if((millis()-PrevAlarmTimePipError > 100) && (CurrCycleStep == EXHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
-      && (pressure_system_input <= PipPressureCentimetersH2O - pip_alarm
-      || pressure_system_input >= PipPressureCentimetersH2O + pip_alarm))
-  {
-    // make sound and send Raspberry Pi alarm status flag
-    buzzer_toggle();
-    Serial.write("PIP ERROR");
-    PrevAlarmTimePipError = millis();
-  }
-
-  // 2b & 2c: High and Low PEEP
-  if((millis()-PrevAlarmTimePeepError > 500) && (CurrCycleStep == INHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
-      && (pressure_system_input <= PeepPressureCentimetersH2O - peep_alarm
-      || pressure_system_input >= PeepPressureCentimetersH2O + peep_alarm))
-  {
-    // make sound and send Raspberry Pi alarm status flag
-    buzzer_toggle();
-    Serial.write("PEEP ERROR");
-    PrevAlarmTimePeepError = millis();
-  }
-
   // 2g: Disconnect Alarm
-  if((millis()-PrevAlarmTimeDisconnectError > 500) && (CurrCycleStep == EXHALE_HOLD && CurrCycleStep != INHALE_RAMP)
+  if((millis()-PrevAlarmTimeDisconnectError > 500)
+      && (CurrCycleStep == EXHALE_HOLD && CurrCycleStep != INHALE_RAMP)
       && (pressure_system_input >= -peep_low_alarm
       && pressure_system_input <= peep_low_alarm))
   {
@@ -616,6 +608,58 @@ void alarms_settings(void)
     digitalWrite(BUZZER_PIN, HIGH);
     Serial.write("DISCONNECT ERROR");
     PrevAlarmTimeDisconnectError = millis();
+  }
+
+  // 1 & 2a: High and Low PIP
+  if((millis()-PrevAlarmTimePipError > 100)
+      && (CurrCycleStep == EXHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
+      && (pressure_system_input <= PipPressureCentimetersH2O - pip_alarm
+      || pressure_system_input >= PipPressureCentimetersH2O + pip_alarm))
+  {
+    // make sound and send Raspberry Pi alarm status flag
+    buzzer_toggle();
+
+    if(pressure_system_input <= PipPressureCentimetersH2O - pip_alarm)
+    {
+      Serial.write("LOW PIP ERROR");
+    }
+    else if (pressure_system_input >= PipPressureCentimetersH2O + pip_alarm)
+    {
+      Serial.write("HIGH PIP ERROR");
+    }
+
+    Serial.write("PIP ERROR");
+    PrevAlarmTimePipError = millis();
+  }
+
+  // 2b & 2c: High and Low PEEP
+  if((millis()-PrevAlarmTimePeepError > 500)
+      && (CurrCycleStep == INHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
+      && (pressure_system_input <= PeepPressureCentimetersH2O - peep_alarm
+      || pressure_system_input >= PeepPressureCentimetersH2O + peep_alarm))
+  {
+    // make sound and send Raspberry Pi alarm status flag
+    buzzer_toggle();
+
+    if(pressure_system_input <= PeepPressureCentimetersH2O - peep_alarm)
+    {
+      Serial.write("LOW PEEP ERROR");
+    }
+    else if (pressure_system_input >= PeepPressureCentimetersH2O + peep_alarm)
+    {
+      Serial.write("HIGH PEEP ERROR");
+    }
+
+    Serial.write("PEEP ERROR");
+    PrevAlarmTimePeepError = millis();
+  }
+
+  // 2i: ventilator specific alarms (battery backup activated)
+  isBatteryActivated = digitalRead(BATTERY_BACKUP_PIN);
+  if(isBatteryActivated)
+  {
+    buzzer_toggle();
+    Serial.write("BATTERY BACKUP ENABLED");
   }
 }
 
@@ -625,11 +669,17 @@ void alarms_faults(void)
   // A - J
 }
 
+void alarms_init(void)
+{
+  pinMode(BATTERY_BACKUP_PIN, INPUT);
+}
+
 void setup()
 {
   // Initializations
   blower_esc_init();
   buzzer_init();
+  alarms_init();
   pinch_valve_init();
   pressure_sensors_init();
   pid_init();
