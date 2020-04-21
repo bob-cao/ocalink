@@ -118,7 +118,10 @@ double argument_value;
 
 double valve_position, valve_state;
 
-double peep_low_alarm, peep_alarm, pip_alarm, ApneaTimer;
+double peep_low_alarm = PEEP_LOW_ALARM;
+double peep_alarm = PEEP_ALARM;
+double pip_alarm = PIP_ALARM;
+double ApneaTimer = DEFAULT_APNEA_TIME;
 bool buzzer_state = 1;
 double RespritoryRate;
 double InhalationExhalationRatio;
@@ -600,11 +603,6 @@ void buzzer_toggle(void)
 
 void alarms_handler(void)
 {
-  peep_low_alarm = PEEP_LOW_ALARM;
-  peep_alarm = PEEP_ALARM;
-  pip_alarm = PIP_ALARM;
-  ApneaTimer = DEFAULT_APNEA_TIME;
-
   static unsigned long PrevAlarmTimePipError = 0;
   static unsigned long PrevAlarmTimePeepError = 0;
   static unsigned long PrevAlarmTimeDisconnectError = 0;
