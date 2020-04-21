@@ -276,16 +276,16 @@ void get_values_from_raspberry_pi (void)
         }
       }
 
-      else if(property_name.equalsIgnoreCase("FIO2") && !isnan(argument_value))
-      {
-        double fio2_requested = argument_value/FIO2_MULTIPLIER;
-        if(fio2_requested >= FIO2_MIN_RECEIVE && fio2_requested <= FIO2_MAX_RECEIVE)
-        {
-          FlowOfOxygen = fio2_requested;  // Flow of O2 in %
-          Serial.print("FIO2: ");
-          Serial.println(FlowOfOxygen);
-        }
-      }
+      // else if(property_name.equalsIgnoreCase("FIO2") && !isnan(argument_value))
+      // {
+      //   double fio2_requested = argument_value/FIO2_MULTIPLIER;
+      //   if(fio2_requested >= FIO2_MIN_RECEIVE && fio2_requested <= FIO2_MAX_RECEIVE)
+      //   {
+      //     FlowOfOxygen = fio2_requested;  // Flow of O2 in %
+      //     Serial.print("FIO2: ");
+      //     Serial.println(FlowOfOxygen);
+      //   }
+      // }
 
       else if(property_name.equalsIgnoreCase("TRISE") && !isnan(argument_value))
       {
@@ -342,7 +342,7 @@ void get_values_from_raspberry_pi (void)
               Serial.println("TEST STARTED");
               Serial.print("PEEP: ");         Serial.print(PeepPressureCentimetersH2O);                     Serial.println("cmH20");
               Serial.print("PIP: ");          Serial.print(PipPressureCentimetersH2O);                      Serial.println("cmH20");
-              Serial.print("FIO2: ");         Serial.print(FlowOfOxygen);                                   Serial.println("cmH20");
+              // Serial.print("FIO2: ");         Serial.print(FlowOfOxygen);                                   Serial.println("cmH20");
               Serial.print("TRISE: ");        Serial.print(InhaleRampDurationMilliseconds);                 Serial.println("ms");
               Serial.print("RR: ");           Serial.print(RespritoryRate);                                 Serial.println("b/m");
               Serial.print("IE: ");           Serial.print((1.00 / InhalationExhalationRatio) * 100.00);    Serial.println("%");
