@@ -606,7 +606,7 @@ void alarms_settings(void)
   {
     // make sound and send Raspberry Pi alarm status flag
     digitalWrite(BUZZER_PIN, HIGH);
-    Serial.write("DISCONNECT ERROR");
+    Serial.write("$ALARMS,H*");  // DISCONNECT ALARM
     PrevAlarmTimeDisconnectError = millis();
   }
 
@@ -621,14 +621,13 @@ void alarms_settings(void)
 
     if(pressure_system_input <= PipPressureCentimetersH2O - pip_alarm)
     {
-      Serial.write("LOW PIP ERROR");
+      Serial.write("$ALARMS,B*");  // LOW PIP ALARM
     }
     else if (pressure_system_input >= PipPressureCentimetersH2O + pip_alarm)
     {
-      Serial.write("HIGH PIP ERROR");
+      Serial.write("$ALARMS,A*");  // HIGH PIP ALARM
     }
 
-    Serial.write("PIP ERROR");
     PrevAlarmTimePipError = millis();
   }
 
@@ -643,14 +642,13 @@ void alarms_settings(void)
 
     if(pressure_system_input <= PeepPressureCentimetersH2O - peep_alarm)
     {
-      Serial.write("LOW PEEP ERROR");
+      Serial.write("$ALARMS,D*");  // LOW PEEP ALARM
     }
     else if (pressure_system_input >= PeepPressureCentimetersH2O + peep_alarm)
     {
-      Serial.write("HIGH PEEP ERROR");
+      Serial.write("$ALARMS,C*");  // HIGH PEEP ALARM
     }
 
-    Serial.write("PEEP ERROR");
     PrevAlarmTimePeepError = millis();
   }
 
@@ -659,8 +657,11 @@ void alarms_settings(void)
   if(isBatteryActivated)
   {
     buzzer_toggle();
-    Serial.write("BATTERY BACKUP ENABLED");
+    Serial.write("$ALARMS,J*");  // BATTERY BACKUP ALARM
   }
+
+  // TODO: Add Apnea Alarm
+  //2g: Apnea Alarm
 }
 
 void alarms_faults(void)
