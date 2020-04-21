@@ -66,6 +66,10 @@
 #define DEFAULT_PID_SAMPLE_TIME 1.5
 #define DEFAULT_APNEA_TIME 3000
 
+#define DEFAULT_DISCONNECT_TIME 500
+#define DEFAULT_PIP_TIME 100
+#define DEFAULT_PEEP_TIME 500
+
 #define PIP_MIN_RECEIVE 15
 #define PIP_MAX_RECEIVE 55
 #define PEEP_MIN_RECEIVE 5
@@ -114,13 +118,16 @@ double argument_value;
 
 double valve_position, valve_state;
 
-double peep_low_alarm, peep_alarm, pip_alarm, ApneaUserSetTime;
+double peep_low_alarm, peep_alarm, pip_alarm, ApneaTimer;
 bool buzzer_state = 1;
 double RespritoryRate;
 double InhalationExhalationRatio;
 double FlowOfOxygen;
 double IEScalingFactor = IE_DEFAULT_SCALING_FACTOR;
 bool isBatteryActivated = false;
+double DisconnectAlarmTimer = DEFAULT_DISCONNECT_TIME;
+double PipAlarmTimer = DEFAULT_PIP_TIME;
+double PeepAlarmTimer = DEFAULT_PEEP_TIME;
 // --------------------------------USER SETTINGS------------------------------------- //
 
 
@@ -596,7 +603,7 @@ void alarms_handler(void)
   peep_low_alarm = PEEP_LOW_ALARM;
   peep_alarm = PEEP_ALARM;
   pip_alarm = PIP_ALARM;
-  ApneaUserSetTime = DEFAULT_APNEA_TIME;
+  ApneaTimer = DEFAULT_APNEA_TIME;
 
   static unsigned long PrevAlarmTimePipError = 0;
   static unsigned long PrevAlarmTimePeepError = 0;
@@ -604,7 +611,7 @@ void alarms_handler(void)
   static unsigned long PrevAlarmTimeApneaError = 0;
 
   // Disconnect Alarm
-  if((millis()-PrevAlarmTimeDisconnectError > 500)
+  if((millis()-PrevAlarmTimeDisconnectError > DisconnectAlarmTimer)
       && (CurrCycleStep == EXHALE_HOLD && CurrCycleStep != INHALE_RAMP)
       && (pressure_system_input >= -peep_low_alarm
       && pressure_system_input <= peep_low_alarm))
@@ -616,7 +623,7 @@ void alarms_handler(void)
   }
 
   // High and Low PIP
-  if((millis()-PrevAlarmTimePipError > 100)
+  if((millis()-PrevAlarmTimePipError > PipAlarmTimer)
       && (CurrCycleStep == EXHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
       && (pressure_system_input <= PipPressureCentimetersH2O - pip_alarm
       || pressure_system_input >= PipPressureCentimetersH2O + pip_alarm))
@@ -639,7 +646,7 @@ void alarms_handler(void)
   }
 
   // High and Low PEEP
-  if((millis()-PrevAlarmTimePeepError > 500)
+  if((millis()-PrevAlarmTimePeepError > PeepAlarmTimer)
       && (CurrCycleStep == INHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
       && (pressure_system_input <= PeepPressureCentimetersH2O - peep_alarm
       || pressure_system_input >= PeepPressureCentimetersH2O + peep_alarm))
@@ -670,7 +677,7 @@ void alarms_handler(void)
   // TODO (today): Add Apnea Alarm
   // no spontaneous breath for x amount of time
   // Time is user set, still deciding on venturi flow or intake pressure as trigger
-  if(millis()-PrevAlarmTimeApneaError > ApneaUserSetTime)
+  if(millis()-PrevAlarmTimeApneaError > ApneaTimer)
   {
     PrevAlarmTimeApneaError = millis();
     buzzer_toggle();
