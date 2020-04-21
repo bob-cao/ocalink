@@ -683,10 +683,10 @@ void alarms_handler(void)
   }
 
   // TODO (tomorrow): Add High/Low RR Alarm
-  // E
+  // Serial.write("$ALARMS,E*");  // High/Low RR ALARM
 
   // TODO (tomorrow): Add I:E ratio Alarm
-  // H
+  // Serial.write("$ALARMS,H*");  // I:E Ratio ALARM
 }
 
 void setup()
