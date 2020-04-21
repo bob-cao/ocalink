@@ -578,16 +578,16 @@ void buzzer_toggle(void)
 }
 
 // ALARMS
-// 1d - High PIP
-// 2a - Low PIP
-// 2b - High PEEP
-// 2c - Low PEEP
-// 2d - High/Low RR, based on graph (not tested tmr)
-// 2e - High/Low MV, based on graph (not tested tmr)
-// 2f - no spontaneous breath for x amount of time
-// 2g - disconnect alarm
-// 2h - I:E ratio, based on graph (not tested tmr)
-// 2i - battery backup
+// A - High PIP
+// B - Low PIP
+// C - High PEEP
+// D - Low PEEP
+// E - High/Low RR, based on graph (not tested tmr)
+// F - High/Low MV, based on graph (not tested tmr)
+// G - no spontaneous breath for x amount of time
+// H - disconnect alarm
+// I - I:E ratio, based on graph (not tested tmr)
+// J - battery backup
 
 void alarms_settings(void)
 {
