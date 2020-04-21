@@ -577,17 +577,16 @@ void buzzer_toggle(void)
   }
 }
 
-// ALARMS
-// A - High PIP
-// B - Low PIP
-// C - High PEEP
-// D - Low PEEP
-// E - High/Low RR, based on graph (not tested tmr)
-// F - High/Low MV, based on graph (not tested tmr)
-// G - no spontaneous breath for x amount of time
-// H - disconnect alarm
-// I - I:E ratio, based on graph (not tested tmr)
-// J - battery backup
+// ALARM CODES
+// A - High PIP Alarm
+// B - Low PIP Alarm
+// C - High PEEP Alarm
+// D - Low PEEP Alarm
+// E - High/Low RR Alarm
+// F - Apnea Alarm
+// G - Disconnect Alarm
+// H - I:E Ratio Alarm
+// I - Battery Backup Activated Alarm
 
 void alarms_settings(void)
 {
@@ -606,7 +605,7 @@ void alarms_settings(void)
   {
     // make sound and send Raspberry Pi alarm status flag
     digitalWrite(BUZZER_PIN, HIGH);
-    Serial.write("$ALARMS,H*");  // DISCONNECT ALARM
+    Serial.write("$ALARMS,G*");  // DISCONNECT ALARM
     PrevAlarmTimeDisconnectError = millis();
   }
 
@@ -657,20 +656,19 @@ void alarms_settings(void)
   if(isBatteryActivated)
   {
     buzzer_toggle();
-    Serial.write("$ALARMS,J*");  // BATTERY BACKUP ALARM
+    Serial.write("$ALARMS,I*");  // BATTERY BACKUP ALARM
   }
 
-  // TODO: Add High/Low RR Alarm
+  // TODO (today): Add Apnea Alarm
+  // F
+  // no spontaneous breath for x amount of time
+  // Time is user set, still deciding on venturi flow or intake pressure as trigger
+
+  // TODO (tomorrow): Add High/Low RR Alarm
   // E
 
-  // TODO: Add High/Low MV Alarm
-  // F
-
-  // TODO: Add Apnea Alarm
-  // G
-
-  // TODO: Add I:E ratio Alarm
-  // I
+  // TODO (tomorrow): Add I:E ratio Alarm
+  // H
 }
 
 void alarms_faults(void)
