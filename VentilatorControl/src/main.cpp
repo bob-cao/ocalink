@@ -598,7 +598,7 @@ void alarms_settings(void)
   static unsigned long PrevAlarmTimePeepError = 0;
   static unsigned long PrevAlarmTimeDisconnectError = 0;
 
-  // 2g: Disconnect Alarm
+  // Disconnect Alarm
   if((millis()-PrevAlarmTimeDisconnectError > 500)
       && (CurrCycleStep == EXHALE_HOLD && CurrCycleStep != INHALE_RAMP)
       && (pressure_system_input >= -peep_low_alarm
@@ -610,7 +610,7 @@ void alarms_settings(void)
     PrevAlarmTimeDisconnectError = millis();
   }
 
-  // 1 & 2a: High and Low PIP
+  // High and Low PIP
   if((millis()-PrevAlarmTimePipError > 100)
       && (CurrCycleStep == EXHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
       && (pressure_system_input <= PipPressureCentimetersH2O - pip_alarm
@@ -631,7 +631,7 @@ void alarms_settings(void)
     PrevAlarmTimePipError = millis();
   }
 
-  // 2b & 2c: High and Low PEEP
+  // High and Low PEEP
   if((millis()-PrevAlarmTimePeepError > 500)
       && (CurrCycleStep == INHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
       && (pressure_system_input <= PeepPressureCentimetersH2O - peep_alarm
@@ -652,7 +652,7 @@ void alarms_settings(void)
     PrevAlarmTimePeepError = millis();
   }
 
-  // 2i: ventilator specific alarms (battery backup activated)
+  // Ventilator specific alarms (battery backup activated)
   isBatteryActivated = digitalRead(BATTERY_BACKUP_PIN);
   if(isBatteryActivated)
   {
@@ -660,8 +660,17 @@ void alarms_settings(void)
     Serial.write("$ALARMS,J*");  // BATTERY BACKUP ALARM
   }
 
+  // TODO: Add High/Low RR Alarm
+  // E
+
+  // TODO: Add High/Low MV Alarm
+  // F
+
   // TODO: Add Apnea Alarm
-  //2g: Apnea Alarm
+  // G
+
+  // TODO: Add I:E ratio Alarm
+  // I
 }
 
 void alarms_faults(void)
