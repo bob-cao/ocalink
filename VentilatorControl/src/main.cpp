@@ -114,7 +114,7 @@ double argument_value;
 
 double valve_position, valve_state;
 
-double peep_low_alarm, peep_alarm, pip_alarm;
+double peep_low_alarm, peep_alarm, pip_alarm, ApneaUserSetTime;
 bool buzzer_state = 1;
 double RespritoryRate;
 double InhalationExhalationRatio;
@@ -136,9 +136,6 @@ uint32_t ExhaleDurationMilliseconds = DEFAULT_EXHALE_DURATION; // Combined lengt
 uint32_t BreathCycleDurationMilliseconds = InhaleDurationMilliseconds + ExhaleDurationMilliseconds; // Total length of breath cycle, AKA when cycle step resets to INHALE_RAMP and CurrTimeInCycleMilliseconds resets to 0
 
 uint32_t TimeOfLastSolenoidToggleMilliseconds = 0; // Time, in terms of millis(), that the solenoid last changed states
-
-double PrevAlarmTimeApneaError;
-double ApneaUserSetTime = DEFAULT_APNEA_TIME;
 // --------------------------------STATE TIMINGS------------------------------------- //
 
 
@@ -599,9 +596,12 @@ void alarms_handler(void)
   peep_low_alarm = PEEP_LOW_ALARM;
   peep_alarm = PEEP_ALARM;
   pip_alarm = PIP_ALARM;
+  ApneaUserSetTime = DEFAULT_APNEA_TIME;
+
   static unsigned long PrevAlarmTimePipError = 0;
   static unsigned long PrevAlarmTimePeepError = 0;
   static unsigned long PrevAlarmTimeDisconnectError = 0;
+  static unsigned long PrevAlarmTimeApneaError = 0;
 
   // Disconnect Alarm
   if((millis()-PrevAlarmTimeDisconnectError > 500)
