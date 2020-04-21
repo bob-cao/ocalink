@@ -683,10 +683,20 @@ void alarms_handler(void)
   }
 
   // TODO (tomorrow): Add High/Low RR Alarm
-  // Serial.write("$ALARMS,E*");  // High/Low RR ALARM
+  // if(millis()-PrevAlarmTimeRRError > RRTimer)
+  // {
+  //   PrevAlarmTimeRRError = millis();
+  //   buzzer_toggle();
+  //   Serial.write("$ALARMS,E*");  // High/Low RR ALARM
+  // }
 
   // TODO (tomorrow): Add I:E ratio Alarm
-  // Serial.write("$ALARMS,H*");  // I:E Ratio ALARM
+  // if(millis()-PrevAlarmTimeIEError > IETimer)
+  // {
+  //   PrevAlarmTimeIEError = millis();
+  //   buzzer_toggle();
+  //   Serial.write("$ALARMS,H*");  // I:E Ratio ALARM
+  // }
 }
 
 void setup()
