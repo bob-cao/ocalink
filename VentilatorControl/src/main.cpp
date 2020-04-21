@@ -683,12 +683,6 @@ void alarms_settings(void)
   // H
 }
 
-void alarms_faults(void)
-{
-  // Send Raspberry Pi an Alarm Signal
-  // A - J
-}
-
 void alarms_init(void)
 {
   pinMode(BATTERY_BACKUP_PIN, INPUT);
