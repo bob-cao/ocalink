@@ -252,7 +252,7 @@ void get_values_from_raspberry_pi (void)
       }
       else
       {
-        Serial.println("UNKNOWN MESSAGE");  // A message starting with '$' is not valid
+        Serial.println("UNKNOWN MESSAGE");  // A message starting with '$' was not valid
       }
     }
   }
