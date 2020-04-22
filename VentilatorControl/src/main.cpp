@@ -242,7 +242,6 @@ void print_pid_setpoint_and_current_value(void)
       switch(CurrCycleStep)
       {
         case INHALE_RAMP:
-          
           Serial.print(CurrPressureSetpointCentimetersH2O);
         break;
         case INHALE_HOLD:
@@ -559,14 +558,16 @@ void led_colour_select(void)
 {
   switch (led_colour)
   {
-  case 1: chase(red, low_red, LED_ON_TIME); // red
-    break;
-
-  case 2: chase(amber, low_amber, LED_ON_TIME); // amber
-    break;
-  
-  default: chase(green, low_green, LED_ON_TIME); // green
-    break;
+    case 1:
+      chase(red, low_red, LED_ON_TIME); // red
+      break;
+    case 2:
+      chase(amber, low_amber, LED_ON_TIME); // amber
+      break;
+    case 3:
+    default:
+      chase(green, low_green, LED_ON_TIME); // green
+      break;
   }
 }
 
