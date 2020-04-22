@@ -153,7 +153,7 @@ extern uint32_t green;
 extern uint32_t low_green;
 extern uint32_t perywinkle;  // perywinkle (pastell blue)
 extern uint32_t low_perywinkle;  // perywinkle (pastell blue)
-extern byte led_colour;
+extern byte alarm_state;
 // --------------------------------USER SETTINGS------------------------------------- //
 
 

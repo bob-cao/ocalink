@@ -50,7 +50,7 @@ uint32_t green = AlarmLED.Color(0, 40, 0);
 uint32_t low_green = AlarmLED.Color(0,75,0);
 uint32_t perywinkle = AlarmLED.Color(5 , 7, 10);  // perywinkle (pastell blue)
 uint32_t low_perywinkle = AlarmLED.Color(2,3,5);  // perywinkle (pastell blue)
-byte led_colour = 1;
+byte alarm_state = 1;
 // --------------------------------USER SETTINGS------------------------------------- //
 
 

@@ -486,7 +486,7 @@ void alarms_handler(void)
   isBatteryActivated = digitalRead(BATTERY_ALARM_PIN);
   if(isBatteryActivated)
   {
-    led_colour = 1;
+    alarm_state = 1;
     Serial.write("$ALARMS,A*");  // BATTERY BACKUP ALARM
   }
 
@@ -497,7 +497,7 @@ void alarms_handler(void)
       && pressure_system_input <= peep_low_alarm))
   {
     // make sound and send Raspberry Pi alarm status flag
-    led_colour = 1;
+    alarm_state = 1;
     Serial.write("$ALARMS,B*");  // DISCONNECT ALARM
     PrevAlarmTimeDisconnectError = millis();
   }
@@ -509,7 +509,7 @@ void alarms_handler(void)
       || pressure_system_input >= PipPressureCentimetersH2O + pip_alarm))
   {
     // make sound and send Raspberry Pi alarm status flag
-    led_colour = 2;
+    alarm_state = 2;
 
     if(pressure_system_input >= PipPressureCentimetersH2O + pip_alarm)
     {
@@ -532,7 +532,7 @@ void alarms_handler(void)
       || pressure_system_input >= PeepPressureCentimetersH2O + peep_alarm))
   {
     // make sound and send Raspberry Pi alarm status flag
-    led_colour = 2;
+    alarm_state = 2;
 
     if(pressure_system_input >= PeepPressureCentimetersH2O + peep_alarm)
     {
@@ -547,7 +547,7 @@ void alarms_handler(void)
   }
   else
   {
-    led_colour = 3;
+    alarm_state = 3;
   }
 
   // TODO: Add Apnea Alarm
@@ -579,7 +579,7 @@ void alarms_handler(void)
 
 void alarm_audible_and_visual_select(void)
 {
-  switch (led_colour)
+  switch (alarm_state)
   {
     case 1:
       chase(red, low_red, LED_ON_TIME); // red
