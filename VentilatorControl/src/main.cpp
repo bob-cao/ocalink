@@ -673,7 +673,7 @@ void alarms_handler(void)
   }
 
   // TODO (today): Add Apnea Alarm
-  // no spontaneous breath for x amount of time
+  // error caused by no spontaneous breath for x amount of time
   // Time is user set, still deciding on venturi flow or intake pressure as trigger
   if(millis()-PrevAlarmTimeApneaError > ApneaTimer)
   {
