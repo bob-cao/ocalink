@@ -715,8 +715,7 @@ void setup()
   Serial.begin(DEFAULT_BAUD_RATE);
   #endif
 
-  // @Alex: IS THIS CORRECT WITH THE SPACE?
-   breath_cycle_timer_reset(true);
+  breath_cycle_timer_reset(true);
 }
 
 void loop()
