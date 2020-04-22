@@ -45,6 +45,7 @@ uint32_t low = AlarmLED.Color(0, 0, 0);
 uint32_t orange = AlarmLED.Color(255, 70, 0);
 uint32_t red = AlarmLED.Color(255, 0, 0);
 uint32_t green = AlarmLED.Color(0, 40, 0);
+byte led_colour = 1;
 // --------------------------------USER SETTINGS------------------------------------- //
 
 

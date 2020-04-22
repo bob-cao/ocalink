@@ -141,6 +141,7 @@ extern uint32_t low;
 extern uint32_t orange;
 extern uint32_t red;
 extern uint32_t green;
+extern byte led_colour;
 // --------------------------------USER SETTINGS------------------------------------- //
 
 
