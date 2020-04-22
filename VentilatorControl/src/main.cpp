@@ -622,7 +622,7 @@ void alarms_handler(void)
 
   // High and Low PIP
   if((millis()-PrevAlarmTimePipError > PipAlarmTimer)
-      && (CurrCycleStep == EXHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
+      && (CurrCycleStep == INHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
       && (pressure_system_input <= PipPressureCentimetersH2O - pip_alarm
       || pressure_system_input >= PipPressureCentimetersH2O + pip_alarm))
   {
@@ -637,7 +637,7 @@ void alarms_handler(void)
     {
       Serial.write("$ALARMS,A*");  // HIGH PIP ALARM
       // exhale immedietly to PEEP pressure and continue breathing cycle, don't reset alarm
-      CurrCycleStep = EXHALE_HOLD;
+      CurrCycleStep = EXHALE_RAMP;
     }
 
     PrevAlarmTimePipError = millis();
@@ -675,12 +675,12 @@ void alarms_handler(void)
   // TODO (today): Add Apnea Alarm
   // error caused by no spontaneous breath for x amount of time
   // Time is user set, still deciding on venturi flow or intake pressure as trigger
-  if(millis()-PrevAlarmTimeApneaError > ApneaTimer)
-  {
-    PrevAlarmTimeApneaError = millis();
-    buzzer_toggle();
-    Serial.write("$ALARMS,F*");  // APNEA ALARM
-  }
+  // if(millis()-PrevAlarmTimeApneaError > ApneaTimer)
+  // {
+  //   PrevAlarmTimeApneaError = millis();
+  //   buzzer_toggle();
+  //   Serial.write("$ALARMS,F*");  // APNEA ALARM
+  // }
 
   // TODO (tomorrow): Add High/Low RR Alarm
   // if(millis()-PrevAlarmTimeRRError > RRTimer)
