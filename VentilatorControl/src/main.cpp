@@ -147,7 +147,7 @@ void get_values_from_raspberry_pi (void)
       }
       // else if(property_name.equalsIgnoreCase("FIO2") && !isnan(argument_value))
       // {
-      //   double fio2_requested = argument_value/FIO2_MULTIPLIER;
+      //   double fio2_requested = argument_value/FIO2_MULTIPLIER;  // Multipled by FIO2_MULTIPLIER on Raspberry Pi
       //   if(fio2_requested >= FIO2_MIN_RECEIVE && fio2_requested <= FIO2_MAX_RECEIVE)
       //   {
       //     FlowOfOxygen = fio2_requested;  // Flow of O2 in %
@@ -157,7 +157,7 @@ void get_values_from_raspberry_pi (void)
       // }
       else if(property_name.equalsIgnoreCase("TRISE") && !isnan(argument_value))
       {
-        double trise_requested = argument_value/TRISE_MULTIPLIER;
+        double trise_requested = argument_value/TRISE_MULTIPLIER;  // Multipled by TRISE_MULTIPLIER on Raspberry Pi
         if(trise_requested >= TRISE_MIN_RECEIVE && trise_requested <= TRISE_MAX_RECEIVE)
         {
           InhaleRampDurationMilliseconds = trise_requested * 1000.0;  // Rise time in seconds
@@ -184,7 +184,7 @@ void get_values_from_raspberry_pi (void)
       }
       else if(property_name.equalsIgnoreCase("IE") && !isnan(argument_value))
       {
-        double ie_requested = argument_value/IE_MULTIPLIER;
+        double ie_requested = argument_value/IE_MULTIPLIER;  // Multipled by IE_MULTIPLIER on Raspberry Pi
         if(ie_requested >= IE_MIN_RECEIVE && ie_requested <= IE_MAX_RECEIVE)
         {
           InhalationExhalationRatio = ie_requested;  // Inhalation/Exhalation Ratio
@@ -192,7 +192,9 @@ void get_values_from_raspberry_pi (void)
           ExhaleDurationMilliseconds = (BREATHS_PER_MINUTE_TO_SEC * SEC_TO_MS * (1.0 - (1.0 / (InhalationExhalationRatio + 1.0)))) / RespritoryRate;
           Serial.print("IE: ");
           Serial.println(InhalationExhalationRatio);
+          Serial.println("InhaleDurationMilliseconds: ");
           Serial.println(InhaleDurationMilliseconds);
+          Serial.println("ExhaleDurationMilliseconds: ");
           Serial.println(ExhaleDurationMilliseconds);
         }
         else
