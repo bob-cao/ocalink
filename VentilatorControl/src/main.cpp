@@ -630,7 +630,7 @@ void alarms_handler(void)
     PrevAlarmTimeDisconnectError = millis();
   }
 
-  // High and Low PIP
+  // High and Low PIP Alarms
   if((millis()-PrevAlarmTimePipError > PipAlarmTimer)
       && (CurrCycleStep == INHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
       && (pressure_system_input <= PipPressureCentimetersH2O - pip_alarm
@@ -653,7 +653,7 @@ void alarms_handler(void)
     PrevAlarmTimePipError = millis();
   }
 
-  // High and Low PEEP
+  // High and Low PEEP Alarms
   if((millis()-PrevAlarmTimePeepError > PeepAlarmTimer)
       && (CurrCycleStep == INHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
       && (pressure_system_input <= PeepPressureCentimetersH2O - peep_alarm
