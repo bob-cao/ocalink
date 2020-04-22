@@ -35,6 +35,8 @@
 // #define SOLENOID_PIN 4
 #define BLOWER_PIN 5
 #define BATTERY_BACKUP_PIN 6
+#define DATA_PIN 7
+#define NUM_LEDS 24 //2 Inch
 
 #define DEFAULT_PEEP (double)5.000000
 #define DEFAULT_PIP (double)20.000000
@@ -131,6 +133,13 @@ bool isBatteryActivated = false;
 double DisconnectAlarmTimer = DEFAULT_DISCONNECT_TIME;
 double PipAlarmTimer = DEFAULT_PIP_TIME;
 double PeepAlarmTimer = DEFAULT_PEEP_TIME;
+
+Adafruit_NeoPixel AlarmLED = Adafruit_NeoPixel(NUM_LEDS, DATA_PIN, NEO_GRB + NEO_KHZ800);
+
+uint32_t low = AlarmLED.Color(0, 0, 0);
+uint32_t orange = AlarmLED.Color(255, 70, 0);
+uint32_t red = AlarmLED.Color(255, 0, 0);
+uint32_t green = AlarmLED.Color(0, 40, 0);
 // --------------------------------USER SETTINGS------------------------------------- //
 
 
@@ -201,6 +210,8 @@ void blower_esc_init (void)
 
 void alarms_init(void)
 {
+  AlarmLEDInit();
+
   pinMode(BUZZER_PIN, OUTPUT);
   digitalWrite(BUZZER_PIN, LOW);  // Buzzer is a piezo with a built in driver
 
@@ -696,6 +707,42 @@ void alarms_handler(void)
   //   buzzer_toggle();
   //   Serial.write("$ALARMS,H*");  // I:E Ratio ALARM
   // }
+}
+
+void AlarmLEDInit(void)
+{
+  AlarmLED.begin();
+
+  // Turn ALL LEDs OFF
+
+  for( int i = 0; i < NUM_LEDS; i++)
+  {
+    AlarmLED.setPixelColor(i, green);
+    AlarmLED.show();
+  }
+  delay(2000);
+
+  for( int i = 0; i < NUM_LEDS; i++)
+  {
+    AlarmLED.setPixelColor(i, orange);
+    AlarmLED.show();
+  }
+  delay(2000);
+
+  for( int i = 0; i < NUM_LEDS; i++)
+  {
+    AlarmLED.setPixelColor(i, red);
+    AlarmLED.show();
+  }
+  delay(2000);
+
+  for( int i = 0; i < NUM_LEDS; i++)
+  {
+    AlarmLED.setPixelColor(i, low);
+    AlarmLED.show();
+  }
+
+  delay(1000);
 }
 
 void setup()
