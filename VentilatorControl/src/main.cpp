@@ -276,7 +276,6 @@ void get_values_from_raspberry_pi (void)
         argument_value = argument.toFloat();
       else
         argument_value = NAN;
-
       if(property_name.equalsIgnoreCase("PIP") && !isnan(argument_value))
       {
         if(argument_value >= PIP_MIN_RECEIVE && argument_value <= PIP_MAX_RECEIVE)
@@ -286,7 +285,6 @@ void get_values_from_raspberry_pi (void)
           Serial.println(PipPressureCentimetersH2O);
         }
       }
-
       else if(property_name.equalsIgnoreCase("PEEP") && !isnan(argument_value))
       {
         if(argument_value >= PEEP_MIN_RECEIVE && argument_value <= PEEP_MAX_RECEIVE)
@@ -296,7 +294,6 @@ void get_values_from_raspberry_pi (void)
           Serial.println(PeepPressureCentimetersH2O);
         }
       }
-
       // else if(property_name.equalsIgnoreCase("FIO2") && !isnan(argument_value))
       // {
       //   double fio2_requested = argument_value/FIO2_MULTIPLIER;
@@ -307,7 +304,6 @@ void get_values_from_raspberry_pi (void)
       //     Serial.println(FlowOfOxygen);
       //   }
       // }
-
       else if(property_name.equalsIgnoreCase("TRISE") && !isnan(argument_value))
       {
         double trise_requested = argument_value/TRISE_MULTIPLIER;
@@ -318,7 +314,6 @@ void get_values_from_raspberry_pi (void)
           Serial.println(InhaleRampDurationMilliseconds);
         }
       }
-
       else if(property_name.equalsIgnoreCase("RR") && !isnan(argument_value))
       {
         if(argument_value >= RR_MIN_RECEIVE && argument_value <= RR_MAX_RECEIVE)
@@ -328,7 +323,6 @@ void get_values_from_raspberry_pi (void)
           Serial.println(RespritoryRate);
         }
       }
-
       else if(property_name.equalsIgnoreCase("IE") && !isnan(argument_value))
       {
         double ie_requested = argument_value/IE_MULTIPLIER;
@@ -343,7 +337,6 @@ void get_values_from_raspberry_pi (void)
           Serial.println(ExhaleDurationMilliseconds);
         }
       }
-
       else if( property_name.equalsIgnoreCase("CMD") )
       {
         if(argument.equalsIgnoreCase("START") || argument.equalsIgnoreCase("STOP"))
@@ -353,7 +346,6 @@ void get_values_from_raspberry_pi (void)
             Serial.println("TEST STOPPED");
             CurrCycleStep = IDLE;
           }
-
           else if(argument.equalsIgnoreCase("START"))
           {
             if(CurrCycleStep == IDLE)
@@ -369,22 +361,30 @@ void get_values_from_raspberry_pi (void)
               Serial.print("IE: ");           Serial.print((1.00 / InhalationExhalationRatio) * 100.00);    Serial.println("%");
             }
           }
-
           else
           {
             Serial.println("UNKNOWN CMD CODE");
           }
         }
       }
-
       else if( property_name.equalsIgnoreCase("A_STATE") )
       {
         if(argument_value == 0 || argument_value == 1)
         {
-          // Clear alarms
+          if(argument_value == 1)
+          {
+            // Alarms are ON
+          }
+          else if(argument_value == 0)
+          {
+            // Clear Alarms
+          }
+        }
+        else
+        {
+          Serial.println("UNKNOWN ALARM STATE");
         }
       }
-
       else
       {
         Serial.println("UNKNOWN MESSAGE");
