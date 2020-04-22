@@ -138,9 +138,14 @@ extern double PeepAlarmTimer;
 extern Adafruit_NeoPixel AlarmLED;
 
 extern uint32_t low;
-extern uint32_t orange;
 extern uint32_t red;
+extern uint32_t low_red;
+extern uint32_t amber;
+extern uint32_t low_amber;
 extern uint32_t green;
+extern uint32_t low_green;
+extern uint32_t perywinkle;  // perywinkle (pastell blue)
+extern uint32_t low_perywinkle;  // perywinkle (pastell blue)
 extern byte led_colour;
 // --------------------------------USER SETTINGS------------------------------------- //
 

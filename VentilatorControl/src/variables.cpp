@@ -42,9 +42,14 @@ double PeepAlarmTimer = DEFAULT_PEEP_TIME;
 Adafruit_NeoPixel AlarmLED = Adafruit_NeoPixel(NUM_LEDS, DATA_PIN, NEO_GRB + NEO_KHZ800);
 
 uint32_t low = AlarmLED.Color(0, 0, 0);
-uint32_t orange = AlarmLED.Color(255, 70, 0);
 uint32_t red = AlarmLED.Color(255, 0, 0);
+uint32_t low_red = AlarmLED.Color(100,0,0);
+uint32_t amber = AlarmLED.Color(255, 70, 0);
+uint32_t low_amber = AlarmLED.Color(100,30,0);
 uint32_t green = AlarmLED.Color(0, 40, 0);
+uint32_t low_green = AlarmLED.Color(0,75,0);
+uint32_t perywinkle = AlarmLED.Color(5 , 7, 10);  // perywinkle (pastell blue)
+uint32_t low_perywinkle = AlarmLED.Color(2,3,5);  // perywinkle (pastell blue)
 byte led_colour = 1;
 // --------------------------------USER SETTINGS------------------------------------- //
 

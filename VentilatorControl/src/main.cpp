@@ -35,12 +35,12 @@ void AlarmLEDInit(void)
   AlarmLED.begin();
 }
 
-static void chase(uint32_t primary, uint32_t secondry, int cycleDelay)
+static void chase(uint32_t primary, uint32_t secondary, int cycleDelay)
 {
   for(uint16_t i = 0; i < AlarmLED.numPixels() + 4; i++)
   {
     AlarmLED.setPixelColor(i  , primary); // Draw new pixel
-    AlarmLED.setPixelColor(i - 8, secondry); // Erase pixel a few steps back
+    AlarmLED.setPixelColor(i - 8, secondary); // Erase pixel a few steps back
     AlarmLED.show();
     delay(cycleDelay);
   }
@@ -559,19 +559,15 @@ void led_colour_select(void)
 {
   switch (led_colour)
   {
-  case 1:
-    chase(AlarmLED.Color(255, 0, 0), AlarmLED.Color(100,0,0),50); // red
+  case 1: chase(red, low_red,50); // red
     break;
-  case 2:
-  chase(AlarmLED.Color(255, 70, 0), AlarmLED.Color(100,30,0),50); // amber
-  break;
+
+  case 2: chase(amber, low_amber,50); // amber
+    break;
   
-  default:
-  chase(AlarmLED.Color(0 , 150, 0), AlarmLED.Color(0,75,0),50); // green
+  default: chase(green, low_green,50); // green
     break;
   }
-
-  // chase(AlarmLED.Color(5 , 7, 10), AlarmLED.Color(2,3,5),50); // perywinkle (pastell blue)
 }
 
 void setup()
