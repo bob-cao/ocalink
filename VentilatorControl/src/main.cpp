@@ -514,15 +514,15 @@ void alarms_handler(void)
     buzzer_toggle();
     led_colour = 2;
 
-    if(pressure_system_input <= PipPressureCentimetersH2O - pip_alarm)
-    {
-      Serial.write("$ALARMS,D*");  // LOW PIP ALARM
-    }
-    else if (pressure_system_input >= PipPressureCentimetersH2O + pip_alarm)
+    if(pressure_system_input >= PipPressureCentimetersH2O + pip_alarm)
     {
       Serial.write("$ALARMS,C*");  // HIGH PIP ALARM
       // exhale immedietly to PEEP pressure and continue breathing cycle, don't reset alarm
       CurrCycleStep = EXHALE_RAMP;
+    }
+    else if(pressure_system_input <= PipPressureCentimetersH2O - pip_alarm)
+    {
+      Serial.write("$ALARMS,D*");  // LOW PIP ALARM
     }
 
     PrevAlarmTimePipError = millis();
@@ -538,13 +538,13 @@ void alarms_handler(void)
     buzzer_toggle();
     led_colour = 2;
 
-    if(pressure_system_input <= PeepPressureCentimetersH2O - peep_alarm)
-    {
-      Serial.write("$ALARMS,F*");  // LOW PEEP ALARM
-    }
-    else if (pressure_system_input >= PeepPressureCentimetersH2O + peep_alarm)
+    if(pressure_system_input >= PeepPressureCentimetersH2O + peep_alarm)
     {
       Serial.write("$ALARMS,E*");  // HIGH PEEP ALARM
+    }
+    else if(pressure_system_input <= PeepPressureCentimetersH2O - peep_alarm)
+    {
+      Serial.write("$ALARMS,F*");  // LOW PEEP ALARM
     }
 
     PrevAlarmTimePeepError = millis();
