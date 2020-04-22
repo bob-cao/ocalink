@@ -476,6 +476,14 @@ void alarms_handler(void)
   static unsigned long PrevAlarmTimePeepError = 0;
   static unsigned long PrevAlarmTimeDisconnectError = 0;
 
+  // Ventilator specific alarms (battery backup activated)
+  isBatteryActivated = digitalRead(BATTERY_BACKUP_PIN);
+  if(isBatteryActivated)
+  {
+    buzzer_toggle();
+    Serial.write("$ALARMS,I*");  // BATTERY BACKUP ALARM
+  }
+
   // Disconnect Alarm
   if((millis()-PrevAlarmTimeDisconnectError > DisconnectAlarmTimer)
       && (CurrCycleStep == EXHALE_HOLD && CurrCycleStep != INHALE_RAMP)
@@ -532,15 +540,7 @@ void alarms_handler(void)
     PrevAlarmTimePeepError = millis();
   }
 
-  // Ventilator specific alarms (battery backup activated)
-  isBatteryActivated = digitalRead(BATTERY_BACKUP_PIN);
-  if(isBatteryActivated)
-  {
-    buzzer_toggle();
-    Serial.write("$ALARMS,I*");  // BATTERY BACKUP ALARM
-  }
-
-  // TODO (today): Add Apnea Alarm
+  // TODO: Add Apnea Alarm
   // error caused by no spontaneous breath for x amount of time
   // Time is user set, still deciding on venturi flow or intake pressure as trigger
   // if(millis()-PrevAlarmTimeApneaError > ApneaTimer)
@@ -550,7 +550,7 @@ void alarms_handler(void)
   //   Serial.write("$ALARMS,F*");  // APNEA ALARM
   // }
 
-  // TODO (tomorrow): Add High/Low RR Alarm
+  // TODO: Add High/Low RR Alarm
   // if(millis()-PrevAlarmTimeRRError > RRTimer)
   // {
   //   PrevAlarmTimeRRError = millis();
@@ -558,7 +558,7 @@ void alarms_handler(void)
   //   Serial.write("$ALARMS,E*");  // High/Low RR ALARM
   // }
 
-  // TODO (tomorrow): Add I:E ratio Alarm
+  // TODO: Add I:E ratio Alarm
   // if(millis()-PrevAlarmTimeIEError > IETimer)
   // {
   //   PrevAlarmTimeIEError = millis();
