@@ -1,13 +1,15 @@
-// #ifndef _VENTILATOR_INCLUDES_H_
-// #define _VENTILATOR_INCLUDES_H_
+#ifndef __VENTILATOR_INCLUDES_H__
+#define __VENTILATOR_INCLUDES_H__
 
-#include <Arduino.h>
-#include <Wire.h>
-#include <AllSensors_DLHR.h>
-#include <Servo.h>
-#include <PID_v1.h>
-#include <Adafruit_NeoPixel.h>
+#include "Arduino.h"
+#include "Wire.h"
+#include "AllSensors_DLHR.h"
+#include "Servo.h"
+#include "PID_v1.h"
+#include "Adafruit_NeoPixel.h"
 #include "helpers.h"
+#include "variables.h"
+
 
 // #include "Types.h"
 // #include "Config.h"
@@ -15,4 +17,4 @@
 // #include "pressureTransducer.h"
 // #include "venturi.h"
 
-// #endif
+#endif  // __VENTILATOR_INCLUDES_H__
