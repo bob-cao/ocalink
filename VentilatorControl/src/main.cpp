@@ -606,7 +606,6 @@ void alarms_handler(void)
   static unsigned long PrevAlarmTimePipError = 0;
   static unsigned long PrevAlarmTimePeepError = 0;
   static unsigned long PrevAlarmTimeDisconnectError = 0;
-  static unsigned long PrevAlarmTimeApneaError = 0;
 
   // Disconnect Alarm
   if((millis()-PrevAlarmTimeDisconnectError > DisconnectAlarmTimer)
