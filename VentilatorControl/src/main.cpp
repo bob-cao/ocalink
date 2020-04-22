@@ -559,13 +559,13 @@ void led_colour_select(void)
 {
   switch (led_colour)
   {
-  case 1: chase(red, low_red,50); // red
+  case 1: chase(red, low_red, LED_ON_TIME); // red
     break;
 
-  case 2: chase(amber, low_amber,50); // amber
+  case 2: chase(amber, low_amber, LED_ON_TIME); // amber
     break;
   
-  default: chase(green, low_green,50); // green
+  default: chase(green, low_green, LED_ON_TIME); // green
     break;
   }
 }
