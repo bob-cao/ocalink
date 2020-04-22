@@ -66,6 +66,17 @@ void AlarmLEDInit(void)
   delay(1000);
 }
 
+static void chase(uint32_t primary, uint32_t secondry, int cycleDelay)
+{
+  for(uint16_t i=0; i < AlarmLED.numPixels()+4; i++)
+  {
+    AlarmLED.setPixelColor(i  , primary); // Draw new pixel
+    AlarmLED.setPixelColor(i-8, secondry); // Erase pixel a few steps back
+    AlarmLED.show();
+    delay(cycleDelay);
+  }
+}
+
 void alarms_init(void)
 {
   AlarmLEDInit();
@@ -602,6 +613,11 @@ void loop()
   print_pid_setpoint_and_current_value();
 
   alarms_handler();
+
+  // chase(AlarmLED.Color(5 , 7, 10), AlarmLED.Color(2,3,5),50); // Red
+  // chase(AlarmLED.Color(0 , 150, 0), AlarmLED.Color(0,75,0),50); // ??? colour
+  // chase(AlarmLED.Color(255, 70, 0), AlarmLED.Color(100,30,0),50); // ??? colour
+  // chase(AlarmLED.Color(255, 0, 0), AlarmLED.Color(100,0,0),50); // ??? colour
 
   get_values_from_raspberry_pi();
 }
