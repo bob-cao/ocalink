@@ -486,7 +486,6 @@ void alarms_handler(void)
   isBatteryActivated = digitalRead(BATTERY_ALARM_PIN);
   if(isBatteryActivated)
   {
-    buzzer_toggle();
     led_colour = 1;
     Serial.write("$ALARMS,A*");  // BATTERY BACKUP ALARM
   }
@@ -498,7 +497,6 @@ void alarms_handler(void)
       && pressure_system_input <= peep_low_alarm))
   {
     // make sound and send Raspberry Pi alarm status flag
-    digitalWrite(BUZZER_PIN, HIGH);
     led_colour = 1;
     Serial.write("$ALARMS,B*");  // DISCONNECT ALARM
     PrevAlarmTimeDisconnectError = millis();
@@ -511,7 +509,6 @@ void alarms_handler(void)
       || pressure_system_input >= PipPressureCentimetersH2O + pip_alarm))
   {
     // make sound and send Raspberry Pi alarm status flag
-    buzzer_toggle();
     led_colour = 2;
 
     if(pressure_system_input >= PipPressureCentimetersH2O + pip_alarm)
@@ -535,7 +532,6 @@ void alarms_handler(void)
       || pressure_system_input >= PeepPressureCentimetersH2O + peep_alarm))
   {
     // make sound and send Raspberry Pi alarm status flag
-    buzzer_toggle();
     led_colour = 2;
 
     if(pressure_system_input >= PeepPressureCentimetersH2O + peep_alarm)
@@ -587,13 +583,16 @@ void led_colour_select(void)
   {
     case 1:
       chase(red, low_red, LED_ON_TIME); // red
+      digitalWrite(BUZZER_PIN, HIGH);
       break;
     case 2:
       chase(amber, low_amber, LED_ON_TIME); // amber
+      buzzer_toggle();
       break;
     case 3:
     default:
       chase(green, low_green, LED_ON_TIME); // green
+      digitalWrite(BUZZER_PIN, LOW);
       break;
   }
 }
