@@ -208,6 +208,42 @@ void blower_esc_init (void)
   blower.writeMicroseconds(BLOWER_DRIVER_MIN_PULSE_MICROSECONDS);
 }
 
+void AlarmLEDInit(void)
+{
+  AlarmLED.begin();
+
+  // Turn ALL LEDs OFF
+
+  for( int i = 0; i < NUM_LEDS; i++)
+  {
+    AlarmLED.setPixelColor(i, green);
+    AlarmLED.show();
+  }
+  delay(2000);
+
+  for( int i = 0; i < NUM_LEDS; i++)
+  {
+    AlarmLED.setPixelColor(i, orange);
+    AlarmLED.show();
+  }
+  delay(2000);
+
+  for( int i = 0; i < NUM_LEDS; i++)
+  {
+    AlarmLED.setPixelColor(i, red);
+    AlarmLED.show();
+  }
+  delay(2000);
+
+  for( int i = 0; i < NUM_LEDS; i++)
+  {
+    AlarmLED.setPixelColor(i, low);
+    AlarmLED.show();
+  }
+
+  delay(1000);
+}
+
 void alarms_init(void)
 {
   AlarmLEDInit();
@@ -707,42 +743,6 @@ void alarms_handler(void)
   //   buzzer_toggle();
   //   Serial.write("$ALARMS,H*");  // I:E Ratio ALARM
   // }
-}
-
-void AlarmLEDInit(void)
-{
-  AlarmLED.begin();
-
-  // Turn ALL LEDs OFF
-
-  for( int i = 0; i < NUM_LEDS; i++)
-  {
-    AlarmLED.setPixelColor(i, green);
-    AlarmLED.show();
-  }
-  delay(2000);
-
-  for( int i = 0; i < NUM_LEDS; i++)
-  {
-    AlarmLED.setPixelColor(i, orange);
-    AlarmLED.show();
-  }
-  delay(2000);
-
-  for( int i = 0; i < NUM_LEDS; i++)
-  {
-    AlarmLED.setPixelColor(i, red);
-    AlarmLED.show();
-  }
-  delay(2000);
-
-  for( int i = 0; i < NUM_LEDS; i++)
-  {
-    AlarmLED.setPixelColor(i, low);
-    AlarmLED.show();
-  }
-
-  delay(1000);
 }
 
 void setup()
