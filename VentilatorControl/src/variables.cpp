@@ -39,7 +39,7 @@ double DisconnectAlarmTimer = DEFAULT_DISCONNECT_TIME;
 double PipAlarmTimer = DEFAULT_PIP_TIME;
 double PeepAlarmTimer = DEFAULT_PEEP_TIME;
 
-Adafruit_NeoPixel AlarmLED = Adafruit_NeoPixel(NUM_LEDS, DATA_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel AlarmLED = Adafruit_NeoPixel(NUM_LEDS, LED_DATA_PIN, NEO_GRB + NEO_KHZ800);
 
 uint32_t low = AlarmLED.Color(0, 0, 0);
 uint32_t red = AlarmLED.Color(255, 0, 0);

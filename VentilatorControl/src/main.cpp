@@ -14,9 +14,9 @@ void breath_cycle_timer_reset(bool hardreset = false)
 
 void blower_esc_init (void)
 {
-  pinMode(BLOWER_PIN, OUTPUT);
-  digitalWrite(BLOWER_PIN, LOW);
-  blower.attach(BLOWER_PIN);
+  pinMode(BLOWER_SPEED_PIN, OUTPUT);
+  digitalWrite(BLOWER_SPEED_PIN, LOW);
+  blower.attach(BLOWER_SPEED_PIN);
 
   // Hold throttle LOW and toggle for ESC to initialize properly
   blower.writeMicroseconds(BLOWER_DRIVER_MIN_PULSE_MICROSECONDS);
@@ -53,7 +53,7 @@ void alarms_init(void)
   pinMode(BUZZER_PIN, OUTPUT);
   digitalWrite(BUZZER_PIN, LOW);  // Buzzer is a piezo with a built in driver
 
-  pinMode(BATTERY_BACKUP_PIN, INPUT);  // Battery UPS backup has a NC relay
+  pinMode(BATTERY_ALARM_PIN, INPUT);  // Battery UPS backup has a NC relay
 }
 
 void pinch_valve_init (void)
@@ -466,15 +466,15 @@ void buzzer_toggle(void)
 }
 
 // ALARM CODES
-// A - High PIP Alarm
-// B - Low PIP Alarm
-// C - High PEEP Alarm
-// D - Low PEEP Alarm
-// E - High/Low RR Alarm
-// F - Apnea Alarm
-// G - Disconnect Alarm
-// H - I:E Ratio Alarm
-// I - Battery Backup Activated Alarm
+// A	Battery Backup Activated Alarm
+// B	Disconnect Alarm
+// C	High PIP Alarm
+// D	Low PIP Alarm
+// E	High PEEP Alarm
+// F	Low PEEP Alarm
+// G	Apnea Alarm
+// H	High/Low RR Alarm
+// I	I:E Ratio Alarm
 
 void alarms_handler(void)
 {
@@ -483,12 +483,12 @@ void alarms_handler(void)
   static unsigned long PrevAlarmTimeDisconnectError = 0;
 
   // Ventilator specific alarms (battery backup activated)
-  isBatteryActivated = digitalRead(BATTERY_BACKUP_PIN);
+  isBatteryActivated = digitalRead(BATTERY_ALARM_PIN);
   if(isBatteryActivated)
   {
     buzzer_toggle();
     led_colour = 1;
-    Serial.write("$ALARMS,I*");  // BATTERY BACKUP ALARM
+    Serial.write("$ALARMS,A*");  // BATTERY BACKUP ALARM
   }
 
   // Disconnect Alarm
@@ -500,7 +500,7 @@ void alarms_handler(void)
     // make sound and send Raspberry Pi alarm status flag
     digitalWrite(BUZZER_PIN, HIGH);
     led_colour = 1;
-    Serial.write("$ALARMS,G*");  // DISCONNECT ALARM
+    Serial.write("$ALARMS,B*");  // DISCONNECT ALARM
     PrevAlarmTimeDisconnectError = millis();
   }
 
@@ -516,11 +516,11 @@ void alarms_handler(void)
 
     if(pressure_system_input <= PipPressureCentimetersH2O - pip_alarm)
     {
-      Serial.write("$ALARMS,B*");  // LOW PIP ALARM
+      Serial.write("$ALARMS,D*");  // LOW PIP ALARM
     }
     else if (pressure_system_input >= PipPressureCentimetersH2O + pip_alarm)
     {
-      Serial.write("$ALARMS,A*");  // HIGH PIP ALARM
+      Serial.write("$ALARMS,C*");  // HIGH PIP ALARM
       // exhale immedietly to PEEP pressure and continue breathing cycle, don't reset alarm
       CurrCycleStep = EXHALE_RAMP;
     }
@@ -540,11 +540,11 @@ void alarms_handler(void)
 
     if(pressure_system_input <= PeepPressureCentimetersH2O - peep_alarm)
     {
-      Serial.write("$ALARMS,D*");  // LOW PEEP ALARM
+      Serial.write("$ALARMS,F*");  // LOW PEEP ALARM
     }
     else if (pressure_system_input >= PeepPressureCentimetersH2O + peep_alarm)
     {
-      Serial.write("$ALARMS,C*");  // HIGH PEEP ALARM
+      Serial.write("$ALARMS,E*");  // HIGH PEEP ALARM
     }
 
     PrevAlarmTimePeepError = millis();
@@ -561,7 +561,7 @@ void alarms_handler(void)
   // {
   //   PrevAlarmTimeApneaError = millis();
   //   buzzer_toggle();
-  //   Serial.write("$ALARMS,F*");  // APNEA ALARM
+  //   Serial.write("$ALARMS,G*");  // APNEA ALARM
   // }
 
   // TODO: Add High/Low RR Alarm
@@ -569,7 +569,7 @@ void alarms_handler(void)
   // {
   //   PrevAlarmTimeRRError = millis();
   //   buzzer_toggle();
-  //   Serial.write("$ALARMS,E*");  // High/Low RR ALARM
+  //   Serial.write("$ALARMS,H*");  // High/Low RR ALARM
   // }
 
   // TODO: Add I:E ratio Alarm
@@ -577,7 +577,7 @@ void alarms_handler(void)
   // {
   //   PrevAlarmTimeIEError = millis();
   //   buzzer_toggle();
-  //   Serial.write("$ALARMS,H*");  // I:E Ratio ALARM
+  //   Serial.write("$ALARMS,I*");  // I:E Ratio ALARM
   // }
 }
 
@@ -632,9 +632,9 @@ void loop()
 
   // print_pid_setpoint_and_current_value();
 
-  // alarms_handler();
+  alarms_handler();
 
-  // led_colour_select();
+  led_colour_select();
 
-  get_values_from_raspberry_pi();
+  // get_values_from_raspberry_pi();
 }
