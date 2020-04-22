@@ -238,10 +238,12 @@ void get_values_from_raspberry_pi (void)
         {
           if(argument_value == 1)
           {
+            alarm_state = 1;
             Serial.println("ALARMS ARE ON!");  // Alarms are ON
           }
           else if(argument_value == 0)
           {
+            alarm_state = 3;
             Serial.println("ALARMS ARE OFF AND CLEARED!");  // Clear Alarms
           }
         }
