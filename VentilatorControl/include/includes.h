@@ -6,6 +6,7 @@
 #include <AllSensors_DLHR.h>
 #include <Servo.h>
 #include <PID_v1.h>
+#include <Adafruit_NeoPixel.h>
 #include "helpers.h"
 
 // #include "Types.h"
