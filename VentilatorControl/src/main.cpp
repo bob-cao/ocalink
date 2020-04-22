@@ -577,7 +577,7 @@ void alarms_handler(void)
   // }
 }
 
-void led_colour_select(void)
+void alarm_audible_and_visual_select(void)
 {
   switch (led_colour)
   {
@@ -633,7 +633,7 @@ void loop()
 
   alarms_handler();
 
-  led_colour_select();
+  alarm_audible_and_visual_select();
 
   get_values_from_raspberry_pi();
 }
