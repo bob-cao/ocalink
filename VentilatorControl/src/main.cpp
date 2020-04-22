@@ -434,7 +434,6 @@ void cycle_state_setpoint_handler(void)
       Blower_Kp = mapf(PipPressureCentimetersH2O, 15, 45, 240, 1000);
       Blower_Ki = 0;
       Blower_Kd = mapf(PipPressureCentimetersH2O, 15, 45, 0.3, 24);
-      //CurrPressureSetpointCentimetersH2O = PipPressureCentimetersH2O*mapf(PipPressureCentimetersH2O, 25, 45, 1.30, 1);
       CurrPressureSetpointCentimetersH2O = (((float)CurrTimeInCycleMilliseconds/(float)InhaleRampDurationMilliseconds)*(PipPressureCentimetersH2O-PeepPressureCentimetersH2O))+PeepPressureCentimetersH2O;
     break;
     case INHALE_HOLD:
