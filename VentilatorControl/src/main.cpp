@@ -620,21 +620,21 @@ void setup()
 
 void loop()
 {
-  // pressure_system_input = get_pressure_reading();
+  pressure_system_input = get_pressure_reading();
 
-  // cycle_state_handler();
+  cycle_state_handler();
 
-  // cycle_state_setpoint_handler();
+  cycle_state_setpoint_handler();
 
-  // pinch_valve_control();
+  pinch_valve_control();
 
-  // write_calculated_pid_blower_speed();
+  write_calculated_pid_blower_speed();
 
-  // print_pid_setpoint_and_current_value();
+  print_pid_setpoint_and_current_value();
 
   alarms_handler();
 
   led_colour_select();
 
-  // get_values_from_raspberry_pi();
+  get_values_from_raspberry_pi();
 }
