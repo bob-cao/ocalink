@@ -110,10 +110,15 @@ void get_values_from_raspberry_pi (void)
     {
       property_name = string_from_pi.substring(string_from_pi.indexOf('$') + 1, string_from_pi.indexOf(','));
       argument = string_from_pi.substring(string_from_pi.indexOf(',') + 1, string_from_pi.indexOf('*'));
+
       if(isDigit(argument[0]))
+      {
         argument_value = argument.toFloat();
+      }
       else
+      {
         argument_value = NAN;
+      }
       if(property_name.equalsIgnoreCase("PIP") && !isnan(argument_value))
       {
         if(argument_value >= PIP_MIN_RECEIVE && argument_value <= PIP_MAX_RECEIVE)
@@ -212,10 +217,12 @@ void get_values_from_raspberry_pi (void)
           if(argument_value == 1)
           {
             // Alarms are ON
+            Serial.println("Alarms are ON!");
           }
           else if(argument_value == 0)
           {
             // Clear Alarms
+            Serial.println("Alarms are OFF and Cleared!");
           }
         }
         else
@@ -593,21 +600,21 @@ void setup()
 
 void loop()
 {
-  pressure_system_input = get_pressure_reading();
+  // pressure_system_input = get_pressure_reading();
 
-  cycle_state_handler();
+  // cycle_state_handler();
 
-  cycle_state_setpoint_handler();
+  // cycle_state_setpoint_handler();
 
-  pinch_valve_control();
+  // pinch_valve_control();
 
-  write_calculated_pid_blower_speed();
+  // write_calculated_pid_blower_speed();
 
-  print_pid_setpoint_and_current_value();
+  // print_pid_setpoint_and_current_value();
 
-  alarms_handler();
+  // alarms_handler();
 
-  led_colour_select();
+  // led_colour_select();
 
   get_values_from_raspberry_pi();
 }

@@ -71,6 +71,9 @@
 #define DEFAULT_PIP_TIME 100
 #define DEFAULT_PEEP_TIME 500
 
+#define DEFAULT_RR 10
+#define DEFAULT_IE_RATIO 1
+
 #define LED_ON_TIME 50
 
 #define PIP_MIN_RECEIVE 15
