@@ -127,6 +127,10 @@ void get_values_from_raspberry_pi (void)
           Serial.print("PIP: ");
           Serial.println(PipPressureCentimetersH2O);
         }
+        else
+        {
+          Serial.println("PIP INPUT OUT OF BOUNDS!");
+        }
       }
       else if(property_name.equalsIgnoreCase("PEEP") && !isnan(argument_value))
       {
@@ -135,6 +139,10 @@ void get_values_from_raspberry_pi (void)
           PeepPressureCentimetersH2O = argument_value;  // PEEP Value
           Serial.print("PEEP: ");
           Serial.println(PeepPressureCentimetersH2O);
+        }
+        else
+        {
+          Serial.println("PEEP INPUT OUT OF BOUNDS!");
         }
       }
       // else if(property_name.equalsIgnoreCase("FIO2") && !isnan(argument_value))
@@ -156,6 +164,10 @@ void get_values_from_raspberry_pi (void)
           Serial.print("TRISE: ");
           Serial.println(InhaleRampDurationMilliseconds);
         }
+        else
+        {
+          Serial.println("TRISE INPUT OUT OF BOUNDS!");
+        }
       }
       else if(property_name.equalsIgnoreCase("RR") && !isnan(argument_value))
       {
@@ -164,6 +176,10 @@ void get_values_from_raspberry_pi (void)
           RespritoryRate = argument_value;  // Respritory Rate in breathes per minute
           Serial.print("RR: ");
           Serial.println(RespritoryRate);
+        }
+        else
+        {
+          Serial.println("RR INPUT OUT OF BOUNDS!");
         }
       }
       else if(property_name.equalsIgnoreCase("IE") && !isnan(argument_value))
@@ -179,6 +195,10 @@ void get_values_from_raspberry_pi (void)
           Serial.println(InhaleDurationMilliseconds);
           Serial.println(ExhaleDurationMilliseconds);
         }
+        else
+        {
+          Serial.println("IE INPUT OUT OF BOUNDS!");
+        }
       }
       else if( property_name.equalsIgnoreCase("CMD") )
       {
@@ -186,12 +206,12 @@ void get_values_from_raspberry_pi (void)
         {
           if(argument.equalsIgnoreCase("STOP"))
           {
-            Serial.println("TEST STOPPED");
+            Serial.println("TEST STOPPED, GOING INTO IDLE");  // Test was requested to stop, go to IDLE
             CurrCycleStep = IDLE;
           }
           else if(argument.equalsIgnoreCase("START"))
           {
-            if(CurrCycleStep == IDLE)
+            if(CurrCycleStep == IDLE)  // To start test, cycle state needs to be in IDLE
             {
               CurrCycleStep = EXHALE_HOLD;
               breath_cycle_timer_reset(true);
@@ -206,7 +226,7 @@ void get_values_from_raspberry_pi (void)
           }
           else
           {
-            Serial.println("UNKNOWN CMD CODE");
+            Serial.println("CMD CODE INPUT OUT OF BOUNDS!");  // Command code is out of bounds
           }
         }
       }
@@ -216,23 +236,21 @@ void get_values_from_raspberry_pi (void)
         {
           if(argument_value == 1)
           {
-            // Alarms are ON
-            Serial.println("Alarms are ON!");
+            Serial.println("ALARMS ARE ON!");  // Alarms are ON
           }
           else if(argument_value == 0)
           {
-            // Clear Alarms
-            Serial.println("Alarms are OFF and Cleared!");
+            Serial.println("ALARMS ARE OFF AND CLEARED!");  // Clear Alarms
           }
         }
         else
         {
-          Serial.println("UNKNOWN ALARM STATE");
+          Serial.println("ALARM STATE INPUT OUT OF BOUNDS!");  // Alarm out of bounds error
         }
       }
       else
       {
-        Serial.println("UNKNOWN MESSAGE");
+        Serial.println("UNKNOWN MESSAGE");  // A message starting with '$' is not valid
       }
     }
   }
