@@ -1,5 +1,16 @@
 #include "includes.h"
 
+void buzzerToggle (void)
+{
+  static unsigned long lastBuzzerToggle = 0;
+  if( millis()-lastBuzzerToggle > 500 )
+  {
+    digitalWrite(BUZZER_PIN, buzzer_state);
+    buzzer_state = !buzzer_state;
+    lastBuzzerToggle = millis();
+  }
+}
+
 // Found via regression analysis from static pressure testing of sample blower
 // r^2 = 0.99 for this regression on the blower tested.
 // see data at https://docs.google.com/spreadsheets/d/1GVmF7gMihPsArEmjk8MefS8RsMpl3gKHL-qg1a0rInc/edit?usp=sharing

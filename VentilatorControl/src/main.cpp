@@ -119,17 +119,6 @@ void cycleStateSetpointHandler(void)
   CurrPressureSetpointCentimetersH2O = linearRemapSetpointCompensation(CurrPressureSetpointCentimetersH2O);
 }
 
-void buzzerToggle (void)
-{
-  static unsigned long lastBuzzerToggle = 0;
-  if( millis()-lastBuzzerToggle > 500 )
-  {
-    digitalWrite(BUZZER_PIN, buzzer_state);
-    buzzer_state = !buzzer_state;
-    lastBuzzerToggle = millis();
-  }
-}
-
 // ALARM CODES
 // A	Battery Backup Activated Alarm
 // B	Disconnect Alarm
