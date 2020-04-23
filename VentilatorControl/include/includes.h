@@ -17,5 +17,6 @@
 #include "timing.h"
 #include "compute_comms.h"
 #include "helpers.h"
+#include "inits.h"
 
 #endif  // __VENTILATOR_INCLUDES_H__

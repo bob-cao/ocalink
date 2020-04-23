@@ -2,18 +2,6 @@
 
 #include "includes.h"
 
-void blower_esc_init (void)
-{
-  analogWriteResolution(10);
-  // DO NOT need to use pinMode() for using DAC on this plaform
-  analogWrite(BLOWER_SPEED_PIN,0);
-}
-
-void AlarmLEDInit (void)
-{
-  AlarmLED.begin();
-}
-
 static void chase(uint32_t primary, uint32_t secondary, int cycleDelay)
 {
   for(uint16_t i = 0; i < AlarmLED.numPixels() + 4; i++)
@@ -25,65 +13,15 @@ static void chase(uint32_t primary, uint32_t secondary, int cycleDelay)
   }
 }
 
-void alarms_init (void)
-{
-  AlarmLEDInit();
-
-  pinMode(BUZZER_PIN, OUTPUT);
-  digitalWrite(BUZZER_PIN, LOW);  // Buzzer is a piezo with a built in driver
-
-  pinMode(BATTERY_ALARM_PIN, INPUT);  // Battery UPS backup has a NC relay
-}
-
-void pinch_valve_init (void)
-{
-  pinMode(PINCH_VALVE_PIN, OUTPUT);
-  pinch_valve.attach(PINCH_VALVE_PIN);
-  pinch_valve.writeMicroseconds(PINCH_VALVE_DRIVER_FULL_OPEN_PULSE_MICROSECONDS);
-}
-
-void pressure_sensors_init (void)
-{
-  // Init the I2C bus
-  // Each pressure sensor will be unique I2C addresses based on MPN in future
-  I2CMux.begin(Wire);
-  I2CMux.closeAll();
-
-  //Setup the Patient circuit pressure sensor
-  I2CMux.openChannel(PATIENT_CIRCUIT_PRESSURE_MUX_CHANNEL);
-  patientCircuitPressure.setPressureUnit(AllSensors_DLHR::PressureUnit::IN_H2O);
-  patientCircuitPressure.startMeasurement();
-  I2CMux.closeChannel(PATIENT_CIRCUIT_PRESSURE_MUX_CHANNEL);
-
-  // Setup the Venturi differential pressure sensor
-  I2CMux.openChannel(VENTRUI_DIFFERENTIAL_PRESSURE_MUX_CHANNEL);
-  venturiDifferentialPressure.setPressureUnit(AllSensors_DLHR::PressureUnit::IN_H2O);
-  patientCircuitPressure.startMeasurement();
-  I2CMux.closeChannel(VENTRUI_DIFFERENTIAL_PRESSURE_MUX_CHANNEL);
-
-  // Setup rate limiting for reads to the pressure sensors
-  PressureSensorLastStatusRead = micros();
-}
-
-void pid_init (void)
-{
-  Blower_PID.SetMode(AUTOMATIC);      // Set PID Mode to Automatic, may change later
-  Blower_PID.SetOutputLimits(MIN_PERCENTAGE, MAX_PERCENTAGE);
-  Blower_PID.SetSampleTime(DEFAULT_PID_SAMPLE_TIME);
-
-  PinchValve_PID.SetMode(AUTOMATIC);  // Set PID Mode to Automatic, may change later
-  PinchValve_PID.SetOutputLimits(MIN_PERCENTAGE, MAX_PERCENTAGE);
-  PinchValve_PID.SetSampleTime(DEFAULT_PID_SAMPLE_TIME);
-}
-
 void inits (void)
 {
   // Initializations
-  blower_esc_init();
-  alarms_init();
-  pinch_valve_init();
-  pressure_sensors_init();
-  pid_init();
+  blowerEscInit();
+  alarmLedInit();
+  alarmsInit();
+  pinchValveInit();
+  pressureSensorsInit();
+  pidInit();
 
   // Start cycle state in IDLE state
   CurrCycleStep = IDLE;
