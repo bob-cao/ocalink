@@ -32,7 +32,7 @@ static void chase(uint32_t primary, uint32_t secondary, int cycleDelay)
   }
 }
 
-double get_pressure_reading (void)
+double getPressureReadings (void)
 {
   if(micros() - PressureSensorLastStatusRead >= 1000)
   {
@@ -78,44 +78,37 @@ double get_pressure_reading (void)
   return pressure_reading;
 }
 
-void print_pid_setpoint_and_current_value (void)
-{
-  if( CurrCycleStep != IDLE )
-  {
-    if( millis() % 50 == 0 )
-    {
-      Serial.print(pressure_system_input);
-      Serial.print(" ");
-      switch(CurrCycleStep)
-      {
-        case INHALE_RAMP:
-          Serial.print(CurrPressureSetpointCentimetersH2O);
-        break;
-        case INHALE_HOLD:
-          Serial.print(PipPressureCentimetersH2O);
-        break;
-        case EXHALE_RAMP:
-        case EXHALE_HOLD:
-        case IDLE:
-        default:
-          Serial.print(PeepPressureCentimetersH2O);
-        break;
-      }
-      Serial.print(" ");
-      Serial.print(blower_output_speed_in_percentage);
-      Serial.print(" ");
-      Serial.print(venturiDifferentialPressureReading);
-      Serial.println();
-    }
-  }
-}
-
-void reset_blower_pid_integrator (void)
-{
-  Blower_PID.SetMode(MANUAL);
-  blower_output_speed_in_percentage = 0;
-  Blower_PID.SetMode(AUTOMATIC);
-}
+// void printPidSetpointAndCurrentValues (void)
+// {
+//   if( CurrCycleStep != IDLE )
+//   {
+//     if( millis() % 50 == 0 )
+//     {
+//       Serial.print(pressure_system_input);
+//       Serial.print(" ");
+//       switch(CurrCycleStep)
+//       {
+//         case INHALE_RAMP:
+//           Serial.print(CurrPressureSetpointCentimetersH2O);
+//         break;
+//         case INHALE_HOLD:
+//           Serial.print(PipPressureCentimetersH2O);
+//         break;
+//         case EXHALE_RAMP:
+//         case EXHALE_HOLD:
+//         case IDLE:
+//         default:
+//           Serial.print(PeepPressureCentimetersH2O);
+//         break;
+//       }
+//       Serial.print(" ");
+//       Serial.print(blower_output_speed_in_percentage);
+//       Serial.print(" ");
+//       Serial.print(venturiDifferentialPressureReading);
+//       Serial.println();
+//     }
+//   }
+// }
 
 // Found via regression analysis from static pressure testing of sample blower
 // r^2 = 0.99 for this regression on the blower tested.
@@ -125,7 +118,7 @@ double blowerPressureToBlowerSpeed (double pressure)
     return sqrt(pressure)*14.16199 + pressure*0.07209 + 3.6105;
 }
 
-void write_calculated_pid_blower_speed(void)
+void writeBlowerSpeed(void)
 {
   blower_speed = blowerPressureToBlowerSpeed(CurrPressureSetpointCentimetersH2O);
   
@@ -141,7 +134,7 @@ void write_calculated_pid_blower_speed(void)
 // Write percent openness to the pinch valve
 // 0% = closed
 // 100% = wide open
-void write_pinch_valve_openness (double opennessPercentage)
+void writePinchValveOpenness (double opennessPercentage)
 {
   long pinchValvePulseLengthMicroseconds = 
   map(opennessPercentage,
@@ -152,7 +145,7 @@ void write_pinch_valve_openness (double opennessPercentage)
   pinch_valve.writeMicroseconds(pinchValvePulseLengthMicroseconds);
 }
 
-void pinch_valve_control (void)
+void pinchValveControl (void)
 {
   switch (CurrCycleStep)
   {
@@ -172,10 +165,10 @@ void pinch_valve_control (void)
     break;
   }
 
-  write_pinch_valve_openness(pinch_valve_output_openness_in_percentage);  
+  writePinchValveOpenness(pinch_valve_output_openness_in_percentage);  
 }
 
-void cycle_state_handler (void)
+void cycleStateHandler (void)
 {
   if( CurrCycleStep != IDLE )
   {
@@ -228,12 +221,12 @@ void cycle_state_handler (void)
 // 45	        49.25
 // 50	        55
 
-double linear_remap_setpoint_compensation (double setpoint)
+double linearRemapSetpointCompensation (double setpoint)
 {
   return (1.116785714*setpoint)-0.5892857143;
 }
 
-void cycle_state_setpoint_handler(void)
+void cycleStateSetpointHandler(void)
 {
   // TODO: HIGH breakout into separate file and rewrite for readability
   // TODO: MEDIUM put gains in a header, not in the source
@@ -255,10 +248,10 @@ void cycle_state_setpoint_handler(void)
     break;
   }
 
-  CurrPressureSetpointCentimetersH2O = linear_remap_setpoint_compensation(CurrPressureSetpointCentimetersH2O);
+  CurrPressureSetpointCentimetersH2O = linearRemapSetpointCompensation(CurrPressureSetpointCentimetersH2O);
 }
 
-void buzzer_toggle (void)
+void buzzerToggle (void)
 {
   static unsigned long lastBuzzerToggle = 0;
   if( millis()-lastBuzzerToggle > 500 )
@@ -280,7 +273,7 @@ void buzzer_toggle (void)
 // H	High/Low RR Alarm
 // I	I:E Ratio Alarm
 
-void alarms_handler (void)
+void alarmsHandler (void)
 {
   static unsigned long PrevAlarmTimePipError = 0;
   static unsigned long PrevAlarmTimePeepError = 0;
@@ -356,7 +349,7 @@ void alarms_handler (void)
   // if(millis()-PrevAlarmTimeApneaError > ApneaTimer)
   // {
   //   PrevAlarmTimeApneaError = millis();
-  //   buzzer_toggle();
+  //   buzzerToggle();
   //   Serial.write("$ALARMS,G*");  // APNEA ALARM
   // }
 
@@ -364,7 +357,7 @@ void alarms_handler (void)
   // if(millis()-PrevAlarmTimeRRError > RRTimer)
   // {
   //   PrevAlarmTimeRRError = millis();
-  //   buzzer_toggle();
+  //   buzzerToggle();
   //   Serial.write("$ALARMS,H*");  // High/Low RR ALARM
   // }
 
@@ -372,12 +365,12 @@ void alarms_handler (void)
   // if(millis()-PrevAlarmTimeIEError > IETimer)
   // {
   //   PrevAlarmTimeIEError = millis();
-  //   buzzer_toggle();
+  //   buzzerToggle();
   //   Serial.write("$ALARMS,I*");  // I:E Ratio ALARM
   // }
 }
 
-void alarm_audible_and_visual_select (void)
+void alarmsVisualAudioHandler (void)
 {
   switch (alarm_state)
   {
@@ -387,7 +380,7 @@ void alarm_audible_and_visual_select (void)
       break;
     case 2:
       chase(amber, low_amber, LED_ON_TIME); // amber
-      buzzer_toggle();
+      buzzerToggle();
       break;
     case 3:
     default:
@@ -397,7 +390,7 @@ void alarm_audible_and_visual_select (void)
   }
 }
 
-void send_values_to_raspberry_pi (void)
+void computeSerialSend (void)
 {
   // Send values to Raspberry Pi
   // Serial.println();  // Populate with values once that is figured out
@@ -412,23 +405,23 @@ void setup()
 
 void loop()
 {
-  pressure_system_input = get_pressure_reading();
+  pressure_system_input = getPressureReadings();
 
-  cycle_state_handler();
+  cycleStateHandler();
 
-  cycle_state_setpoint_handler();
+  cycleStateSetpointHandler();
 
-  pinch_valve_control();
+  pinchValveControl();
 
-  write_calculated_pid_blower_speed();
+  writeBlowerSpeed();
 
-  // print_pid_setpoint_and_current_value();
+  // printPidSetpointAndCurrentValues();
 
-  alarms_handler();
+  alarmsHandler();
 
-  alarm_audible_and_visual_select();
+  alarmsVisualAudioHandler();
 
-  get_values_from_raspberry_pi();
+  computeSerialReceive();
 
-  send_values_to_raspberry_pi();
+  computeSerialSend();
 }

@@ -3,6 +3,6 @@
 #ifndef __COMPUTE_COMMS_H__
 #define __COMPUTE_COMMS_H__
 
-void get_values_from_raspberry_pi (void);
+void computeSerialReceive (void);
 
 #endif // __COMPUTE_COMMS_H__
