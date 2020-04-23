@@ -4,8 +4,7 @@ void get_values_from_raspberry_pi (void)
 {
   // TODO: HIGH Break out serial protocol into seperate file
   // TODO: HIGH ensure serial operations do not dirupt control loop
-  // TODO: Add error checking for data out of range
-  // TODO: Ensure that all fields are populated before going into running test
+  // TODO: Ensure that all fields are populated before going into running test?
 
   // $<property_name>,<argument_value><LF>
 
