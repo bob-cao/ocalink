@@ -127,7 +127,7 @@ void computeSerialReceive (void)
             if(CurrCycleStep == IDLE)  // To start test, cycle state needs to be in IDLE
             {
               CurrCycleStep = EXHALE_HOLD;
-              breath_cycle_timer_reset(true);
+              breathCycleTimerReset(true);
               Serial.println("TEST STARTED");
               Serial.print("PEEP: ");         Serial.print(PeepPressureCentimetersH2O);                     Serial.println("cmH20");
               Serial.print("PIP: ");          Serial.print(PipPressureCentimetersH2O);                      Serial.println("cmH20");
