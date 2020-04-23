@@ -21,17 +21,6 @@ void inits (void)
   #endif
 }
 
-void chase(uint32_t primary, uint32_t secondary, int cycleDelay)
-{
-  for(uint16_t i = 0; i < AlarmLED.numPixels() + 4; i++)
-  {
-    AlarmLED.setPixelColor(i  , primary);     // Draw new pixel
-    AlarmLED.setPixelColor(i - 8, secondary); // Erase pixel a few steps back
-    AlarmLED.show();
-    delay(cycleDelay);
-  }
-}
-
 double getPressureReadings (void)
 {
   if(micros() - PressureSensorLastStatusRead >= 1000)

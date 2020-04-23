@@ -18,5 +18,6 @@
 #include "compute_comms.h"
 #include "helpers.h"
 #include "inits.h"
+#include "status_led.h"
 
 #endif  // __VENTILATOR_INCLUDES_H__
