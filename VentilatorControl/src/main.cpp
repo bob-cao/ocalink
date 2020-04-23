@@ -598,6 +598,12 @@ void alarm_audible_and_visual_select(void)
   }
 }
 
+void send_values_to_raspberry_pi(void)
+{
+  // Send values to Raspberry Pi
+  // Serial.println();  // Populate with values once that is figured out
+}
+
 void setup()
 {
   // Initializations
@@ -637,4 +643,6 @@ void loop()
   alarm_audible_and_visual_select();
 
   get_values_from_raspberry_pi();
+
+  send_values_to_raspberry_pi();
 }
