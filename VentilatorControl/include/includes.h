@@ -22,5 +22,6 @@
 #include "sensors.h"
 #include "actuators.h"
 #include "alarms.h"
+#include "states.h"
 
 #endif  // __VENTILATOR_INCLUDES_H__
