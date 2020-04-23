@@ -23,5 +23,6 @@
 #include "actuators.h"
 #include "alarms.h"
 #include "states.h"
+#include "debug.h"
 
 #endif  // __VENTILATOR_INCLUDES_H__
