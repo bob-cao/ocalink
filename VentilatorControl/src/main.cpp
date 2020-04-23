@@ -1,144 +1,6 @@
 // ------------------------------VENTILATOR CONTROL---------------------------------- //
 
-//TODO: LOW Refactor to have all variables extremely modular and not hard coded (later)
-
-// ----------------------------------LIBRARIES--------------------------------------- //
 #include "includes.h"
-// ----------------------------------LIBRARIES--------------------------------------- //
-
-
-
-// ----------------------------------DEBUGGING--------------------------------------- //
-#define SYSTEM__SERIAL_DEBUG__STATEMACHINE 1
-// ----------------------------------DEBUGGING--------------------------------------- //
-
-
-
-// ----------------------------------CONSTANTS--------------------------------------- //
-#define INCHES_2_CM (double)2.54
-
-#define DEFAULT_BAUD_RATE 256000
-
-#define BLOWER_DRIVER_MIN_PULSE_MICROSECONDS (double)1000
-#define BLOWER_DRIVER_MAX_PULSE_MICROSECONDS (double)2000
-#define BLOWER_DRIVER_PULSE_STARTUP_WIGGLE   (double)100
-#define DEFAULT_ESC_INIT_TIME 3000
-
-#define PINCH_VALVE_DRIVER_FULL_OPEN_PULSE_MICROSECONDS (double)1450
-#define PINCH_VALVE_DRIVER_FULL_CLOSE_PULSE_MICROSECONDS (double)1725
-
-#define MIN_PERCENTAGE (double)0
-#define MAX_PERCENTAGE (double)100
-
-#define BUZZER_PIN 2
-#define PINCH_VALVE_PIN 3
-// #define SOLENOID_PIN 4
-#define BLOWER_PIN 5
-
-#define DEFAULT_PEEP (double)5.000000
-#define DEFAULT_PIP (double)20.000000
-#define DEFAULT_BM 10  // breaths per minute
-#define DEFAULT_RISE 1000  // 1 second
-#define DEFAULT_IE 2 // inhale/exhale ratio
-#define DEFAULT_KP (double)1.000000
-#define DEFAULT_KI (double)1.000000
-#define DEFAULT_KD (double)0.000000
-
-#define DEFAULT_INHALE_RAMP (uint32_t)250
-
-#define BREATHS_PER_MINUTE_TO_SEC (double)60.000000
-#define SEC_TO_MS (double)1000.000000
-
-#define DEFAULT_PINCH_VALVE_MIN_DWELL_TIME (uint32_t)250
-
-#define IE_DEFAULT_SCALING_FACTOR (double)10.000000
-
-#define PEEP_LOW_ALARM 1
-#define PIP_ALARM 2
-#define PEEP_ALARM 2
-
-#define DEFAULT_INHALE_DURATION (uint32_t)1500
-#define DEFAULT_BREATH_CYCLE_DURATION (uint32_t)6000
-#define DEFAULT_CONTROL_LOOP_INIT_STABILIZATION (uint32_t)3000
-
-#define DEFAULT_PID_SAMPLE_TIME 1.5
-
-typedef enum{
-    INHALE_RAMP,
-    INHALE_HOLD,
-    EXHALE_RAMP,
-    EXHALE_HOLD,
-    IDLE
-}BreathCycleStep;
-BreathCycleStep CurrCycleStep;
-
-Servo blower;
-Servo pinch_valve;
-
-AllSensors_DLHR_L60D_8 gagePressure(&Wire);
-// ----------------------------------CONSTANTS--------------------------------------- //
-
-
-
-// --------------------------------USER SETTINGS------------------------------------- //
-double pressure_reading;
-double blower_speed;
-
-double PeepPressureCentimetersH2O = DEFAULT_PEEP;
-double PipPressureCentimetersH2O = DEFAULT_PIP;
-
-String string_from_pi;
-String property_name;
-double value;
-
-double valve_position, valve_state;
-
-double peep_low_alarm, peep_alarm, pip_alarm;
-bool buzzer_state = 1;
-double RespritoryRate;
-double InhalationExhalationRatio;
-double FlowOfOxygen;
-double IEScalingFactor = IE_DEFAULT_SCALING_FACTOR;
-bool CMD;
-// --------------------------------USER SETTINGS------------------------------------- //
-
-
-
-// --------------------------------STATE TIMINGS------------------------------------- //
-uint32_t CurrTimeInCycleMilliseconds; // Time since the start of the current breath cycle. Resets at the beginning of every breath cycle
-uint32_t CycleStartTimeFromSysClockMilliseconds;  // Time that the current breath cycle started ( in terms of system clock millis() )
-uint32_t ControlLoopStartTimeMilliseconds; // Time, in terms of millis(), the state machine last switched out of IDLE
-uint32_t ControlLoopInitialStabilizationTimeMilliseconds = DEFAULT_CONTROL_LOOP_INIT_STABILIZATION; // Length of time after transitioning out of IDLE that the system waits before transitioning to INHALE_RAMP
-uint32_t InhaleRampDurationMilliseconds = DEFAULT_INHALE_RAMP; // Length of the INHALE_RAMP period for a breath cycle. AKA Value of CurrTimeInCycleMilliseconds when the state changes to INHALE_HOLD .User configurable
-uint32_t InhaleDurationMilliseconds = DEFAULT_INHALE_DURATION; // Combined length of the INHALE_RAMP and INHALE_HOLD periods. AKA Value of CurrTimeInCycleMilliseconds when the state changes to EXHALE_HOLD. User configurable.
-uint32_t ExhaleDurationMilliseconds = DEFAULT_EXHALE_DURATION; // Combined length of the EXHALE_RAMP and EXHALE_HOLD periods. AKA Value of CurrTimeInCycleMilliseconds when the state changes to INHALE_HOLD. User configurable.
-uint32_t BreathCycleDurationMilliseconds = InhaleDurationMilliseconds + ExhaleDurationMilliseconds; // Total length of breath cycle, AKA when cycle step resets to INHALE_RAMP and CurrTimeInCycleMilliseconds resets to 0
-
-uint32_t TimeOfLastSolenoidToggleMilliseconds = 0; // Time, in terms of millis(), that the solenoid last changed states
-// --------------------------------STATE TIMINGS------------------------------------- //
-
-
-
-// --------------------------------PID SETTINGS-------------------------------------- //
-// TODO: MEDIUM reorganize constants
-// Pressure Controlled Blower PID
-double pressure_system_input, blower_output_speed_in_percentage, pinch_valve_output_openness_in_percentage, CurrPressureSetpointCentimetersH2O;
-//double Blower_Kp = DEFAULT_KP, Blower_Ki = DEFAULT_KI, Blower_Kd = DEFAULT_KD;
-double Blower_Kp=10.010000, Blower_Ki=0, Blower_Kd=0.008000;
-double PinchValve_Kp = 5, PinchValve_Ki = 0, PinchValve_Kd = 1;
-PID Blower_PID(&pressure_system_input,
-                &blower_output_speed_in_percentage,
-                &CurrPressureSetpointCentimetersH2O,
-                Blower_Kp, Blower_Ki, Blower_Kd, DIRECT);
-
-PID PinchValve_PID(&pressure_system_input,
-                &pinch_valve_output_openness_in_percentage,
-                &CurrPressureSetpointCentimetersH2O,
-                PinchValve_Kp, PinchValve_Kd, PinchValve_Kd, REVERSE);
-
-// --------------------------------PID SETTINGS-------------------------------------- //
-
-
 
 void breath_cycle_timer_reset(bool hardreset = false)
 {
@@ -152,11 +14,11 @@ void breath_cycle_timer_reset(bool hardreset = false)
 
 void blower_esc_init (void)
 {
-  pinMode(BLOWER_PIN, OUTPUT);
-  digitalWrite(BLOWER_PIN, LOW);
-  blower.attach(BLOWER_PIN);
-  // Hold throttle LOW for ESC to initialize properly
+  pinMode(BLOWER_SPEED_PIN, OUTPUT);
+  digitalWrite(BLOWER_SPEED_PIN, LOW);
+  blower.attach(BLOWER_SPEED_PIN);
 
+  // Hold throttle LOW and toggle for ESC to initialize properly
   blower.writeMicroseconds(BLOWER_DRIVER_MIN_PULSE_MICROSECONDS);
 
   delay(DEFAULT_ESC_INIT_TIME*0.90);
@@ -166,6 +28,32 @@ void blower_esc_init (void)
   delay(DEFAULT_ESC_INIT_TIME*0.10);
 
   blower.writeMicroseconds(BLOWER_DRIVER_MIN_PULSE_MICROSECONDS);
+}
+
+void AlarmLEDInit(void)
+{
+  AlarmLED.begin();
+}
+
+static void chase(uint32_t primary, uint32_t secondary, int cycleDelay)
+{
+  for(uint16_t i = 0; i < AlarmLED.numPixels() + 4; i++)
+  {
+    AlarmLED.setPixelColor(i  , primary); // Draw new pixel
+    AlarmLED.setPixelColor(i - 8, secondary); // Erase pixel a few steps back
+    AlarmLED.show();
+    delay(cycleDelay);
+  }
+}
+
+void alarms_init(void)
+{
+  AlarmLEDInit();
+
+  pinMode(BUZZER_PIN, OUTPUT);
+  digitalWrite(BUZZER_PIN, LOW);  // Buzzer is a piezo with a built in driver
+
+  pinMode(BATTERY_ALARM_PIN, INPUT);  // Battery UPS backup has a NC relay
 }
 
 void pinch_valve_init (void)
@@ -194,12 +82,6 @@ void pid_init (void)
 
 }
 
-void buzzer_init(void)
-{
-  pinMode(BUZZER_PIN, OUTPUT);
-  digitalWrite(BUZZER_PIN, LOW);
-}
-
 double get_pressure_reading (void)
 {
   if(!gagePressure.readData(false))
@@ -219,7 +101,7 @@ void get_values_from_raspberry_pi (void)
   // TODO: Add error checking for data out of range
   // TODO: Ensure that all fields are populated before going into running test
 
-  // $<property_name>,<value><LF>
+  // $<property_name>,<argument_value><LF>
 
   if (Serial.available())
   {
@@ -227,91 +109,152 @@ void get_values_from_raspberry_pi (void)
     if(string_from_pi[0] == '$')
     {
       property_name = string_from_pi.substring(string_from_pi.indexOf('$') + 1, string_from_pi.indexOf(','));
-      value = string_from_pi.substring(string_from_pi.indexOf(',') + 1, string_from_pi.indexOf('*')).toFloat();
+      argument = string_from_pi.substring(string_from_pi.indexOf(',') + 1, string_from_pi.indexOf('*'));
 
-      if(property_name.equalsIgnoreCase("PIP"))
+      if(isDigit(argument[0]))
       {
-        PipPressureCentimetersH2O = value;  // PIP Value
-        Serial.print("PIP: ");
-        Serial.println(PipPressureCentimetersH2O);
+        argument_value = argument.toFloat();
       }
-
-      else if(property_name.equalsIgnoreCase("PEEP"))
-      {
-        PeepPressureCentimetersH2O = value;  // PEEP Value
-        Serial.print("PEEP: ");
-        Serial.println(PeepPressureCentimetersH2O);
-      }
-
-      else if(property_name == "FIO2")
-      {
-        FlowOfOxygen = value;  // Flow of O2 in %
-        Serial.print("FIO2: ");
-        Serial.println(FlowOfOxygen);
-      }
-
-      else if(property_name.equalsIgnoreCase("TRISE"))
-      {
-        InhaleRampDurationMilliseconds = value * (double)100;  // Rise time in seconds
-        Serial.print("TRISE: ");
-        Serial.println(InhaleRampDurationMilliseconds);
-      }
-
-      else if(property_name.equalsIgnoreCase("RR"))
-      {
-        RespritoryRate = value;  // Respritory Rate in breathes per minute
-        Serial.print("RR: ");
-        Serial.println(RespritoryRate);
-      }
-
-      else if(property_name.equalsIgnoreCase("IE"))
-      {
-        InhalationExhalationRatio = value / IEScalingFactor;  // Inhalation/Exhalation Ratio
-        InhaleDurationMilliseconds = (BREATHS_PER_MINUTE_TO_SEC * SEC_TO_MS) / ((InhalationExhalationRatio + 1.0) * RespritoryRate);
-        ExhaleDurationMilliseconds = (BREATHS_PER_MINUTE_TO_SEC * SEC_TO_MS * (1.0 - (1.0 / (InhalationExhalationRatio + 1.0)))) / RespritoryRate;
-        Serial.print("IE: ");
-        Serial.println(InhalationExhalationRatio);
-        Serial.println(InhaleDurationMilliseconds);
-        Serial.println(ExhaleDurationMilliseconds);
-      }
-
-      else if( property_name.equalsIgnoreCase("CMD") )
-      {
-        CMD = value;
-
-        if(CMD == 0)
-        {
-          Serial.println("TEST STOPPED");
-          CurrCycleStep = IDLE;
-        }
-
-        else if(CMD == 1)
-        {
-          if(CurrCycleStep == IDLE)
-          {
-            CurrCycleStep = EXHALE_HOLD;
-            breath_cycle_timer_reset(true);
-            Serial.println("TEST STARTED");
-            Serial.print("PEEP: ");         Serial.print(PeepPressureCentimetersH2O);                     Serial.println("cmH20");
-            Serial.print("PIP: ");          Serial.print(PipPressureCentimetersH2O);                      Serial.println("cmH20");
-            Serial.print("FIO2: ");         Serial.print(FlowOfOxygen);                                   Serial.println("cmH20");
-            Serial.print("TRISE: ");        Serial.print(InhaleRampDurationMilliseconds);                 Serial.println("ms");
-            Serial.print("RR: ");           Serial.print(RespritoryRate);                                 Serial.println("b/m");
-            Serial.print("IE: ");           Serial.print((1.00 / InhalationExhalationRatio) * 100.00);    Serial.println("%");
-          }
-        }
-
-        else
-        {
-          Serial.println("UNKNOWN CMD CODE, GOING TO IDLE STATE");
-          CurrCycleStep = IDLE;
-        }
-      }
-
       else
       {
-        Serial.println("UNKNOWN MESSAGE, GOING TO IDLE STATE");
-        CurrCycleStep = IDLE;
+        argument_value = NAN;
+      }
+      if(property_name.equalsIgnoreCase("PIP") && !isnan(argument_value))
+      {
+        if(argument_value >= PIP_MIN_RECEIVE && argument_value <= PIP_MAX_RECEIVE)
+        {
+          PipPressureCentimetersH2O = argument_value;  // PIP Value
+          Serial.print("PIP: ");
+          Serial.println(PipPressureCentimetersH2O);
+        }
+        else
+        {
+          Serial.println("PIP INPUT OUT OF BOUNDS!");
+        }
+      }
+      else if(property_name.equalsIgnoreCase("PEEP") && !isnan(argument_value))
+      {
+        if(argument_value >= PEEP_MIN_RECEIVE && argument_value <= PEEP_MAX_RECEIVE)
+        {
+          PeepPressureCentimetersH2O = argument_value;  // PEEP Value
+          Serial.print("PEEP: ");
+          Serial.println(PeepPressureCentimetersH2O);
+        }
+        else
+        {
+          Serial.println("PEEP INPUT OUT OF BOUNDS!");
+        }
+      }
+      // else if(property_name.equalsIgnoreCase("FIO2") && !isnan(argument_value))
+      // {
+      //   double fio2_requested = argument_value/FIO2_MULTIPLIER;  // Multipled by FIO2_MULTIPLIER on Raspberry Pi
+      //   if(fio2_requested >= FIO2_MIN_RECEIVE && fio2_requested <= FIO2_MAX_RECEIVE)
+      //   {
+      //     FlowOfOxygen = fio2_requested;  // Flow of O2 in %
+      //     Serial.print("FIO2: ");
+      //     Serial.println(FlowOfOxygen);
+      //   }
+      // }
+      else if(property_name.equalsIgnoreCase("TRISE") && !isnan(argument_value))
+      {
+        double trise_requested = argument_value/TRISE_MULTIPLIER;  // Multipled by TRISE_MULTIPLIER on Raspberry Pi
+        if(trise_requested >= TRISE_MIN_RECEIVE && trise_requested <= TRISE_MAX_RECEIVE)
+        {
+          InhaleRampDurationMilliseconds = trise_requested * SEC_TO_MS;  // Rise time in seconds
+          Serial.print("TRISE: ");
+          Serial.println(InhaleRampDurationMilliseconds);
+        }
+        else
+        {
+          Serial.println("TRISE INPUT OUT OF BOUNDS!");
+        }
+      }
+      else if(property_name.equalsIgnoreCase("RR") && !isnan(argument_value))
+      {
+        if(argument_value >= RR_MIN_RECEIVE && argument_value <= RR_MAX_RECEIVE)
+        {
+          RespritoryRate = argument_value;  // Respritory Rate in breathes per minute
+          Serial.print("RR: ");
+          Serial.println(RespritoryRate);
+        }
+        else
+        {
+          Serial.println("RR INPUT OUT OF BOUNDS!");
+        }
+      }
+      else if(property_name.equalsIgnoreCase("IE") && !isnan(argument_value))
+      {
+        double ie_requested = argument_value/IE_MULTIPLIER;  // Multipled by IE_MULTIPLIER on Raspberry Pi
+        if(ie_requested >= IE_MIN_RECEIVE && ie_requested <= IE_MAX_RECEIVE)
+        {
+          InhalationExhalationRatio = ie_requested;  // Inhalation/Exhalation Ratio
+          InhaleDurationMilliseconds = (BREATHS_PER_MINUTE_TO_SEC * SEC_TO_MS) / ((InhalationExhalationRatio + 1.0) * RespritoryRate);
+          ExhaleDurationMilliseconds = (BREATHS_PER_MINUTE_TO_SEC * SEC_TO_MS * (1.0 - (1.0 / (InhalationExhalationRatio + 1.0)))) / RespritoryRate;
+          Serial.print("IE: ");
+          Serial.println(InhalationExhalationRatio);
+          Serial.println("InhaleDurationMilliseconds: ");
+          Serial.println(InhaleDurationMilliseconds);
+          Serial.println("ExhaleDurationMilliseconds: ");
+          Serial.println(ExhaleDurationMilliseconds);
+        }
+        else
+        {
+          Serial.println("IE INPUT OUT OF BOUNDS!");
+        }
+      }
+      else if( property_name.equalsIgnoreCase("CMD") )
+      {
+        if(argument.equalsIgnoreCase("START") || argument.equalsIgnoreCase("STOP"))
+        {
+          if(argument.equalsIgnoreCase("STOP"))
+          {
+            Serial.println("TEST STOPPED, GOING INTO IDLE");  // Test was requested to stop, go to IDLE
+            CurrCycleStep = IDLE;
+          }
+          else if(argument.equalsIgnoreCase("START"))
+          {
+            if(CurrCycleStep == IDLE)  // To start test, cycle state needs to be in IDLE
+            {
+              CurrCycleStep = EXHALE_HOLD;
+              breath_cycle_timer_reset(true);
+              Serial.println("TEST STARTED");
+              Serial.print("PEEP: ");         Serial.print(PeepPressureCentimetersH2O);                     Serial.println("cmH20");
+              Serial.print("PIP: ");          Serial.print(PipPressureCentimetersH2O);                      Serial.println("cmH20");
+              // Serial.print("FIO2: ");         Serial.print(FlowOfOxygen);                                   Serial.println("cmH20");
+              Serial.print("TRISE: ");        Serial.print(InhaleRampDurationMilliseconds);                 Serial.println("ms");
+              Serial.print("RR: ");           Serial.print(RespritoryRate);                                 Serial.println("b/m");
+              Serial.print("IE: ");           Serial.print((1.00 / InhalationExhalationRatio) * RATIO_TO_PERCENTAGE);    Serial.println("%");
+            }
+          }
+          else
+          {
+            Serial.println("CMD CODE INPUT OUT OF BOUNDS!");  // Command code is out of bounds
+          }
+        }
+      }
+      else if( property_name.equalsIgnoreCase("A_STATE") )
+      {
+        if(argument_value == 0 || argument_value == 1)
+        {
+          if(argument_value == 1)
+          {
+            alarm_state = 1;
+            Serial.println("ALARMS ARE ON!");  // Alarms are ON
+          }
+          else if(argument_value == 0)
+          {
+            alarm_state = 3;
+            Serial.println("ALARMS ARE OFF AND CLEARED!");  // Clear Alarms
+          }
+        }
+        else
+        {
+          Serial.println("ALARM STATE INPUT OUT OF BOUNDS!");  // Alarm out of bounds error
+        }
+      }
+      else
+      {
+        Serial.println("UNKNOWN MESSAGE");  // A message starting with '$' was not valid
       }
     }
   }
@@ -328,7 +271,6 @@ void print_pid_setpoint_and_current_value(void)
       switch(CurrCycleStep)
       {
         case INHALE_RAMP:
-          
           Serial.print(CurrPressureSetpointCentimetersH2O);
         break;
         case INHALE_HOLD:
@@ -344,7 +286,6 @@ void print_pid_setpoint_and_current_value(void)
       Serial.print(" ");
       Serial.print(blower_output_speed_in_percentage);
       Serial.println();
-
     }
   }
 }
@@ -490,16 +431,15 @@ void cycle_state_setpoint_handler(void)
   switch(CurrCycleStep)
   {
     case INHALE_RAMP:
-      Blower_Kp=mapf(PipPressureCentimetersH2O, 15, 45, 240, 1000);
-      Blower_Ki=0;
-      Blower_Kd = mapf(PipPressureCentimetersH2O, 15, 45, .3, 24);
-      //CurrPressureSetpointCentimetersH2O = PipPressureCentimetersH2O*mapf(PipPressureCentimetersH2O, 25, 45, 1.30, 1);
+      Blower_Kp = mapf(PipPressureCentimetersH2O, 15, 45, 240, 1000);
+      Blower_Ki = 0;
+      Blower_Kd = mapf(PipPressureCentimetersH2O, 15, 45, 0.3, 24);
       CurrPressureSetpointCentimetersH2O = (((float)CurrTimeInCycleMilliseconds/(float)InhaleRampDurationMilliseconds)*(PipPressureCentimetersH2O-PeepPressureCentimetersH2O))+PeepPressureCentimetersH2O;
     break;
     case INHALE_HOLD:
       Blower_Kp = mapf(PipPressureCentimetersH2O, 15, 45, 2, 48);
       Blower_Ki = mapf(PipPressureCentimetersH2O, 15, 45, 0, 0);
-      Blower_Kd= 1.25;
+      Blower_Kd = 1.25;
       CurrPressureSetpointCentimetersH2O = PipPressureCentimetersH2O;
     break;
     case EXHALE_RAMP:
@@ -526,61 +466,149 @@ void buzzer_toggle(void)
   }
 }
 
-void alarms_settings(void)
+// ALARM CODES
+// A	Battery Backup Activated Alarm
+// B	Disconnect Alarm
+// C	High PIP Alarm
+// D	Low PIP Alarm
+// E	High PEEP Alarm
+// F	Low PEEP Alarm
+// G	Apnea Alarm
+// H	High/Low RR Alarm
+// I	I:E Ratio Alarm
+
+void alarms_handler(void)
 {
-  peep_low_alarm = PEEP_LOW_ALARM;
-  peep_alarm = PEEP_ALARM;
-  pip_alarm = PIP_ALARM;
+  static unsigned long PrevAlarmTimePipError = 0;
+  static unsigned long PrevAlarmTimePeepError = 0;
+  static unsigned long PrevAlarmTimeDisconnectError = 0;
 
-  // // FOR TESTING
-  // // CurrCycleStep = EXHALE_HOLD;
-  // CurrCycleStep = INHALE_HOLD;
-
-  // pressure_system_input = 5.0;
-  // // FOR TESTING
-
-  // 1 & 2a: High and Low PIP
-  if((CurrCycleStep == EXHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
-      && (pressure_system_input <= PipPressureCentimetersH2O - pip_alarm
-      || pressure_system_input >= PipPressureCentimetersH2O + pip_alarm))
+  // Ventilator specific alarms (battery backup activated)
+  isBatteryActivated = digitalRead(BATTERY_ALARM_PIN);
+  if(isBatteryActivated)
   {
-    // make sound and send Raspberry Pi alarm status flag
-    buzzer_toggle();
-    Serial.write("PIP ERROR");
+    alarm_state = 1;
+    Serial.write("$ALARMS,A*");  // BATTERY BACKUP ALARM
   }
 
-  // 2b & 2c: High and Low PEEP
-  if((CurrCycleStep == INHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
-      && (pressure_system_input <= PeepPressureCentimetersH2O - peep_alarm
-      || pressure_system_input >= PeepPressureCentimetersH2O + peep_alarm))
-  {
-    // make sound and send Raspberry Pi alarm status flag
-    buzzer_toggle();
-    Serial.write("PEEP ERROR");
-  }
-
-  // 2g: Disconnect Alarm
-  if((CurrCycleStep == EXHALE_HOLD && CurrCycleStep != INHALE_RAMP)
+  // Disconnect Alarm
+  if((millis()-PrevAlarmTimeDisconnectError > DisconnectAlarmTimer)
+      && (CurrCycleStep == EXHALE_HOLD && CurrCycleStep != INHALE_RAMP)
       && (pressure_system_input >= -peep_low_alarm
       && pressure_system_input <= peep_low_alarm))
   {
     // make sound and send Raspberry Pi alarm status flag
-    digitalWrite(BUZZER_PIN, HIGH);
-    Serial.write("DISCONNECT ERROR");
+    alarm_state = 1;
+    Serial.write("$ALARMS,B*");  // DISCONNECT ALARM
+    PrevAlarmTimeDisconnectError = millis();
+  }
+
+  // High and Low PIP Alarms
+  if((millis()-PrevAlarmTimePipError > PipAlarmTimer)
+      && (CurrCycleStep == INHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
+      && (pressure_system_input <= PipPressureCentimetersH2O - pip_alarm
+      || pressure_system_input >= PipPressureCentimetersH2O + pip_alarm))
+  {
+    // make sound and send Raspberry Pi alarm status flag
+    alarm_state = 2;
+
+    if(pressure_system_input >= PipPressureCentimetersH2O + pip_alarm)
+    {
+      Serial.write("$ALARMS,C*");  // HIGH PIP ALARM
+      // exhale immedietly to PEEP pressure and continue breathing cycle, don't reset alarm
+      CurrCycleStep = EXHALE_RAMP;
+    }
+    else if(pressure_system_input <= PipPressureCentimetersH2O - pip_alarm)
+    {
+      Serial.write("$ALARMS,D*");  // LOW PIP ALARM
+    }
+
+    PrevAlarmTimePipError = millis();
+  }
+
+  // High and Low PEEP Alarms
+  if((millis()-PrevAlarmTimePeepError > PeepAlarmTimer)
+      && (CurrCycleStep == INHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
+      && (pressure_system_input <= PeepPressureCentimetersH2O - peep_alarm
+      || pressure_system_input >= PeepPressureCentimetersH2O + peep_alarm))
+  {
+    // make sound and send Raspberry Pi alarm status flag
+    alarm_state = 2;
+
+    if(pressure_system_input >= PeepPressureCentimetersH2O + peep_alarm)
+    {
+      Serial.write("$ALARMS,E*");  // HIGH PEEP ALARM
+    }
+    else if(pressure_system_input <= PeepPressureCentimetersH2O - peep_alarm)
+    {
+      Serial.write("$ALARMS,F*");  // LOW PEEP ALARM
+    }
+
+    PrevAlarmTimePeepError = millis();
+  }
+  else
+  {
+    alarm_state = 3;
+  }
+
+  // TODO: Add Apnea Alarm
+  // error caused by no spontaneous breath for x amount of time
+  // Time is user set, still deciding on venturi flow or intake pressure as trigger
+  // if(millis()-PrevAlarmTimeApneaError > ApneaTimer)
+  // {
+  //   PrevAlarmTimeApneaError = millis();
+  //   buzzer_toggle();
+  //   Serial.write("$ALARMS,G*");  // APNEA ALARM
+  // }
+
+  // TODO: Add High/Low RR Alarm
+  // if(millis()-PrevAlarmTimeRRError > RRTimer)
+  // {
+  //   PrevAlarmTimeRRError = millis();
+  //   buzzer_toggle();
+  //   Serial.write("$ALARMS,H*");  // High/Low RR ALARM
+  // }
+
+  // TODO: Add I:E ratio Alarm
+  // if(millis()-PrevAlarmTimeIEError > IETimer)
+  // {
+  //   PrevAlarmTimeIEError = millis();
+  //   buzzer_toggle();
+  //   Serial.write("$ALARMS,I*");  // I:E Ratio ALARM
+  // }
+}
+
+void alarm_audible_and_visual_select(void)
+{
+  switch (alarm_state)
+  {
+    case 1:
+      chase(red, low_red, LED_ON_TIME); // red
+      digitalWrite(BUZZER_PIN, HIGH);
+      break;
+    case 2:
+      chase(amber, low_amber, LED_ON_TIME); // amber
+      buzzer_toggle();
+      break;
+    case 3:
+    default:
+      chase(green, low_green, LED_ON_TIME); // green
+      digitalWrite(BUZZER_PIN, LOW);
+      break;
   }
 }
 
-void alarms_faults(void)
+void send_values_to_raspberry_pi(void)
 {
-  //
+  // Send values to Raspberry Pi
+  // Serial.println();  // Populate with values once that is figured out
 }
 
 void setup()
 {
-  // buzzer_init();
-
   // Initializations
   blower_esc_init();
+  alarms_init();
   pinch_valve_init();
   pressure_sensors_init();
   pid_init();
@@ -593,15 +621,11 @@ void setup()
   Serial.begin(DEFAULT_BAUD_RATE);
   #endif
 
-  // breath_cycle_timer_reset(true);
+  breath_cycle_timer_reset(true);
 }
 
 void loop()
 {
-  get_values_from_raspberry_pi();
-
-  // alarms_settings();
-
   pressure_system_input = get_pressure_reading();
 
   cycle_state_handler();
@@ -612,9 +636,13 @@ void loop()
 
   write_calculated_pid_blower_speed();
 
-  print_pid_setpoint_and_current_value();
+  // print_pid_setpoint_and_current_value();
+
+  alarms_handler();
+
+  alarm_audible_and_visual_select();
 
   get_values_from_raspberry_pi();
 
-  // TODO: HIGH Implement alarms, with serial protocol to inform the GUI/HMI
+  send_values_to_raspberry_pi();
 }
