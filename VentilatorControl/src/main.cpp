@@ -6,7 +6,7 @@ void setup()
 {
   inits();
 
-  breath_cycle_timer_reset(true);
+  breathCycleTimerReset(true);
 }
 
 void loop()

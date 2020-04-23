@@ -1,6 +1,6 @@
 #ifndef __TIMING_H__
 #define __TIMING_H__
 
-void breath_cycle_timer_reset (bool hardreset = false);
+void breathCycleTimerReset (bool hardreset = false);
 
 #endif // __TIMING_H__

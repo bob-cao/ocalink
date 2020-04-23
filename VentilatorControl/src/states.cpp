@@ -31,7 +31,7 @@ void cycleStateHandler (void)
       else if(CurrTimeInCycleMilliseconds > BreathCycleDurationMilliseconds)
       {
         CurrCycleStep = INHALE_RAMP;
-        breath_cycle_timer_reset();
+        breathCycleTimerReset();
       }
     }
     else // if idle == true
