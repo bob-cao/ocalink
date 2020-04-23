@@ -2,17 +2,6 @@
 
 #include "includes.h"
 
-static void chase(uint32_t primary, uint32_t secondary, int cycleDelay)
-{
-  for(uint16_t i = 0; i < AlarmLED.numPixels() + 4; i++)
-  {
-    AlarmLED.setPixelColor(i  , primary);     // Draw new pixel
-    AlarmLED.setPixelColor(i - 8, secondary); // Erase pixel a few steps back
-    AlarmLED.show();
-    delay(cycleDelay);
-  }
-}
-
 void inits (void)
 {
   // Initializations
@@ -30,6 +19,17 @@ void inits (void)
   #if SYSTEM__SERIAL_DEBUG__STATEMACHINE
   Serial.begin(DEFAULT_BAUD_RATE);
   #endif
+}
+
+static void chase(uint32_t primary, uint32_t secondary, int cycleDelay)
+{
+  for(uint16_t i = 0; i < AlarmLED.numPixels() + 4; i++)
+  {
+    AlarmLED.setPixelColor(i  , primary);     // Draw new pixel
+    AlarmLED.setPixelColor(i - 8, secondary); // Erase pixel a few steps back
+    AlarmLED.show();
+    delay(cycleDelay);
+  }
 }
 
 double get_pressure_reading (void)
