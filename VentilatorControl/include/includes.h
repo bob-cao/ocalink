@@ -9,11 +9,11 @@
 #include "Adafruit_NeoPixel.h"
 #include "helpers.h"
 #include "variables.h"
+#include "Pins.h"
 
 
 // #include "Types.h"
 // #include "Config.h"
-// #include "Pins.h"
 // #include "pressureTransducer.h"
 // #include "venturi.h"
 
