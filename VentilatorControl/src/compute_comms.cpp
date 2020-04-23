@@ -1,5 +1,11 @@
 #include "includes.h"
 
+void computeSerialSend (void)
+{
+  // Send values to Raspberry Pi
+  // Serial.println();  // Populate with values once that is figured out
+}
+
 void computeSerialReceive (void)
 {
   // TODO: HIGH Break out serial protocol into seperate file

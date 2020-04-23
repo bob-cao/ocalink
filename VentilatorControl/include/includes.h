@@ -21,5 +21,6 @@
 #include "status_led.h"
 #include "sensors.h"
 #include "actuators.h"
+#include "alarms.h"
 
 #endif  // __VENTILATOR_INCLUDES_H__
