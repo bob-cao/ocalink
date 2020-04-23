@@ -8,6 +8,9 @@
 #define MIN_PERCENTAGE  (double)0
 #define MAX_PERCENTAGE  (double)100
 
+#define PATIENT_CIRCUIT_PRESSURE_MUX_CHANNEL        0
+#define VENTRUI_DIFFERENTIAL_PRESSURE_MUX_CHANNEL   1
+
 #define BLOWER_DRIVER_MIN_PULSE_MICROSECONDS                (double)1000
 #define BLOWER_DRIVER_MAX_PULSE_MICROSECONDS                (double)2000
 #define BLOWER_DRIVER_PULSE_STARTUP_WIGGLE                  (double)100

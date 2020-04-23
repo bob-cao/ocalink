@@ -15,16 +15,22 @@
 
 // -----------------------------------OBJECTS---------------------------------------- //
 extern BreathCycleStep CurrCycleStep;
-extern AllSensors_DLHR_L60D_8 gagePressure;
+// extern AllSensors_DLHR_L60D_8 gagePressure;
 
 extern Servo blower;
 extern Servo pinch_valve;
+
+TCA9548A I2CMux;
+AllSensors_DLHR_L60D_8 patientCircuitPressure(&Wire);
+AllSensors_DLHR_L60D_8 venturiDifferentialPressure(&Wire);
 // -----------------------------------OBJECTS---------------------------------------- //
 
 
 
 // --------------------------------USER SETTINGS------------------------------------- //
 extern double pressure_reading;
+extern double venturiDifferentialPressureReading;
+extern double venturiFlowRateLpm;
 extern double blower_speed;
 
 extern String string_from_pi;
@@ -64,6 +70,9 @@ extern byte perywinkle;     // perywinkle (pastell blue)
 extern byte low_perywinkle; // perywinkle (pastell blue)
 
 extern byte alarm_state;
+
+
+
 // --------------------------------USER SETTINGS------------------------------------- //
 
 
@@ -77,6 +86,8 @@ extern double InhaleRampDurationMilliseconds;                     // Length of t
 extern double InhaleDurationMilliseconds;                         // Combined length of the INHALE_RAMP and INHALE_HOLD periods. AKA Value of CurrTimeInCycleMilliseconds when the state changes to EXHALE_HOLD. User configurable.
 extern double ExhaleDurationMilliseconds;                         // Combined length of the EXHALE_RAMP and EXHALE_HOLD periods. AKA Value of CurrTimeInCycleMilliseconds when the state changes to INHALE_HOLD. User configurable.
 extern double BreathCycleDurationMilliseconds;                    // Total length of breath cycle, AKA when cycle step resets to INHALE_RAMP and CurrTimeInCycleMilliseconds resets to 0
+
+extern double PressureSensorLastStatusRead;
 
 extern double TimeOfLastSolenoidToggleMilliseconds;               // Time, in terms of millis(), that the solenoid last changed states
 // --------------------------------STATE TIMINGS------------------------------------- //

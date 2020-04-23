@@ -12,6 +12,8 @@ Servo pinch_valve;
 
 // --------------------------------USER SETTINGS------------------------------------- //
 double pressure_reading;
+double venturiDifferentialPressureReading;
+double venturiFlowRateLpm;
 double blower_speed;
 
 String string_from_pi;
@@ -64,6 +66,8 @@ double InhaleRampDurationMilliseconds                  = DEFAULT_INHALE_RAMP;   
 double InhaleDurationMilliseconds                      = DEFAULT_INHALE_DURATION;                                 // Combined length of the INHALE_RAMP and INHALE_HOLD periods. AKA Value of CurrTimeInCycleMilliseconds when the state changes to EXHALE_HOLD. User configurable.
 double ExhaleDurationMilliseconds                      = DEFAULT_EXHALE_DURATION;                                 // Combined length of the EXHALE_RAMP and EXHALE_HOLD periods. AKA Value of CurrTimeInCycleMilliseconds when the state changes to INHALE_HOLD. User configurable.
 double BreathCycleDurationMilliseconds                 = InhaleDurationMilliseconds + ExhaleDurationMilliseconds; // Total length of breath cycle, AKA when cycle step resets to INHALE_RAMP and CurrTimeInCycleMilliseconds resets to 0
+
+double PressureSensorLastStatusRead;
 
 double TimeOfLastSolenoidToggleMilliseconds = 0;                                                                  // Time, in terms of millis(), that the solenoid last changed states
 // --------------------------------STATE TIMINGS------------------------------------- //
