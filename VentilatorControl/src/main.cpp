@@ -160,7 +160,7 @@ void get_values_from_raspberry_pi (void)
         double trise_requested = argument_value/TRISE_MULTIPLIER;  // Multipled by TRISE_MULTIPLIER on Raspberry Pi
         if(trise_requested >= TRISE_MIN_RECEIVE && trise_requested <= TRISE_MAX_RECEIVE)
         {
-          InhaleRampDurationMilliseconds = trise_requested * 1000.0;  // Rise time in seconds
+          InhaleRampDurationMilliseconds = trise_requested * SEC_TO_MS;  // Rise time in seconds
           Serial.print("TRISE: ");
           Serial.println(InhaleRampDurationMilliseconds);
         }
@@ -223,7 +223,7 @@ void get_values_from_raspberry_pi (void)
               // Serial.print("FIO2: ");         Serial.print(FlowOfOxygen);                                   Serial.println("cmH20");
               Serial.print("TRISE: ");        Serial.print(InhaleRampDurationMilliseconds);                 Serial.println("ms");
               Serial.print("RR: ");           Serial.print(RespritoryRate);                                 Serial.println("b/m");
-              Serial.print("IE: ");           Serial.print((1.00 / InhalationExhalationRatio) * 100.00);    Serial.println("%");
+              Serial.print("IE: ");           Serial.print((1.00 / InhalationExhalationRatio) * RATIO_TO_PERCENTAGE);    Serial.println("%");
             }
           }
           else
@@ -630,7 +630,7 @@ void loop()
 
   write_calculated_pid_blower_speed();
 
-  print_pid_setpoint_and_current_value();
+  // print_pid_setpoint_and_current_value();
 
   alarms_handler();
 
