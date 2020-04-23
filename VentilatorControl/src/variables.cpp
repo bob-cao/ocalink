@@ -2,7 +2,6 @@
 
 // -----------------------------------OBJECTS---------------------------------------- //
 BreathCycleStep CurrCycleStep;
-// AllSensors_DLHR_L60D_8 gagePressure(&Wire);
 
 AllSensors_DLHR_L60D_8 patientCircuitPressure(&Wire);
 AllSensors_DLHR_L60D_8 venturiDifferentialPressure(&Wire);

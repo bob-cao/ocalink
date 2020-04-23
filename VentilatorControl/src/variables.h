@@ -21,8 +21,8 @@ extern Servo blower;
 extern Servo pinch_valve;
 
 TCA9548A I2CMux;
-AllSensors_DLHR_L60D_8 patientCircuitPressure(&Wire);
-AllSensors_DLHR_L60D_8 venturiDifferentialPressure(&Wire);
+extern AllSensors_DLHR_L60D_8 patientCircuitPressure;
+extern AllSensors_DLHR_L60D_8 venturiDifferentialPressure;
 // -----------------------------------OBJECTS---------------------------------------- //
 
 
