@@ -7,14 +7,10 @@
 #include "Servo.h"
 #include "PID_v1.h"
 #include "Adafruit_NeoPixel.h"
-#include "helpers.h"
+#include "Types.h"
 #include "variables.h"
+#include "helpers.h"
 #include "Pins.h"
-
-
-// #include "Types.h"
-// #include "Config.h"
-// #include "pressureTransducer.h"
-// #include "venturi.h"
+#include "Constants.h"
 
 #endif  // __VENTILATOR_INCLUDES_H__
