@@ -43,7 +43,7 @@ void writePinchValveOpenness (double opennessPercentage)
       MAX_PERCENTAGE,
       PINCH_VALVE_DRIVER_FULL_CLOSE_PULSE_MICROSECONDS,
       PINCH_VALVE_DRIVER_FULL_OPEN_PULSE_MICROSECONDS);
-  pinch_valve.writeMicroseconds(pinchValvePulseLengthMicroseconds);
+  PinchValve.writeMicroseconds(pinchValvePulseLengthMicroseconds);
 }
 
 void pinchValveControl (void)

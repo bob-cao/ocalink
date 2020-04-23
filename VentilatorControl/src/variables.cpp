@@ -3,8 +3,7 @@
 // -----------------------------------OBJECTS---------------------------------------- //
 BreathCycleStep CurrCycleStep;
 
-Servo blower;
-Servo pinch_valve;
+Servo PinchValve;
 
 TCA9548A I2CMux;
 AllSensors_DLHR_L60D_8 patientCircuitPressure(&Wire);
