@@ -21,7 +21,7 @@ void inits (void)
   #endif
 }
 
-static void chase(uint32_t primary, uint32_t secondary, int cycleDelay)
+void chase(uint32_t primary, uint32_t secondary, int cycleDelay)
 {
   for(uint16_t i = 0; i < AlarmLED.numPixels() + 4; i++)
   {
