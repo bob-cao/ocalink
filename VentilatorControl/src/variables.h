@@ -39,25 +39,28 @@
 
 #define NUM_LEDS 24 //2 Inch LED Ring
 
-#define DEFAULT_PEEP (double)5.000000
-#define DEFAULT_PIP (double)20.000000
+#define DEFAULT_PEEP (double)5.000
+#define DEFAULT_PIP (double)20.000
 #define DEFAULT_BM 10  // breaths per minute
 #define DEFAULT_RISE 1000  // 1 second
 #define DEFAULT_IE 2 // inhale/exhale ratio
-#define DEFAULT_KP (double)1.000000
-#define DEFAULT_KI (double)1.000000
-#define DEFAULT_KD (double)0.000000
+#define DEFAULT_BLOWER_KP (double)10.010000
+#define DEFAULT_BLOWER_KI (double)0.000
+#define DEFAULT_BLOWER_KD (double)0.008000
+#define DEFAULT_PINCH_VALVE_KP (double)5.000
+#define DEFAULT_PINCH_VALVE_KI (double)0.000
+#define DEFAULT_PINCH_VALVE_KD (double)1.000
 
 #define DEFAULT_INHALE_RAMP (uint32_t)250
 
-#define BREATHS_PER_MINUTE_TO_SEC (double)60.000000
-#define SEC_TO_MS (double)1000.000000
+#define BREATHS_PER_MINUTE_TO_SEC (double)60.000
+#define SEC_TO_MS (double)1000.000
 
 #define RATIO_TO_PERCENTAGE (double)100.00
 
 #define DEFAULT_PINCH_VALVE_MIN_DWELL_TIME (uint32_t)250
 
-#define IE_DEFAULT_SCALING_FACTOR (double)10.000000
+#define DEFAULT_IE_SCALING_FACTOR (double)10.000
 
 #define PEEP_LOW_ALARM 1
 #define PIP_ALARM 2
@@ -128,33 +131,34 @@ extern String property_name;
 extern String argument;
 extern double argument_value;
 
-extern double valve_position, valve_state;
-
 extern double peep_low_alarm;
 extern double peep_alarm;
 extern double pip_alarm;
-extern double ApneaTimer;
-extern bool buzzer_state;
+
+// extern double ApneaTimer;
 extern double RespritoryRate;
 extern double InhalationExhalationRatio;
-extern double FlowOfOxygen;
+// extern double FlowOfOxygen;
 extern double IEScalingFactor;
-extern bool isBatteryActivated;
 extern double DisconnectAlarmTimer;
 extern double PipAlarmTimer;
 extern double PeepAlarmTimer;
 
+extern bool isBatteryActivated;
+extern bool buzzer_state;
+
 extern Adafruit_NeoPixel AlarmLED;
 
-extern uint32_t low;
-extern uint32_t red;
-extern uint32_t low_red;
-extern uint32_t amber;
-extern uint32_t low_amber;
-extern uint32_t green;
-extern uint32_t low_green;
-extern uint32_t perywinkle;  // perywinkle (pastell blue)
-extern uint32_t low_perywinkle;  // perywinkle (pastell blue)
+extern byte low;
+extern byte red;
+extern byte low_red;
+extern byte amber;
+extern byte low_amber;
+extern byte green;
+extern byte low_green;
+extern byte perywinkle;     // perywinkle (pastell blue)
+extern byte low_perywinkle; // perywinkle (pastell blue)
+
 extern byte alarm_state;
 // --------------------------------USER SETTINGS------------------------------------- //
 
@@ -176,14 +180,11 @@ extern uint32_t TimeOfLastSolenoidToggleMilliseconds; // Time, in terms of milli
 
 
 // --------------------------------PID SETTINGS-------------------------------------- //
-// TODO: MEDIUM reorganize constants
-// Pressure Controlled Blower PID
 extern double pressure_system_input, blower_output_speed_in_percentage, pinch_valve_output_openness_in_percentage, CurrPressureSetpointCentimetersH2O;
-//double Blower_Kp;
 extern double Blower_Kp, Blower_Ki, Blower_Kd;
 extern double PinchValve_Kp, PinchValve_Ki, PinchValve_Kd;
-extern PID Blower_PID;
 
+extern PID Blower_PID;
 extern PID PinchValve_PID;
 // --------------------------------PID SETTINGS-------------------------------------- //
 

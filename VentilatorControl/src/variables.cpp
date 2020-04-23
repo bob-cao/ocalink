@@ -16,40 +16,41 @@ double pressure_reading;
 double blower_speed;
 
 double PeepPressureCentimetersH2O = DEFAULT_PEEP;
-double PipPressureCentimetersH2O = DEFAULT_PIP;
+double PipPressureCentimetersH2O =  DEFAULT_PIP;
 
 String string_from_pi;
 String property_name;
 String argument;
 double argument_value;
 
-double valve_position, valve_state;
+double peep_low_alarm =             PEEP_LOW_ALARM;
+double peep_alarm =                 PEEP_ALARM;
+double pip_alarm =                  PIP_ALARM;
 
-double peep_low_alarm = PEEP_LOW_ALARM;
-double peep_alarm = PEEP_ALARM;
-double pip_alarm = PIP_ALARM;
-double ApneaTimer = DEFAULT_APNEA_TIME;
-bool buzzer_state = 1;
-double RespritoryRate = DEFAULT_RR;
-double InhalationExhalationRatio = DEFAULT_IE_RATIO;
-double FlowOfOxygen;
-double IEScalingFactor = IE_DEFAULT_SCALING_FACTOR;
+// double ApneaTimer =                 DEFAULT_APNEA_TIME;
+double RespritoryRate =             DEFAULT_RR;
+double InhalationExhalationRatio =  DEFAULT_IE_RATIO;
+// double FlowOfOxygen;
+double IEScalingFactor =            DEFAULT_IE_SCALING_FACTOR;
+double DisconnectAlarmTimer =       DEFAULT_DISCONNECT_TIME;
+double PipAlarmTimer =              DEFAULT_PIP_TIME;
+double PeepAlarmTimer =             DEFAULT_PEEP_TIME;
+
 bool isBatteryActivated = false;
-double DisconnectAlarmTimer = DEFAULT_DISCONNECT_TIME;
-double PipAlarmTimer = DEFAULT_PIP_TIME;
-double PeepAlarmTimer = DEFAULT_PEEP_TIME;
+bool buzzer_state = 1;
 
 Adafruit_NeoPixel AlarmLED = Adafruit_NeoPixel(NUM_LEDS, LED_DATA_PIN, NEO_GRB + NEO_KHZ800);
 
-uint32_t low = AlarmLED.Color(0, 0, 0);
-uint32_t red = AlarmLED.Color(255, 0, 0);
-uint32_t low_red = AlarmLED.Color(100,0,0);
-uint32_t amber = AlarmLED.Color(255, 70, 0);
-uint32_t low_amber = AlarmLED.Color(100,30,0);
-uint32_t green = AlarmLED.Color(0, 40, 0);
-uint32_t low_green = AlarmLED.Color(0,75,0);
-uint32_t perywinkle = AlarmLED.Color(5 , 7, 10);  // perywinkle (pastell blue)
-uint32_t low_perywinkle = AlarmLED.Color(2,3,5);  // perywinkle (pastell blue)
+byte low            =   AlarmLED.Color(0, 0, 0);
+byte red            =   AlarmLED.Color(255, 0, 0);
+byte low_red        =   AlarmLED.Color(100,0,0);
+byte amber          =   AlarmLED.Color(255, 70, 0);
+byte low_amber      =   AlarmLED.Color(100,30,0);
+byte green          =   AlarmLED.Color(0, 40, 0);
+byte low_green      =   AlarmLED.Color(0,75,0);
+byte perywinkle     =   AlarmLED.Color(5 , 7, 10);  // perywinkle (pastell blue)
+byte low_perywinkle =   AlarmLED.Color(2,3,5);      // perywinkle (pastell blue)
+
 byte alarm_state = 1;
 // --------------------------------USER SETTINGS------------------------------------- //
 
@@ -71,12 +72,10 @@ uint32_t TimeOfLastSolenoidToggleMilliseconds = 0; // Time, in terms of millis()
 
 
 // --------------------------------PID SETTINGS-------------------------------------- //
-// TODO: MEDIUM reorganize constants
-// Pressure Controlled Blower PID
 double pressure_system_input, blower_output_speed_in_percentage, pinch_valve_output_openness_in_percentage, CurrPressureSetpointCentimetersH2O;
-//double Blower_Kp = DEFAULT_KP, Blower_Ki = DEFAULT_KI, Blower_Kd = DEFAULT_KD;
-double Blower_Kp=10.010000, Blower_Ki=0, Blower_Kd=0.008000;
-double PinchValve_Kp = 5, PinchValve_Ki = 0, PinchValve_Kd = 1;
+double Blower_Kp = DEFAULT_BLOWER_KP, Blower_Ki = DEFAULT_BLOWER_KI, Blower_Kd = DEFAULT_BLOWER_KD;
+double PinchValve_Kp = DEFAULT_PINCH_VALVE_KP, PinchValve_Ki = DEFAULT_PINCH_VALVE_KI, PinchValve_Kd = DEFAULT_PINCH_VALVE_KD;
+
 PID Blower_PID(&pressure_system_input,
                 &blower_output_speed_in_percentage,
                 &CurrPressureSetpointCentimetersH2O,
