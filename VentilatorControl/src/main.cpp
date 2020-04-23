@@ -14,20 +14,9 @@ void breath_cycle_timer_reset(bool hardreset = false)
 
 void blower_esc_init (void)
 {
-  pinMode(BLOWER_SPEED_PIN, OUTPUT);
-  digitalWrite(BLOWER_SPEED_PIN, LOW);
-  blower.attach(BLOWER_SPEED_PIN);
-
-  // Hold throttle LOW and toggle for ESC to initialize properly
-  blower.writeMicroseconds(BLOWER_DRIVER_MIN_PULSE_MICROSECONDS);
-
-  delay(DEFAULT_ESC_INIT_TIME*0.90);
-
-  blower.writeMicroseconds((BLOWER_DRIVER_MIN_PULSE_MICROSECONDS+BLOWER_DRIVER_MAX_PULSE_MICROSECONDS)/2);
-
-  delay(DEFAULT_ESC_INIT_TIME*0.10);
-
-  blower.writeMicroseconds(BLOWER_DRIVER_MIN_PULSE_MICROSECONDS);
+  analogWriteResolution(10);
+  //pinMode(BLOWER_PIN, OUTPUT);  // DO NOT need to do this for using DAC
+  analogWrite(BLOWER_PIN,0);
 }
 
 void AlarmLEDInit(void)
@@ -65,9 +54,25 @@ void pinch_valve_init (void)
 
 void pressure_sensors_init (void)
 {
+  // Init the I2C bus
   Wire.begin();  // Each pressure sensor will be unique I2C addresses based on MPN
-  gagePressure.setPressureUnit(AllSensors_DLHR::PressureUnit::IN_H2O);
-  gagePressure.startMeasurement(AllSensors_DLHR::AVERAGE4);
+  I2CMux.begin(Wire);
+  I2CMux.closeAll();
+
+  //Setup the Patient circuit pressure sensor
+  I2CMux.openChannel(PATIENT_CIRCUIT_PRESSURE_MUX_CHANNEL);
+  patientCircuitPressure.setPressureUnit(AllSensors_DLHR::PressureUnit::IN_H2O);
+  patientCircuitPressure.startMeasurement();
+  I2CMux.closeChannel(PATIENT_CIRCUIT_PRESSURE_MUX_CHANNEL);
+
+  // Setup the venturio differential pressure sensor
+  I2CMux.openChannel(VENTRUI_DIFFERENTIAL_PRESSURE_MUX_CHANNEL);
+  venturiDifferentialPressure.setPressureUnit(AllSensors_DLHR::PressureUnit::IN_H2O);
+  patientCircuitPressure.startMeasurement();
+  I2CMux.closeChannel(VENTRUI_DIFFERENTIAL_PRESSURE_MUX_CHANNEL);
+
+  // Setup rate limiting for reads to the pressure sensors
+  PressureSensorLastStatusRead = micros();
 }
 
 void pid_init (void)
@@ -84,12 +89,46 @@ void pid_init (void)
 
 double get_pressure_reading (void)
 {
-  if(!gagePressure.readData(false))
+  if(micros() - PressureSensorLastStatusRead >= 1000)
   {
-    // Get a pressure reading and convert to units of cmH2O
-    if( gagePressure.pressure > 0 )
-       pressure_reading = gagePressure.pressure * INCHES_2_CM;
-    gagePressure.startMeasurement();
+    I2CMux.openChannel(PATIENT_CIRCUIT_PRESSURE_MUX_CHANNEL);
+    uint8_t sensorStatus = patientCircuitPressure.readStatus();
+    if( !patientCircuitPressure.isBusy(sensorStatus) && !patientCircuitPressure.isError(sensorStatus) )
+    {  
+      if(!patientCircuitPressure.readData(false))
+      {
+        // Get a pressure reading and convert to units of cmH2O
+        if( patientCircuitPressure.pressure > 0 )
+          pressure_reading = patientCircuitPressure.pressure * INCHES_2_CM;
+        patientCircuitPressure.startMeasurement();
+      }
+    }
+    I2CMux.closeChannel(PATIENT_CIRCUIT_PRESSURE_MUX_CHANNEL);
+
+    I2CMux.openChannel(VENTRUI_DIFFERENTIAL_PRESSURE_MUX_CHANNEL);
+    sensorStatus = venturiDifferentialPressure.readStatus();
+    if( !venturiDifferentialPressure.isBusy(sensorStatus) && !venturiDifferentialPressure.isError(sensorStatus) )
+    {  
+      if(!venturiDifferentialPressure.readData(false))
+      {
+        // Get a pressure reading and convert to units of cmH2O
+        if( venturiDifferentialPressure.pressure > 0 )
+        {
+          venturiDifferentialPressureReading = venturiDifferentialPressure.pressure * INCHES_2_CM;
+          // Transfer function found experimentally through bench testing
+          // Flow [lpm] = f(pressure [cmH20])
+          // see here for data:
+          // https://docs.google.com/spreadsheets/d/1bI_WWhnsqxKvRou-n7BQC0ML1uTgSl8-lZcnprczsNk/edit?usp=sharing
+          venturiFlowRateLpm = 26.486*sqrt(venturiDifferentialPressureReading)-0.276;
+          
+          // lowest reported flow rate = 0lpm
+          venturiFlowRateLpm = venturiFlowRateLpm>0?venturiFlowRateLpm:0;
+        }
+        venturiDifferentialPressure.startMeasurement();
+      }
+    }
+    I2CMux.closeChannel(VENTRUI_DIFFERENTIAL_PRESSURE_MUX_CHANNEL);
+    PressureSensorLastStatusRead = micros();
   }
   return pressure_reading;
 }
@@ -285,6 +324,8 @@ void print_pid_setpoint_and_current_value(void)
       }
       Serial.print(" ");
       Serial.print(blower_output_speed_in_percentage);
+      Serial.print(" ");
+      Serial.print(venturiDifferentialPressureReading);
       Serial.println();
     }
   }
@@ -297,33 +338,50 @@ void reset_blower_pid_integrator(void)
   Blower_PID.SetMode(AUTOMATIC);
 }
 
+// Found via regression analysis from static pressure testing of sample blower
+// r^2 = 0.99 for this regression on the blower tested.
+// see data at https://docs.google.com/spreadsheets/d/1GVmF7gMihPsArEmjk8MefS8RsMpl3gKHL-qg1a0rInc/edit?usp=sharing
+double blowerPressureToBlowerSpeed(double pressure)
+{
+    return sqrt(pressure)*14.16199 + pressure*0.07209 + 3.6105;
+}
+
 void write_calculated_pid_blower_speed(void)
 {
 
-  switch( CurrCycleStep)
-  {
-    case INHALE_RAMP:
-    case INHALE_HOLD:
-    case EXHALE_HOLD:
-      // static float BlowerSpeedExhaleWeightedAverage = -1;
-      // Set Blower_Kp, Blower_Ki, Blower_Kd and comute Pressure PID
-      Blower_PID.SetTunings(Blower_Kp, Blower_Ki, Blower_Kd);
-      Blower_PID.Compute();
+  // switch( CurrCycleStep)
+  // {
+  //   case INHALE_RAMP:
+  //   case INHALE_HOLD:
+  //   case EXHALE_HOLD:
+  //     // static float BlowerSpeedExhaleWeightedAverage = -1;
+  //     // Set Blower_Kp, Blower_Ki, Blower_Kd and comute Pressure PID
+  //     Blower_PID.SetTunings(Blower_Kp, Blower_Ki, Blower_Kd);
+  //     Blower_PID.Compute();
       
-    break;
-    case IDLE:
-    case EXHALE_RAMP:
-      reset_blower_pid_integrator();
-      blower_output_speed_in_percentage = 0;
-    break;
-  }
+  //   break;
+  //   case IDLE:
+  //   case EXHALE_RAMP:
+  //     reset_blower_pid_integrator();
+  //     blower_output_speed_in_percentage = 0;
+  //   break;
+  // }
       // Output PID calcuslated 0-100% to motor
-      blower_speed = map(blower_output_speed_in_percentage,
+      // blower_speed = map(blower_output_speed_in_percentage,
+      //                   MIN_PERCENTAGE,
+      //                   MAX_PERCENTAGE,
+      //                   0,
+      //                   1024);
+
+      blower_speed = blowerPressureToBlowerSpeed(CurrPressureSetpointCentimetersH2O);
+      
+      blower_speed = mapf(blower_speed,
                         MIN_PERCENTAGE,
                         MAX_PERCENTAGE,
-                        BLOWER_DRIVER_MIN_PULSE_MICROSECONDS,
-                        BLOWER_DRIVER_MAX_PULSE_MICROSECONDS);
-      blower.writeMicroseconds(blower_speed);
+                        0,
+                        1024);
+
+      analogWrite(BLOWER_PIN,(uint32_t)blower_speed);
 }
 
 // Write percent openness to the pinch valve
@@ -431,22 +489,14 @@ void cycle_state_setpoint_handler(void)
   switch(CurrCycleStep)
   {
     case INHALE_RAMP:
-      Blower_Kp = mapf(PipPressureCentimetersH2O, 15, 45, 240, 1000);
-      Blower_Ki = 0;
-      Blower_Kd = mapf(PipPressureCentimetersH2O, 15, 45, 0.3, 24);
       CurrPressureSetpointCentimetersH2O = (((float)CurrTimeInCycleMilliseconds/(float)InhaleRampDurationMilliseconds)*(PipPressureCentimetersH2O-PeepPressureCentimetersH2O))+PeepPressureCentimetersH2O;
     break;
     case INHALE_HOLD:
-      Blower_Kp = mapf(PipPressureCentimetersH2O, 15, 45, 2, 48);
-      Blower_Ki = mapf(PipPressureCentimetersH2O, 15, 45, 0, 0);
-      Blower_Kd = 1.25;
       CurrPressureSetpointCentimetersH2O = PipPressureCentimetersH2O;
     break;
     case EXHALE_RAMP:
-      Blower_Kp=10, Blower_Ki=0, Blower_Kd=0.3;
     case EXHALE_HOLD:
     case IDLE:
-      Blower_Kp=10, Blower_Ki=0, Blower_Kd=0.5;
     default:
       CurrPressureSetpointCentimetersH2O = PeepPressureCentimetersH2O;
     break;
