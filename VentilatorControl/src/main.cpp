@@ -2,7 +2,7 @@
 
 #include "includes.h"
 
-void breath_cycle_timer_reset(bool hardreset = false)
+void breath_cycle_timer_reset (bool hardreset = false)
 {
   CurrTimeInCycleMilliseconds = 0;
   CycleStartTimeFromSysClockMilliseconds = millis();
@@ -19,7 +19,7 @@ void blower_esc_init (void)
   analogWrite(BLOWER_SPEED_PIN,0);
 }
 
-void AlarmLEDInit(void)
+void AlarmLEDInit (void)
 {
   AlarmLED.begin();
 }
@@ -35,7 +35,7 @@ static void chase(uint32_t primary, uint32_t secondary, int cycleDelay)
   }
 }
 
-void alarms_init(void)
+void alarms_init (void)
 {
   AlarmLEDInit();
 
@@ -84,7 +84,24 @@ void pid_init (void)
   PinchValve_PID.SetMode(AUTOMATIC);  // Set PID Mode to Automatic, may change later
   PinchValve_PID.SetOutputLimits(MIN_PERCENTAGE, MAX_PERCENTAGE);
   PinchValve_PID.SetSampleTime(DEFAULT_PID_SAMPLE_TIME);
+}
 
+void inits (void)
+{
+  // Initializations
+  blower_esc_init();
+  alarms_init();
+  pinch_valve_init();
+  pressure_sensors_init();
+  pid_init();
+
+  // Start cycle state in IDLE state
+  CurrCycleStep = IDLE;
+
+  // Serial initialization
+  #if SYSTEM__SERIAL_DEBUG__STATEMACHINE
+  Serial.begin(DEFAULT_BAUD_RATE);
+  #endif
 }
 
 double get_pressure_reading (void)
@@ -299,7 +316,7 @@ void get_values_from_raspberry_pi (void)
   }
 }
 
-void print_pid_setpoint_and_current_value(void)
+void print_pid_setpoint_and_current_value (void)
 {
   if( CurrCycleStep != IDLE )
   {
@@ -331,7 +348,7 @@ void print_pid_setpoint_and_current_value(void)
   }
 }
 
-void reset_blower_pid_integrator(void)
+void reset_blower_pid_integrator (void)
 {
   Blower_PID.SetMode(MANUAL);
   blower_output_speed_in_percentage = 0;
@@ -341,7 +358,7 @@ void reset_blower_pid_integrator(void)
 // Found via regression analysis from static pressure testing of sample blower
 // r^2 = 0.99 for this regression on the blower tested.
 // see data at https://docs.google.com/spreadsheets/d/1GVmF7gMihPsArEmjk8MefS8RsMpl3gKHL-qg1a0rInc/edit?usp=sharing
-double blowerPressureToBlowerSpeed(double pressure)
+double blowerPressureToBlowerSpeed (double pressure)
 {
     return sqrt(pressure)*14.16199 + pressure*0.07209 + 3.6105;
 }
@@ -362,7 +379,7 @@ void write_calculated_pid_blower_speed(void)
 // Write percent openness to the pinch valve
 // 0% = closed
 // 100% = wide open
-void write_pinch_valve_openness(double opennessPercentage)
+void write_pinch_valve_openness (double opennessPercentage)
 {
   long pinchValvePulseLengthMicroseconds = 
   map(opennessPercentage,
@@ -373,7 +390,7 @@ void write_pinch_valve_openness(double opennessPercentage)
   pinch_valve.writeMicroseconds(pinchValvePulseLengthMicroseconds);
 }
 
-void pinch_valve_control(void)
+void pinch_valve_control (void)
 {
   switch (CurrCycleStep)
   {
@@ -449,7 +466,7 @@ void cycle_state_handler (void)
 // 45	        49.25
 // 50	        55
 
-double linear_remap_setpoint_compensation(double setpoint)
+double linear_remap_setpoint_compensation (double setpoint)
 {
   return (1.116785714*setpoint)-0.5892857143;
 }
@@ -479,7 +496,7 @@ void cycle_state_setpoint_handler(void)
   CurrPressureSetpointCentimetersH2O = linear_remap_setpoint_compensation(CurrPressureSetpointCentimetersH2O);
 }
 
-void buzzer_toggle(void)
+void buzzer_toggle (void)
 {
   static unsigned long lastBuzzerToggle = 0;
   if( millis()-lastBuzzerToggle > 500 )
@@ -501,7 +518,7 @@ void buzzer_toggle(void)
 // H	High/Low RR Alarm
 // I	I:E Ratio Alarm
 
-void alarms_handler(void)
+void alarms_handler (void)
 {
   static unsigned long PrevAlarmTimePipError = 0;
   static unsigned long PrevAlarmTimePeepError = 0;
@@ -598,7 +615,7 @@ void alarms_handler(void)
   // }
 }
 
-void alarm_audible_and_visual_select(void)
+void alarm_audible_and_visual_select (void)
 {
   switch (alarm_state)
   {
@@ -618,7 +635,7 @@ void alarm_audible_and_visual_select(void)
   }
 }
 
-void send_values_to_raspberry_pi(void)
+void send_values_to_raspberry_pi (void)
 {
   // Send values to Raspberry Pi
   // Serial.println();  // Populate with values once that is figured out
@@ -626,20 +643,7 @@ void send_values_to_raspberry_pi(void)
 
 void setup()
 {
-  // Initializations
-  blower_esc_init();
-  alarms_init();
-  pinch_valve_init();
-  pressure_sensors_init();
-  pid_init();
-
-  // Start cycle state in IDLE state
-  CurrCycleStep = IDLE;
-
-  // Serial initialization
-  #if SYSTEM__SERIAL_DEBUG__STATEMACHINE
-  Serial.begin(DEFAULT_BAUD_RATE);
-  #endif
+  inits();
 
   breath_cycle_timer_reset(true);
 }
