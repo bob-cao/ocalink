@@ -15,7 +15,7 @@ void breath_cycle_timer_reset(bool hardreset = false)
 void blower_esc_init (void)
 {
   analogWriteResolution(10);
-  //pinMode(BLOWER_SPEED_PIN, OUTPUT);  // DO NOT need to do this for using DAC
+  // DO NOT need to use pinMode() for using DAC on this plaform
   analogWrite(BLOWER_SPEED_PIN,0);
 }
 
@@ -28,7 +28,7 @@ static void chase(uint32_t primary, uint32_t secondary, int cycleDelay)
 {
   for(uint16_t i = 0; i < AlarmLED.numPixels() + 4; i++)
   {
-    AlarmLED.setPixelColor(i  , primary); // Draw new pixel
+    AlarmLED.setPixelColor(i  , primary);     // Draw new pixel
     AlarmLED.setPixelColor(i - 8, secondary); // Erase pixel a few steps back
     AlarmLED.show();
     delay(cycleDelay);
@@ -55,7 +55,7 @@ void pinch_valve_init (void)
 void pressure_sensors_init (void)
 {
   // Init the I2C bus
-  Wire.begin();  // Each pressure sensor will be unique I2C addresses based on MPN
+  // Each pressure sensor will be unique I2C addresses based on MPN in future
   I2CMux.begin(Wire);
   I2CMux.closeAll();
 
@@ -65,7 +65,7 @@ void pressure_sensors_init (void)
   patientCircuitPressure.startMeasurement();
   I2CMux.closeChannel(PATIENT_CIRCUIT_PRESSURE_MUX_CHANNEL);
 
-  // Setup the venturio differential pressure sensor
+  // Setup the Venturi differential pressure sensor
   I2CMux.openChannel(VENTRUI_DIFFERENTIAL_PRESSURE_MUX_CHANNEL);
   venturiDifferentialPressure.setPressureUnit(AllSensors_DLHR::PressureUnit::IN_H2O);
   patientCircuitPressure.startMeasurement();
@@ -77,7 +77,7 @@ void pressure_sensors_init (void)
 
 void pid_init (void)
 {
-  Blower_PID.SetMode(AUTOMATIC);  // Set PID Mode to Automatic, may change later
+  Blower_PID.SetMode(AUTOMATIC);      // Set PID Mode to Automatic, may change later
   Blower_PID.SetOutputLimits(MIN_PERCENTAGE, MAX_PERCENTAGE);
   Blower_PID.SetSampleTime(DEFAULT_PID_SAMPLE_TIME);
 
@@ -199,7 +199,7 @@ void get_values_from_raspberry_pi (void)
         double trise_requested = argument_value / DEFAULT_TRISE_SCALING_FACTOR;  // Multipled by DEFAULT_TRISE_SCALING_FACTOR on Raspberry Pi
         if(trise_requested >= TRISE_MIN_RECEIVE && trise_requested <= TRISE_MAX_RECEIVE)
         {
-          InhaleRampDurationMilliseconds = trise_requested * SEC_TO_MS;  // Rise time in seconds
+          InhaleRampDurationMilliseconds = trise_requested * SEC_TO_MS;  // Rise time in ms
           Serial.print("TRISE: ");
           Serial.println(InhaleRampDurationMilliseconds);
         }
@@ -348,40 +348,15 @@ double blowerPressureToBlowerSpeed(double pressure)
 
 void write_calculated_pid_blower_speed(void)
 {
+  blower_speed = blowerPressureToBlowerSpeed(CurrPressureSetpointCentimetersH2O);
+  
+  blower_speed = mapf(blower_speed,
+                    MIN_PERCENTAGE,
+                    MAX_PERCENTAGE,
+                    0,
+                    1024);
 
-  // switch( CurrCycleStep)
-  // {
-  //   case INHALE_RAMP:
-  //   case INHALE_HOLD:
-  //   case EXHALE_HOLD:
-  //     // static float BlowerSpeedExhaleWeightedAverage = -1;
-  //     // Set Blower_Kp, Blower_Ki, Blower_Kd and comute Pressure PID
-  //     Blower_PID.SetTunings(Blower_Kp, Blower_Ki, Blower_Kd);
-  //     Blower_PID.Compute();
-      
-  //   break;
-  //   case IDLE:
-  //   case EXHALE_RAMP:
-  //     reset_blower_pid_integrator();
-  //     blower_output_speed_in_percentage = 0;
-  //   break;
-  // }
-      // Output PID calcuslated 0-100% to motor
-      // blower_speed = map(blower_output_speed_in_percentage,
-      //                   MIN_PERCENTAGE,
-      //                   MAX_PERCENTAGE,
-      //                   0,
-      //                   1024);
-
-      blower_speed = blowerPressureToBlowerSpeed(CurrPressureSetpointCentimetersH2O);
-      
-      blower_speed = mapf(blower_speed,
-                        MIN_PERCENTAGE,
-                        MAX_PERCENTAGE,
-                        0,
-                        1024);
-
-      analogWrite(BLOWER_SPEED_PIN,(uint32_t)blower_speed);
+  analogWrite(BLOWER_SPEED_PIN,(uint32_t)blower_speed);
 }
 
 // Write percent openness to the pinch valve
@@ -423,7 +398,6 @@ void pinch_valve_control(void)
 
 void cycle_state_handler (void)
 {
-  // TODO: LOW Make sure clock overflow is handled gracefully
   if( CurrCycleStep != IDLE )
   {
     CurrTimeInCycleMilliseconds = millis()-CycleStartTimeFromSysClockMilliseconds;
@@ -540,7 +514,6 @@ void alarms_handler(void)
     alarm_state = 1;
     Serial.write("$ALARMS,A*");  // BATTERY BACKUP ALARM
   }
-
   // Disconnect Alarm
   if((millis()-PrevAlarmTimeDisconnectError > DisconnectAlarmTimer)
       && (CurrCycleStep == EXHALE_HOLD && CurrCycleStep != INHALE_RAMP)
@@ -552,7 +525,6 @@ void alarms_handler(void)
     Serial.write("$ALARMS,B*");  // DISCONNECT ALARM
     PrevAlarmTimeDisconnectError = millis();
   }
-
   // High and Low PIP Alarms
   if((millis()-PrevAlarmTimePipError > PipAlarmTimer)
       && (CurrCycleStep == INHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
@@ -561,7 +533,6 @@ void alarms_handler(void)
   {
     // make sound and send Raspberry Pi alarm status flag
     alarm_state = 2;
-
     if(pressure_system_input >= PipPressureCentimetersH2O + pip_alarm)
     {
       Serial.write("$ALARMS,C*");  // HIGH PIP ALARM
@@ -575,7 +546,6 @@ void alarms_handler(void)
 
     PrevAlarmTimePipError = millis();
   }
-
   // High and Low PEEP Alarms
   if((millis()-PrevAlarmTimePeepError > PeepAlarmTimer)
       && (CurrCycleStep == INHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
