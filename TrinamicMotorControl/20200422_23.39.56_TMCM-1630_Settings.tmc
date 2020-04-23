@@ -1,0 +1,34 @@
+
+//=== module settings for axis 0 ===
+SAP 4, 0, 16000 	// max velocity [rpm]
+SAP 6, 0, 4000 	// max current [mA] (peak)
+SAP 7, 0, 500 	// target reached velocity [rpm]
+SAP 9, 0, 5 	// motor halted velocity [rpm]
+SAP 10, 0, 5 	// target reached distance 
+SAP 11, 0, 2000 	// acceleration [rpm/s]
+SAP 25, 0, 13200 	// thermal winding time constant [ms]
+SAP 26, 0, 211200 	// IIt limit 
+SAP 133, 0, 1 	// velocity regulation loop delay [ms]
+SAP 134, 0, 2 	// current regulation loop delay [50us]
+SAP 146, 0, 1 	// enable velocity ramp 
+SAP 159, 0, 6 	// commutation mode 
+SAP 161, 0, 0 	// clear on null 
+SAP 163, 0, 0 	// clear once 
+SAP 164, 0, 0 	// activate stop switch 
+SAP 166, 0, 0 	// stop switch polarity 
+SAP 172, 0, 300 	// torque P 
+SAP 173, 0, 300 	// torque I 
+SAP 177, 0, 4000 	// start current [mA] (peak)
+SAP 178, 0, 0 	// enable tacho signal 
+SAP 230, 0, 300 	// position P 
+SAP 234, 0, 500 	// velocity P 
+SAP 235, 0, 500 	// velocity I 
+SAP 241, 0, 200 	// init velocity [rpm]
+SAP 244, 0, 1000 	// init sine delay [ms]
+SAP 245, 0, 1 	// overvoltage protection 
+SAP 249, 0, 1 	// encoder init mode 
+SAP 250, 0, 4000 	// encoder steps 
+SAP 251, 0, 0 	// encoder direction 
+SAP 252, 0, 0 	// hall interpolation 
+SAP 253, 0, 8 	// motor poles 
+SAP 254, 0, 0 	// hall sensor invert 
