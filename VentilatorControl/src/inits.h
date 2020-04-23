@@ -9,4 +9,6 @@ void pinchValveInit (void);
 void pressureSensorsInit (void);
 void pidInit (void);
 
+void inits (void);
+
 #endif // __INITS_H__

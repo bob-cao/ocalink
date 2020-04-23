@@ -62,3 +62,22 @@ void pidInit (void)
   PinchValve_PID.SetOutputLimits(MIN_PERCENTAGE, MAX_PERCENTAGE);
   PinchValve_PID.SetSampleTime(DEFAULT_PID_SAMPLE_TIME);
 }
+
+void inits (void)
+{
+  // Initializations
+  blowerEscInit();
+  alarmLedInit();
+  alarmsInit();
+  pinchValveInit();
+  pressureSensorsInit();
+  pidInit();
+
+  // Start cycle state in IDLE state
+  CurrCycleStep = IDLE;
+
+  // Serial initialization
+  #if SYSTEM__SERIAL_DEBUG__STATEMACHINE
+  Serial.begin(DEFAULT_BAUD_RATE);
+  #endif
+}

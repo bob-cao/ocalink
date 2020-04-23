@@ -2,25 +2,6 @@
 
 #include "includes.h"
 
-void inits (void)
-{
-  // Initializations
-  blowerEscInit();
-  alarmLedInit();
-  alarmsInit();
-  pinchValveInit();
-  pressureSensorsInit();
-  pidInit();
-
-  // Start cycle state in IDLE state
-  CurrCycleStep = IDLE;
-
-  // Serial initialization
-  #if SYSTEM__SERIAL_DEBUG__STATEMACHINE
-  Serial.begin(DEFAULT_BAUD_RATE);
-  #endif
-}
-
 // void printPidSetpointAndCurrentValues (void)
 // {
 //   if( CurrCycleStep != IDLE )
