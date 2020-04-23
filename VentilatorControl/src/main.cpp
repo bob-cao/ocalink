@@ -15,8 +15,8 @@ void breath_cycle_timer_reset(bool hardreset = false)
 void blower_esc_init (void)
 {
   analogWriteResolution(10);
-  //pinMode(BLOWER_PIN, OUTPUT);  // DO NOT need to do this for using DAC
-  analogWrite(BLOWER_PIN,0);
+  //pinMode(BLOWER_SPEED_PIN, OUTPUT);  // DO NOT need to do this for using DAC
+  analogWrite(BLOWER_SPEED_PIN,0);
 }
 
 void AlarmLEDInit(void)
@@ -381,7 +381,7 @@ void write_calculated_pid_blower_speed(void)
                         0,
                         1024);
 
-      analogWrite(BLOWER_PIN,(uint32_t)blower_speed);
+      analogWrite(BLOWER_SPEED_PIN,(uint32_t)blower_speed);
 }
 
 // Write percent openness to the pinch valve
