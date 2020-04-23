@@ -3,11 +3,12 @@
 // -----------------------------------OBJECTS---------------------------------------- //
 BreathCycleStep CurrCycleStep;
 
-AllSensors_DLHR_L60D_8 patientCircuitPressure(&Wire);
-AllSensors_DLHR_L60D_8 venturiDifferentialPressure(&Wire);
-
 Servo blower;
 Servo pinch_valve;
+
+TCA9548A I2CMux;
+AllSensors_DLHR_L60D_8 patientCircuitPressure(&Wire);
+AllSensors_DLHR_L60D_8 venturiDifferentialPressure(&Wire);
 // -----------------------------------OBJECTS---------------------------------------- //
 
 

@@ -15,12 +15,11 @@
 
 // -----------------------------------OBJECTS---------------------------------------- //
 extern BreathCycleStep CurrCycleStep;
-// extern AllSensors_DLHR_L60D_8 gagePressure;
 
 extern Servo blower;
 extern Servo pinch_valve;
 
-TCA9548A I2CMux;
+extern TCA9548A I2CMux;
 extern AllSensors_DLHR_L60D_8 patientCircuitPressure;
 extern AllSensors_DLHR_L60D_8 venturiDifferentialPressure;
 // -----------------------------------OBJECTS---------------------------------------- //
