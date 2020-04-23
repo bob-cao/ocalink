@@ -7,6 +7,7 @@
 #include <Servo.h>
 #include <PID_v1.h>
 #include "helpers.h"
+#include "TCA9548A.h"
 
 // #include "Types.h"
 // #include "Config.h"
