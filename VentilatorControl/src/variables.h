@@ -85,6 +85,11 @@
 #define DEFAULT_TRISE_SCALING_FACTOR    10
 #define DEFAULT_FIO2_SCALING_FACTOR     100
 
+// ----------------------------------CONSTANTS--------------------------------------- //
+
+
+
+// -----------------------------------TYPEDEFS--------------------------------------- //
 typedef enum{
     INHALE_RAMP,
     INHALE_HOLD,
@@ -92,15 +97,17 @@ typedef enum{
     EXHALE_HOLD,
     IDLE
 }BreathCycleStep;
+// -----------------------------------TYPEDEFS--------------------------------------- //
 
 
 
+// -----------------------------------OBJECTS---------------------------------------- //
 extern BreathCycleStep CurrCycleStep;
 extern AllSensors_DLHR_L60D_8 gagePressure;
 
 extern Servo blower;
 extern Servo pinch_valve;
-// ----------------------------------CONSTANTS--------------------------------------- //
+// -----------------------------------OBJECTS---------------------------------------- //
 
 
 
