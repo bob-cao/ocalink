@@ -2,14 +2,14 @@
 
 #include "includes.h"
 
-void setup()
+void setup (void)
 {
   inits();
 
   breathCycleTimerReset(true);
 }
 
-void loop()
+void loop (void)
 {
   pressure_system_input = getPressureReadings();
 
