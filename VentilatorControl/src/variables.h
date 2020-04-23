@@ -1,6 +1,61 @@
 #ifndef __VARIABLES_H__
 #define __VARIABLES_H__
 
+
+
+// TODO: (LOW Priority) Update variable names to be consistent with C++ standard
+
+// OLD NAME                                        -> NEW NAME
+
+// patientCircuitPressure				            -> PatientCircuitPressure
+// venturiDifferentialPressure			            -> VenturiDifferentialPressure
+
+// pressure_reading			        	        -> pressureReading
+// blower_speed				        	        -> blowerSpeed
+// string_from_pi				       	            -> stringFromPi
+// property_name				    	            -> propertyName
+// argument_value			    		            -> argumentValue
+// peep_low_alarm			    		            -> peepLowAlarm
+// peep_alarm				        	            -> peepAlarm
+// pip_alarm				        	            -> pipAlarm
+// PeepPressureCentimetersH2O			            -> peepPressureCentimetersH2O
+// PipPressureCentimetersH2O			            -> pipPressureCentimetersH2O
+// RespritoryRate				    	            -> respritoryRate
+// InhalationExhalationRatio			            -> inhalationExhalationRatio
+// FlowOfOxygen					                -> flowOfOxygen
+// IEScalingFactor				       	            -> ScalingFactorIE
+// PeepAlarmTimer				    	            -> peepAlarmTimer
+// PipAlarmTimer				    	            -> pipAlarmTimer
+// DisconnectAlarmTimer			    	        -> disconnectAlarmTimer
+// ApneaTimer				        	            -> apneaTimer
+// buzzer_state					                -> buzzerState
+// low_red					        	            -> lowRed
+// low_amber				        	            -> lowAmber
+// low_green					                    -> lowGreen
+// low_perywinkle				    	            -> lowPeriwinkle
+// alarm_state					                    -> alarmState
+// CurrTimeInCycleMilliseconds			            -> currTimeInCycleMilliseconds
+// CycleStartTimeFromSysClockMilliseconds		    -> cycleStartTimeFromSysClockMilliseconds
+// ControlLoopStartTimeMilliseconds		        -> controlLoopStartTimeMilliseconds
+// ControlLoopInitialStabilizationTimeMilliseconds -> controlLoopInitialStabilizationTimeMilliseconds
+// InhaleRampDurationMilliseconds			        -> inhaleRampDurationMilliseconds
+// inhaleDurationMilliseconds                      -> inhaleDurationMilliseconds
+// ExhaleDurationMilliseconds			            -> exhaleDurationMilliseconds
+// BreathCycleDurationMilliseconds			        -> breathCycleDurationMilliseconds
+// PressureSensorLastStatusRead			        -> pressureSensorLastStatusRead
+// TimeOfLastSolenoidToggleMilliseconds		    -> timeOfLastSolenoidToggleMilliseconds
+// pressure_system_input				            -> pressureSystemInput
+// blower_output_speed_in_percentage		        -> blowerOutputSpeedInPercentage
+// pinch_valve_output_openness_in_percentage	    -> pinchValveOutputOpennessInPercentage
+// CurrPressureSetpointCentimetersH2O		        -> currPressureSetpointCentimetersH2O
+// Blower_Kp					                    -> blowerKp
+// Blower_Ki					                    -> blowerKi
+// Blower_Kd					                    -> blowerKd
+// Blower_PID					                    -> blowerPID
+// PinchValve_PID                                  -> pinchValvePID
+
+
+
 // ----------------------------------LIBRARIES--------------------------------------- //
 #include "includes.h"
 // ----------------------------------LIBRARIES--------------------------------------- //
@@ -16,8 +71,7 @@
 // -----------------------------------OBJECTS---------------------------------------- //
 extern BreathCycleStep CurrCycleStep;
 
-extern Servo blower;
-extern Servo pinch_valve;
+extern Servo PinchValve;
 
 extern TCA9548A I2CMux;
 extern AllSensors_DLHR_L60D_8 patientCircuitPressure;

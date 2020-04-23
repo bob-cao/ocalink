@@ -25,8 +25,8 @@ void alarmsInit (void)
 void pinchValveInit (void)
 {
   pinMode(PINCH_VALVE_PIN, OUTPUT);
-  pinch_valve.attach(PINCH_VALVE_PIN);
-  pinch_valve.writeMicroseconds(PINCH_VALVE_DRIVER_FULL_OPEN_PULSE_MICROSECONDS);
+  PinchValve.attach(PINCH_VALVE_PIN);
+  PinchValve.writeMicroseconds(PINCH_VALVE_DRIVER_FULL_OPEN_PULSE_MICROSECONDS);
 }
 
 void pressureSensorsInit (void)
