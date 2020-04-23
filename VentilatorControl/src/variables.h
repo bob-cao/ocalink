@@ -57,15 +57,12 @@
 #define DEFAULT_RISE 1000                   // 1 second
 #define DEFAULT_IE 2                        // inhale/exhale ratio normalized to 1 (1:2)
 #define DEFAULT_INHALE_RAMP (uint32_t)250   // 0.25 seconds
+#define DEFAULT_RR 10
+#define DEFAULT_IE_RATIO 1
 
 #define BREATHS_PER_MINUTE_TO_SEC (double)60.000
 #define SEC_TO_MS (double)1000.000
 #define RATIO_TO_PERCENTAGE (double)100.00
-
-#define DEFAULT_IE_SCALING_FACTOR (double)10.000
-#define TRISE_MULTIPLIER (double)10
-#define FIO2_MULTIPLIER (double)100
-#define IE_MULTIPLIER (double)10
 
 #define PEEP_LOW_ALARM 1
 #define PIP_ALARM 2
@@ -80,8 +77,6 @@
 #define DEFAULT_PEEP_TIME 500
 #define DEFAULT_DISCONNECT_TIME 500
 // #define DEFAULT_APNEA_TIME 3000
-#define DEFAULT_RR 10
-#define DEFAULT_IE_RATIO 1
 
 #define PIP_MIN_RECEIVE 15
 #define PIP_MAX_RECEIVE 55
@@ -95,6 +90,10 @@
 #define RR_MAX_RECEIVE 50
 #define IE_MIN_RECEIVE 1
 #define IE_MAX_RECEIVE 4
+
+#define DEFAULT_IE_SCALING_FACTOR 10
+#define DEFAULT_TRISE_SCALING_FACTOR 10
+#define DEFAULT_FIO2_SCALING_FACTOR 100
 
 typedef enum{
     INHALE_RAMP,
