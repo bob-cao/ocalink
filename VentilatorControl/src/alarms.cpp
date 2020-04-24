@@ -24,7 +24,7 @@ void alarmsHandler (void)
   if(isBatteryActivated)
   {
     alarm_state = 1;
-    Serial.write("$ALARMS,A*");  // BATTERY BACKUP ALARM
+    Serial.write("%ALARMS,A@");  // BATTERY BACKUP ALARM
   }
   // Disconnect Alarm
   if((millis()-PrevAlarmTimeDisconnectError > DisconnectAlarmTimer)
@@ -34,7 +34,7 @@ void alarmsHandler (void)
   {
     // make sound and send Raspberry Pi alarm status flag
     alarm_state = 1;
-    Serial.write("$ALARMS,B*");  // DISCONNECT ALARM
+    Serial.write("%ALARMS,B@");  // DISCONNECT ALARM
     PrevAlarmTimeDisconnectError = millis();
   }
   // High and Low PIP Alarms
@@ -47,13 +47,13 @@ void alarmsHandler (void)
     alarm_state = 2;
     if(pressure_system_input >= PipPressureCentimetersH2O + pip_alarm)
     {
-      Serial.write("$ALARMS,C*");  // HIGH PIP ALARM
+      Serial.write("%ALARMS,C@");  // HIGH PIP ALARM
       // exhale immedietly to PEEP pressure and continue breathing cycle, don't reset alarm
       CurrCycleStep = EXHALE_RAMP;
     }
     else if(pressure_system_input <= PipPressureCentimetersH2O - pip_alarm)
     {
-      Serial.write("$ALARMS,D*");  // LOW PIP ALARM
+      Serial.write("%ALARMS,D@");  // LOW PIP ALARM
     }
 
     PrevAlarmTimePipError = millis();
@@ -69,11 +69,11 @@ void alarmsHandler (void)
 
     if(pressure_system_input >= PeepPressureCentimetersH2O + peep_alarm)
     {
-      Serial.write("$ALARMS,E*");  // HIGH PEEP ALARM
+      Serial.write("%ALARMS,E@");  // HIGH PEEP ALARM
     }
     else if(pressure_system_input <= PeepPressureCentimetersH2O - peep_alarm)
     {
-      Serial.write("$ALARMS,F*");  // LOW PEEP ALARM
+      Serial.write("%ALARMS,F@");  // LOW PEEP ALARM
     }
 
     PrevAlarmTimePeepError = millis();
@@ -90,7 +90,7 @@ void alarmsHandler (void)
   // {
   //   PrevAlarmTimeApneaError = millis();
   //   buzzerToggle();
-  //   Serial.write("$ALARMS,G*");  // APNEA ALARM
+  //   Serial.write("%ALARMS,G@");  // APNEA ALARM
   // }
 
   // TODO: Add High/Low RR Alarm
@@ -98,7 +98,7 @@ void alarmsHandler (void)
   // {
   //   PrevAlarmTimeRRError = millis();
   //   buzzerToggle();
-  //   Serial.write("$ALARMS,H*");  // High/Low RR ALARM
+  //   Serial.write("%ALARMS,H@");  // High/Low RR ALARM
   // }
 
   // TODO: Add I:E ratio Alarm
@@ -106,7 +106,7 @@ void alarmsHandler (void)
   // {
   //   PrevAlarmTimeIEError = millis();
   //   buzzerToggle();
-  //   Serial.write("$ALARMS,I*");  // I:E Ratio ALARM
+  //   Serial.write("%ALARMS,I@");  // I:E Ratio ALARM
   // }
 }
 
