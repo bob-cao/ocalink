@@ -1,5 +1,6 @@
 #include "includes.h"
 
+// TODO: HIGH! FIX STATES, not using ramp times anymore
 void cycleStateHandler (void)
 {
   if( CurrCycleStep != IDLE )
