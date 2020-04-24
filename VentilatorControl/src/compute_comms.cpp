@@ -3,7 +3,29 @@
 void computeSerialSend (void)
 {
   // Send values to Raspberry Pi
-  // Serial.println();  // Populate with values once that is figured out
+  // $MAX_PIP,MIN_PEEP,INSTANT_PRESSURE,INSTANT_VOLUME,INSTANT_FLOW*
+
+  static unsigned long computeSerialSendTimer = 0;
+
+  if( millis() - computeSerialSendTimer >= SERIAL_SEND_TIME)
+  {
+    isHighLowPressureDoneOneCycle = false;
+    serialSendString = "$";
+    serialSendString += String(maxPipPressure, 2);
+    serialSendString += ",";
+    serialSendString += String(minPeepPressure, 2);
+    serialSendString += ",";
+    serialSendString += String(instantPressure, 2);
+    serialSendString += ",";
+    serialSendString += String(inspiratoryVolume, 2);  //TODO
+    serialSendString += ",";
+    serialSendString += String(instantFlow, 2);  //TODO
+    serialSendString += "*";
+
+    Serial.println(serialSendString);
+
+    computeSerialSendTimer = millis();
+  }
 }
 
 void computeSerialReceive (void)
@@ -16,6 +38,29 @@ void computeSerialReceive (void)
 
   if (Serial.available())
   {
+    string_from_pi = Serial.readStringUntil('@');
+    if(string_from_pi[0] == '%')
+    {
+      propertyNameAlarms = string_from_pi.substring(string_from_pi.indexOf('%') + 1, string_from_pi.indexOf(','));
+      argumentAlarms = string_from_pi.substring(string_from_pi.indexOf(',') + 1, string_from_pi.indexOf('@'));
+
+      if( propertyNameAlarms.equalsIgnoreCase("ALARMS") )
+      {
+        if(argumentAlarms == "A")
+        {
+          isBatterySnoozeTriggered = true;
+        }
+        if(argumentAlarms == "B")
+        {
+          isDisconnectSnoozeTriggered = true;
+        }
+        else
+        {
+          Serial.println("ALARM STATE INPUT OUT OF BOUNDS!");  // Alarm out of bounds error
+        }
+      }
+    }
+
     string_from_pi = Serial.readStringUntil('*');
     if(string_from_pi[0] == '$')
     {
@@ -66,51 +111,34 @@ void computeSerialReceive (void)
       //     Serial.println(FlowOfOxygen);
       //   }
       // }
-      else if(property_name.equalsIgnoreCase("TRISE") && !isnan(argument_value))
+      else if(property_name.equalsIgnoreCase("TI") && !isnan(argument_value))
       {
-        double trise_requested = argument_value / DEFAULT_TRISE_SCALING_FACTOR;  // Multipled by DEFAULT_TRISE_SCALING_FACTOR on Raspberry Pi
-        if(trise_requested >= TRISE_MIN_RECEIVE && trise_requested <= TRISE_MAX_RECEIVE)
+        timeInspiratoryRequested = argument_value / DEFAULT_INSP_SCALING_FACTOR;
+        if(timeInspiratoryRequested >= INSP_MIN_RECEIVE && timeInspiratoryRequested <= INSP_MAX_RECEIVE)
         {
-          InhaleRampDurationMilliseconds = trise_requested * SEC_TO_MS;  // Rise time in ms
-          Serial.print("TRISE: ");
-          Serial.println(InhaleRampDurationMilliseconds);
+          InhaleDurationMilliseconds = timeInspiratoryRequested * SEC_TO_MS;  // Rise time in ms
+          Serial.print("InhaleDuration (TI): ");
+          Serial.println(InhaleDurationMilliseconds);
         }
         else
         {
-          Serial.println("TRISE INPUT OUT OF BOUNDS!");
+          Serial.println("TI INPUT OUT OF BOUNDS!");
         }
       }
       else if(property_name.equalsIgnoreCase("RR") && !isnan(argument_value))
       {
         if(argument_value >= RR_MIN_RECEIVE && argument_value <= RR_MAX_RECEIVE)
         {
-          RespritoryRate = argument_value;  // Respritory Rate in breathes per minute
-          Serial.print("RR: ");
-          Serial.println(RespritoryRate);
+          BreathCycleDurationMilliseconds = argument_value / BREATHS_PER_MINUTE_TO_SEC;
+          ExhaleDurationMilliseconds = BreathCycleDurationMilliseconds - InhaleDurationMilliseconds;
+          Serial.print("BreathCycleDuration: ");
+          Serial.print(BreathCycleDurationMilliseconds);
+          Serial.print("ExhaleDuration: ");
+          Serial.print(ExhaleDurationMilliseconds);
         }
         else
         {
           Serial.println("RR INPUT OUT OF BOUNDS!");
-        }
-      }
-      else if(property_name.equalsIgnoreCase("IE") && !isnan(argument_value))
-      {
-        double ie_requested = argument_value / DEFAULT_IE_SCALING_FACTOR;  // Multipled by DEFAULT_IE_SCALING_FACTOR on Raspberry Pi
-        if(ie_requested >= IE_MIN_RECEIVE && ie_requested <= IE_MAX_RECEIVE)
-        {
-          InhalationExhalationRatio = ie_requested;  // Inhalation/Exhalation Ratio
-          InhaleDurationMilliseconds = (BREATHS_PER_MINUTE_TO_SEC * SEC_TO_MS) / ((InhalationExhalationRatio + 1.0) * RespritoryRate);
-          ExhaleDurationMilliseconds = (BREATHS_PER_MINUTE_TO_SEC * SEC_TO_MS * (1.0 - (1.0 / (InhalationExhalationRatio + 1.0)))) / RespritoryRate;
-          Serial.print("IE: ");
-          Serial.println(InhalationExhalationRatio);
-          Serial.println("InhaleDurationMilliseconds: ");
-          Serial.println(InhaleDurationMilliseconds);
-          Serial.println("ExhaleDurationMilliseconds: ");
-          Serial.println(ExhaleDurationMilliseconds);
-        }
-        else
-        {
-          Serial.println("IE INPUT OUT OF BOUNDS!");
         }
       }
       else if( property_name.equalsIgnoreCase("CMD") )
@@ -132,35 +160,12 @@ void computeSerialReceive (void)
               Serial.print("PEEP: ");         Serial.print(PeepPressureCentimetersH2O);                     Serial.println("cmH20");
               Serial.print("PIP: ");          Serial.print(PipPressureCentimetersH2O);                      Serial.println("cmH20");
               // Serial.print("FIO2: ");         Serial.print(FlowOfOxygen);                                   Serial.println("cmH20");
-              Serial.print("TRISE: ");        Serial.print(InhaleRampDurationMilliseconds);                 Serial.println("ms");
-              Serial.print("RR: ");           Serial.print(RespritoryRate);                                 Serial.println("b/m");
-              Serial.print("IE: ");           Serial.print((1.00 / InhalationExhalationRatio) * RATIO_TO_PERCENTAGE);    Serial.println("%");
             }
           }
           else
           {
             Serial.println("CMD CODE INPUT OUT OF BOUNDS!");  // Command code is out of bounds
           }
-        }
-      }
-      else if( property_name.equalsIgnoreCase("A_STATE") )
-      {
-        if(argument_value == 0 || argument_value == 1)
-        {
-          if(argument_value == 1)
-          {
-            alarm_state = 1;
-            Serial.println("ALARMS ARE ON!");  // Alarms are ON
-          }
-          else if(argument_value == 0)
-          {
-            alarm_state = 3;
-            Serial.println("ALARMS ARE OFF AND CLEARED!");  // Clear Alarms
-          }
-        }
-        else
-        {
-          Serial.println("ALARM STATE INPUT OUT OF BOUNDS!");  // Alarm out of bounds error
         }
       }
       else
