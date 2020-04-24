@@ -119,11 +119,16 @@ byte alarm_state = 1;
 
 double currentPipPressureCentimetersH2O;
 double previousPipPressureCentimetersH2O;
-double highestPipPressure;
+double maxPipPressure;
 
 double currentPeepPressureCentimetersH2O;
 double previousPeepPressureCentimetersH2O;
-double lowestPeepPressure;
+double minPeepPressure;
+
+double instantPressure;
+double inspiratoryVolume;
+double instantFlow;
+double calculateIERatio;
 // --------------------------------USER SETTINGS------------------------------------- //
 
 

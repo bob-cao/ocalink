@@ -33,11 +33,11 @@ void returnHighestPipOverPeriod (void)
   }
   if(currentPipPressureCentimetersH2O > previousPipPressureCentimetersH2O)
   {
-    highestPipPressure = currentPipPressureCentimetersH2O;
+    maxPipPressure = currentPipPressureCentimetersH2O;
   }
   else
   {
-    highestPipPressure = previousPipPressureCentimetersH2O;
+    maxPipPressure = previousPipPressureCentimetersH2O;
   }
 }
 
@@ -51,10 +51,10 @@ void returnLowestPeepOverPeriod (void)
   }
   if(currentPeepPressureCentimetersH2O < previousPeepPressureCentimetersH2O)
   {
-    lowestPeepPressure = currentPeepPressureCentimetersH2O;
+    minPeepPressure = currentPeepPressureCentimetersH2O;
   }
   else
   {
-    lowestPeepPressure = previousPeepPressureCentimetersH2O;
+    minPeepPressure = previousPeepPressureCentimetersH2O;
   }
 }

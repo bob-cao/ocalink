@@ -11,13 +11,20 @@ void computeSerialSend (void)
   {
     isHighLowPressureDoneOneCycle = false;
     serialSendString = "$";
+    serialSendString += maxPipPressure;
     serialSendString += ",";
-    serialSendString += highestPipPressure;
+    serialSendString += minPeepPressure;
     serialSendString += ",";
-    serialSendString += lowestPeepPressure;
-    
+    serialSendString += instantPressure;
+    serialSendString += ",";
+    serialSendString += inspiratoryVolume;
+    serialSendString += ",";
+    serialSendString += instantFlow;
+    serialSendString += ",";
+    serialSendString += calculateIERatio;
+    serialSendString += "*";
 
-    Serial.println("$10.0,10.0,10.0,10.0,10.0*");
+    Serial.println(serialSendString);
 
     computeSerialSendTimer = millis();
   }

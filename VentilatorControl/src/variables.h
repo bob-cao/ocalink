@@ -132,11 +132,16 @@ extern byte alarm_state;
 
 extern double currentPipPressureCentimetersH2O;
 extern double previousPipPressureCentimetersH2O;
-extern double highestPipPressure;
+extern double maxPipPressure;
 
 extern double currentPeepPressureCentimetersH2O;
 extern double previousPeepPressureCentimetersH2O;
-extern double lowestPeepPressure;
+extern double minPeepPressure;
+
+extern double instantPressure;
+extern double inspiratoryVolume;
+extern double instantFlow;
+extern double calculateIERatio;
 // --------------------------------USER SETTINGS------------------------------------- //
 
 
