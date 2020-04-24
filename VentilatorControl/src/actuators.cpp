@@ -20,6 +20,13 @@ double blowerPressureToBlowerSpeed (double pressure)
     return clampf(sqrt(clampedpressure)*99.28637634 + clampedpressure*1.908460447 + -51.83083825,ADC_MIN_OUTPUT, ADC_MAX_OUTPUT);
 }
 
+void resetBlowerPidIntegrator()
+{
+  Blower_PID.SetMode(MANUAL);
+  blower_pressure_offset = 0;
+  Blower_PID.SetMode(AUTOMATIC);
+}
+
 bool incrementIsPositive = true;
 uint32_t timeofLastIncrement = 0;
 static BreathCycleStep blowerPreviousBreathCycleStep;
@@ -31,30 +38,41 @@ void writeBlowerSpeed(void)
 {
   //debug only
   //Blower_PID.SetTunings(PinchValve_Kp,PinchValve_Ki,PinchValve_Kd);
+  if(CurrCycleStep != IDLE)
+    {
+    if((blowerPreviousBreathCycleStep == EXHALE_HOLD) && ((CurrCycleStep == INHALE_RAMP)||(CurrCycleStep == INHALE_HOLD)))
+    {
+      PipPressureReached = false;
+    }
+    if((blowerPreviousBreathCycleStep == INHALE_HOLD) && ((CurrCycleStep == EXHALE_RAMP)||(CurrCycleStep == EXHALE_HOLD)))
+    {
+      resetBlowerPidIntegrator();
+    }
 
-  if((blowerPreviousBreathCycleStep == EXHALE_HOLD) && ((CurrCycleStep == INHALE_RAMP)||(CurrCycleStep == INHALE_HOLD)))
-  {
-    PipPressureReached = false;
-  }
+    double blowerOffsetLimit = CurrPressureSetpointCentimetersH2O*0.5;
+    Blower_PID.SetOutputLimits(-blowerOffsetLimit,blowerOffsetLimit);
+    Blower_PID.Compute();
 
-  double blowerOffsetLimit = CurrPressureSetpointCentimetersH2O*0.5;
-  Blower_PID.SetOutputLimits(-blowerOffsetLimit,blowerOffsetLimit);
-  Blower_PID.Compute();
+    blower_speed = blowerPressureToBlowerSpeed(CurrPressureSetpointCentimetersH2O + blower_pressure_offset);
 
-  blower_speed = blowerPressureToBlowerSpeed(CurrPressureSetpointCentimetersH2O + blower_pressure_offset);
+    if(pressure_reading>(CurrPressureSetpointCentimetersH2O*0.95))
+    {
+      resetBlowerPidIntegrator();
+      PipPressureReached = true;
+    }
 
-  if(pressure_reading>(CurrPressureSetpointCentimetersH2O*0.80))
-  {
-    PipPressureReached = true;
-  }
-
-  if(!PipPressureReached && ((CurrCycleStep == INHALE_RAMP)||(CurrCycleStep == INHALE_HOLD)))
-  {
-    analogWrite(BLOWER_SPEED_PIN,ADC_MAX_OUTPUT);
+    if(!PipPressureReached && ((CurrCycleStep == INHALE_RAMP)||(CurrCycleStep == INHALE_HOLD)))
+    {
+      analogWrite(BLOWER_SPEED_PIN,ADC_MAX_OUTPUT);
+    }
+    else
+    {
+      analogWrite(BLOWER_SPEED_PIN,(uint32_t)blower_speed);
+    }
   }
   else
   {
-    analogWrite(BLOWER_SPEED_PIN,(uint32_t)blower_speed);
+    analogWrite(BLOWER_SPEED_PIN,(uint32_t)0);
   }
 }
 
@@ -94,14 +112,21 @@ void pinchValveControl (void)
   //  pinch_valve_output_openness_in_percentage = 100.0;
   //  break;
   case EXHALE_HOLD:
-    if((CurrPressureSetpointCentimetersH2O+3>pressure_reading) && !PeepPressureReached)
+    if((CurrPressureSetpointCentimetersH2O+2>pressure_reading) && !PeepPressureReached)
     {
       PeepPressureReached = true;
+      openessRampPercentage = 100.0;
+      lastOpennessRampDecrement = millis();
     }
 
-    if(PeepPressureReached)
+    if((PeepPressureReached) && ((millis() - lastOpennessRampDecrement) > 15))
     {
-      pinch_valve_output_openness_in_percentage = 20.0;
+      if( openessRampPercentage > 25.0 )
+      {
+        openessRampPercentage -= 5;
+        lastOpennessRampDecrement = millis();
+      }
+      pinch_valve_output_openness_in_percentage = openessRampPercentage;
     }
     else
     {
