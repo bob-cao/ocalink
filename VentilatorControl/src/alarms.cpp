@@ -1,8 +1,8 @@
 #include "includes.h"
 
 // ALARM CODES
-// $<property>,<value>*
-// $ALARMS,A*
+// %<property>,<value>@
+// %ALARMS,A@
 // A	Battery Backup Activated Alarm
 // B	Disconnect Alarm
 // C	High PIP Alarm
