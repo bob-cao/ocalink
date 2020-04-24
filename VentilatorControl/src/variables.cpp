@@ -122,7 +122,7 @@ double highestPipPressure;
 
 double currentPeepPressureCentimetersH2O;
 double previousPeepPressureCentimetersH2O;
-double highestPeepPressure;
+double lowestPeepPressure;
 // --------------------------------USER SETTINGS------------------------------------- //
 
 
