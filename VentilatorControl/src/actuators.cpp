@@ -101,13 +101,14 @@ void pinchValveControl (void)
       lastOpennessRampDecrement = millis();
     }
 
-    if((PeepPressureReached) && ((millis() - lastOpennessRampDecrement) > 10))
+    if((PeepPressureReached) && ((millis() - lastOpennessRampDecrement) > 25))
     {
       if( openessRampPercentage > 25.0 )
       {
         openessRampPercentage -= 5;
         lastOpennessRampDecrement = millis();
       }
+      pinch_valve_output_openness_in_percentage = openessRampPercentage;
     }
     else
     {
