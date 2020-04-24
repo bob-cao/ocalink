@@ -99,6 +99,7 @@ double DisconnectAlarmTimer       = DEFAULT_DISCONNECT_TIME;
 bool isBatteryActivated = false;
 bool isBatterySnoozeTriggered = false;
 bool isDisconnectSnoozeTriggered = false;
+bool isHighLowPressureDoneOneCycle = false;
 bool buzzer_state = 1;
 
 Adafruit_NeoPixel AlarmLED = Adafruit_NeoPixel(NUM_LEDS, LED_DATA_PIN, NEO_GRB + NEO_KHZ800);

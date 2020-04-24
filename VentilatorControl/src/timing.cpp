@@ -1,10 +1,12 @@
 #include "includes.h"
 
 void breathCycleTimerReset (bool hardreset)
-// void breath_cycle_timer_reset (bool hardreset = false)
 {
   CurrTimeInCycleMilliseconds = 0;
   CycleStartTimeFromSysClockMilliseconds = millis();
+
+  isHighLowPressureDoneOneCycle = true;
+
   if(hardreset)
   {
     ControlLoopStartTimeMilliseconds = CycleStartTimeFromSysClockMilliseconds;

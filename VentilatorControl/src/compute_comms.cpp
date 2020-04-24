@@ -9,7 +9,9 @@ void computeSerialSend (void)
 
   if( millis() - computeSerialSendTimer >= SERIAL_SEND_TIME)
   {
+    isHighLowPressureDoneOneCycle = false;
     Serial.println("$10.0,10.0,10.0,10.0,10.0*");
+
     computeSerialSendTimer = millis();
   }
 }

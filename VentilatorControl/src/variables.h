@@ -112,6 +112,7 @@ extern double DisconnectAlarmTimer;
 extern bool isBatteryActivated;
 extern bool isBatterySnoozeTriggered;
 extern bool isDisconnectSnoozeTriggered;
+extern bool isHighLowPressureDoneOneCycle;
 extern bool buzzer_state;
 
 extern Adafruit_NeoPixel AlarmLED;
