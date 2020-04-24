@@ -4,6 +4,10 @@
 
 void setup (void)
 {
+  // Serial initialization
+  Serial.begin(DEFAULT_BAUD_RATE);
+
+  // Initializations
   inits();
 
   breathCycleTimerReset(true);
@@ -23,13 +27,13 @@ void loop (void)
 
   alarmsHandler();
 
-  alarmsVisualAudioHandler();
+  //alarmsVisualAudioHandler();
 
   computeSerialReceive();
 
-  computeSerialSend();
+  //computeSerialSend();
 
-  // printPidSetpointAndCurrentValues();
+  debugPrintCurrentValues();
 }
 
 // ---------------------------VENTILATOR CONTROL MAIN-------------------------------- //

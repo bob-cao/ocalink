@@ -1,20 +1,19 @@
 #ifndef __CONSTANTS_H__
 #define __CONSTANTS_H__
 
-#define DEFAULT_BAUD_RATE       256000
+#define DEFAULT_BAUD_RATE       115200
 
 #define INCHES_2_CM     (double)2.54
+
 
 #define MIN_PERCENTAGE  (double)0
 #define MAX_PERCENTAGE  (double)100
 
 #define PATIENT_CIRCUIT_PRESSURE_MUX_CHANNEL        0
-#define VENTRUI_DIFFERENTIAL_PRESSURE_MUX_CHANNEL   1
+#define VENTURI_DIFFERENTIAL_PRESSURE_MUX_CHANNEL   1
 
-#define BLOWER_DRIVER_MIN_PULSE_MICROSECONDS                (double)1000
-#define BLOWER_DRIVER_MAX_PULSE_MICROSECONDS                (double)2000
-#define BLOWER_DRIVER_PULSE_STARTUP_WIGGLE                  (double)100
-#define DEFAULT_ESC_INIT_TIME                               (double)3000
+#define ADC_MIN_OUTPUT 0
+#define ADC_MAX_OUTPUT 1023
 
 #define PINCH_VALVE_DRIVER_FULL_OPEN_PULSE_MICROSECONDS     (double)1450
 #define PINCH_VALVE_DRIVER_FULL_CLOSE_PULSE_MICROSECONDS    (double)1725
@@ -23,11 +22,12 @@
 #define NUM_LEDS            24                          // 2 Inch LED Ring
 #define LED_ON_TIME         50                          // time in ms
 
-#define DEFAULT_PID_SAMPLE_TIME     (double)1.5         // time in ms
+#define DEFAULT_PID_SAMPLE_TIME     (double)20         // time in ms
 
-#define DEFAULT_BLOWER_KP           (double)10.010
-#define DEFAULT_BLOWER_KI           (double)0.000
-#define DEFAULT_BLOWER_KD           (double)0.008000
+#define MAX_BLOWER_PRESSURE_OFFSET (double)20
+#define DEFAULT_BLOWER_KP           (double)0.0
+#define DEFAULT_BLOWER_KI           (double)3.0
+#define DEFAULT_BLOWER_KD           (double)0.1
 
 #define DEFAULT_PINCH_VALVE_KP      (double)5.000
 #define DEFAULT_PINCH_VALVE_KI      (double)0.000

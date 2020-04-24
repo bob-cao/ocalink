@@ -148,7 +148,7 @@ extern double TimeOfLastSolenoidToggleMilliseconds;               // Time, in te
 
 
 // --------------------------------PID SETTINGS-------------------------------------- //
-extern double pressure_system_input, blower_output_speed_in_percentage, pinch_valve_output_openness_in_percentage, CurrPressureSetpointCentimetersH2O;
+extern double pressure_system_input, blower_pressure_offset, pinch_valve_output_openness_in_percentage, CurrPressureSetpointCentimetersH2O;
 extern double Blower_Kp, Blower_Ki, Blower_Kd;
 extern double PinchValve_Kp, PinchValve_Ki, PinchValve_Kd;
 

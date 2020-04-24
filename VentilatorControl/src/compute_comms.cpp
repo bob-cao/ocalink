@@ -163,6 +163,42 @@ void computeSerialReceive (void)
           Serial.println("ALARM STATE INPUT OUT OF BOUNDS!");  // Alarm out of bounds error
         }
       }
+
+      // debug only
+      else if( property_name.equalsIgnoreCase("kp") && !isnan(argument_value) )
+      {
+        Blower_Kp = argument_value;
+        Serial.print("Current Gains:");
+        Serial.print(Blower_Kp);
+        Serial.print(" ");
+        Serial.print(Blower_Ki);
+        Serial.print(" ");
+        Serial.print(Blower_Kd);
+        Serial.println();
+      }
+      else if( property_name.equalsIgnoreCase("ki") && !isnan(argument_value) )
+      {
+        Blower_Ki = argument_value;
+        Serial.print("Current Gains:");
+        Serial.print(Blower_Kp);
+        Serial.print(" ");
+        Serial.print(Blower_Ki);
+        Serial.print(" ");
+        Serial.print(Blower_Kd);
+        Serial.println();
+      }
+      else if( property_name.equalsIgnoreCase("kd") && !isnan(argument_value) )
+      {
+        Blower_Kd = argument_value;
+        Serial.print("Current Gains:");
+        Serial.print(Blower_Kp);
+        Serial.print(" ");
+        Serial.print(Blower_Ki);
+        Serial.print(" ");
+        Serial.print(Blower_Kd);
+        Serial.println();
+      }
+
       else
       {
         Serial.println("UNKNOWN MESSAGE");  // A message starting with '$' was not valid

@@ -3,7 +3,7 @@
 
 // PIN DEFINITIONS
 #define BUZZER_PIN          2
-#define BLOWER_SPEED_PIN    3
+#define BLOWER_SPEED_PIN    A0
 #define BLOWER_FEEDBACK_PIN A1
 #define PINCH_VALVE_PIN     4
 #define BATTERY_ALARM_PIN   6

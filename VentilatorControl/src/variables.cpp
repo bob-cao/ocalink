@@ -132,12 +132,12 @@ double TimeOfLastSolenoidToggleMilliseconds = 0;                                
 
 
 // --------------------------------PID SETTINGS-------------------------------------- //
-double pressure_system_input, blower_output_speed_in_percentage, pinch_valve_output_openness_in_percentage, CurrPressureSetpointCentimetersH2O;
+double pressure_system_input, blower_pressure_offset, pinch_valve_output_openness_in_percentage, CurrPressureSetpointCentimetersH2O;
 double Blower_Kp = DEFAULT_BLOWER_KP, Blower_Ki = DEFAULT_BLOWER_KI, Blower_Kd = DEFAULT_BLOWER_KD;
 double PinchValve_Kp = DEFAULT_PINCH_VALVE_KP, PinchValve_Ki = DEFAULT_PINCH_VALVE_KI, PinchValve_Kd = DEFAULT_PINCH_VALVE_KD;
 
 PID Blower_PID(&pressure_system_input,
-                &blower_output_speed_in_percentage,
+                &blower_pressure_offset,
                 &CurrPressureSetpointCentimetersH2O,
                 Blower_Kp, Blower_Ki, Blower_Kd, DIRECT);
 
