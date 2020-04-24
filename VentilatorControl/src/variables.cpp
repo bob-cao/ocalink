@@ -98,17 +98,17 @@ bool isDisconnectSnoozeTriggered = false;
 bool isHighLowPressureDoneOneCycle = false;
 bool buzzer_state = 1;
 
-Adafruit_NeoPixel AlarmLED = Adafruit_NeoPixel(NUM_LEDS, LED_DATA_PIN, NEO_GRB + NEO_KHZ800);
+// Adafruit_NeoPixel_ZeroDMA AlarmLED = Adafruit_NeoPixel_ZeroDMA(NUM_LEDS, LED_DATA_PIN, NEO_GRB + NEO_KHZ800);
 
-byte low            =   AlarmLED.Color(0, 0, 0);
-byte red            =   AlarmLED.Color(255, 0, 0);
-byte low_red        =   AlarmLED.Color(100,0,0);
-byte amber          =   AlarmLED.Color(255, 70, 0);
-byte low_amber      =   AlarmLED.Color(100,30,0);
-byte green          =   AlarmLED.Color(0, 40, 0);
-byte low_green      =   AlarmLED.Color(0,75,0);
-byte perywinkle     =   AlarmLED.Color(5 , 7, 10);  // perywinkle (pastell blue)
-byte low_perywinkle =   AlarmLED.Color(2,3,5);      // perywinkle (pastell blue)
+// byte low            =   AlarmLED.Color(0, 0, 0);
+// byte red            =   AlarmLED.Color(255, 0, 0);
+// byte low_red        =   AlarmLED.Color(100,0,0);
+// byte amber          =   AlarmLED.Color(255, 70, 0);
+// byte low_amber      =   AlarmLED.Color(100,30,0);
+// byte green          =   AlarmLED.Color(0, 40, 0);
+// byte low_green      =   AlarmLED.Color(0,75,0);
+// byte perywinkle     =   AlarmLED.Color(5 , 7, 10);  // perywinkle (pastell blue)
+// byte low_perywinkle =   AlarmLED.Color(2,3,5);      // perywinkle (pastell blue)
 
 byte alarm_state = 1;
 

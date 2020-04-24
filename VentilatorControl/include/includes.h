@@ -8,7 +8,7 @@
 #include "AllSensors_DLHR.h"
 #include "Servo.h"
 #include "PID_v1.h"
-#include "Adafruit_NeoPixel.h"
+#include "Adafruit_NeoPixel_ZeroDMA.h"
 
 #include "Types.h"
 #include "variables.h"

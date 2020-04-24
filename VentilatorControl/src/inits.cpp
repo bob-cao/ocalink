@@ -9,7 +9,7 @@ void blowerEscInit (void)
 
 void alarmLedInit (void)
 {
-  AlarmLED.begin();
+  //AlarmLED.begin();
 }
 
 void alarmsInit (void)

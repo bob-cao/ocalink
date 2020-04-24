@@ -7,7 +7,7 @@ void computeSerialSend (void)
 
   static unsigned long computeSerialSendTimer = 0;
 
-  if( millis() - computeSerialSendTimer >= SERIAL_SEND_TIME)
+  if( (millis() - computeSerialSendTimer) >= SERIAL_SEND_TIME)
   {
     isHighLowPressureDoneOneCycle = false;
     serialSendString = "$";

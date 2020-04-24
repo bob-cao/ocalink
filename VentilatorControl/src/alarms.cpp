@@ -122,14 +122,14 @@ void alarmsVisualAudioHandler (void)
   switch (alarm_state)
   {
     case 1:
-      chase(red, low_red, LED_ON_TIME); // red
+      // chase(red, low_red, LED_ON_TIME); // red
       if(isBatterySnoozeTriggered)
       {
         digitalWrite(BUZZER_PIN, HIGH);
       }
       break;
     case 2:
-      chase(amber, low_amber, LED_ON_TIME); // amber
+      // chase(amber, low_amber, LED_ON_TIME); // amber
       if(isBatterySnoozeTriggered)
       {
         buzzerToggle();
@@ -137,7 +137,7 @@ void alarmsVisualAudioHandler (void)
       break;
     case 3:
     default:
-      chase(green, low_green, LED_ON_TIME); // green
+      //chase(green, low_green, LED_ON_TIME); // green
       digitalWrite(BUZZER_PIN, LOW);
       break;
   }

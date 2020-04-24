@@ -1,0 +1,39 @@
+{
+    "description": "Arduino library for NeoPixel DMA on SAMD21 and SAMD51 microcontrollers", 
+    "repository": {
+        "url": "https://github.com/adafruit/Adafruit_NeoPixel_ZeroDMA", 
+        "type": "git"
+    }, 
+    "platforms": [
+        "atmelsam"
+    ], 
+    "export": {
+        "exclude": [
+            "extras", 
+            "docs", 
+            "tests", 
+            "test", 
+            "*.doxyfile", 
+            "*.pdf"
+        ], 
+        "include": null
+    }, 
+    "authors": [
+        {
+            "maintainer": true, 
+            "name": "Adafruit", 
+            "url": null, 
+            "email": "info@adafruit.com"
+        }
+    ], 
+    "keywords": [
+        "display"
+    ], 
+    "id": 2107, 
+    "name": "Adafruit DMA neopixel library", 
+    "frameworks": [
+        "arduino"
+    ], 
+    "version": "1.2.0", 
+    "homepage": null
+}

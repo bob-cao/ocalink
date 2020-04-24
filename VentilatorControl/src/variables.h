@@ -112,17 +112,17 @@ extern bool isDisconnectSnoozeTriggered;
 extern bool isHighLowPressureDoneOneCycle;
 extern bool buzzer_state;
 
-extern Adafruit_NeoPixel AlarmLED;
+//extern Adafruit_NeoPixel_ZeroDMA AlarmLED;
 
-extern byte low;
-extern byte red;
-extern byte low_red;
-extern byte amber;
-extern byte low_amber;
-extern byte green;
-extern byte low_green;
-extern byte perywinkle;     // perywinkle (pastell blue)
-extern byte low_perywinkle; // perywinkle (pastell blue)
+// extern byte low;
+// extern byte red;
+// extern byte low_red;
+// extern byte amber;
+// extern byte low_amber;
+// extern byte green;
+// extern byte low_green;
+// extern byte perywinkle;     // perywinkle (pastell blue)
+// extern byte low_perywinkle; // perywinkle (pastell blue)
 
 extern byte alarm_state;
 
