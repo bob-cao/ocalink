@@ -4,7 +4,7 @@ void blowerEscInit (void)
 {
   analogWriteResolution(10);
   // DO NOT need to use pinMode() for using DAC on this plaform
-  analogWrite(BLOWER_SPEED_PIN,0);
+  analogWrite(BLOWER_SPEED_PIN, 0);
 }
 
 void alarmLedInit (void)

@@ -8,10 +8,10 @@ void computeSerialSend (void)
   static unsigned long computeSerialSendTimer = 0;
 
   if( millis() - computeSerialSendTimer >= SERIAL_SEND_TIME)
-    {
-      Serial.println("$10.0,10.0,10.0,10.0,10.0*");
-      computeSerialSendTimer = millis();
-    }
+  {
+    Serial.println("$10.0,10.0,10.0,10.0,10.0*");
+    computeSerialSendTimer = millis();
+  }
 }
 
 void computeSerialReceive (void)
@@ -24,6 +24,29 @@ void computeSerialReceive (void)
 
   if (Serial.available())
   {
+    string_from_pi = Serial.readStringUntil('@');
+    if(string_from_pi[0] == '%')
+    {
+      propertyNameAlarms = string_from_pi.substring(string_from_pi.indexOf('%') + 1, string_from_pi.indexOf(','));
+      argumentAlarms = string_from_pi.substring(string_from_pi.indexOf(',') + 1, string_from_pi.indexOf('@'));
+
+      if( propertyNameAlarms.equalsIgnoreCase("ALARMS") )
+      {
+        if(argumentAlarms == "A")
+        {
+          isBatterySnoozeTriggered = true;
+        }
+        if(argumentAlarms == "B")
+        {
+          isDisconnectSnoozeTriggered = true;
+        }
+        else
+        {
+          Serial.println("ALARM STATE INPUT OUT OF BOUNDS!");  // Alarm out of bounds error
+        }
+      }
+    }
+
     string_from_pi = Serial.readStringUntil('*');
     if(string_from_pi[0] == '$')
     {
@@ -149,26 +172,6 @@ void computeSerialReceive (void)
           {
             Serial.println("CMD CODE INPUT OUT OF BOUNDS!");  // Command code is out of bounds
           }
-        }
-      }
-      else if( property_name.equalsIgnoreCase("A_STATE") )
-      {
-        if(argument_value == 0 || argument_value == 1)
-        {
-          if(argument_value == 1)
-          {
-            alarm_state = 1;
-            Serial.println("ALARMS ARE ON!");  // Alarms are ON
-          }
-          else if(argument_value == 0)
-          {
-            alarm_state = 3;
-            Serial.println("ALARMS ARE OFF AND CLEARED!");  // Clear Alarms
-          }
-        }
-        else
-        {
-          Serial.println("ALARM STATE INPUT OUT OF BOUNDS!");  // Alarm out of bounds error
         }
       }
       else

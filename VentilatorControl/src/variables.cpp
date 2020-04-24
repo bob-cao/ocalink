@@ -77,6 +77,8 @@ String string_from_pi;
 String property_name;
 String argument;
 double argument_value;
+String propertyNameAlarms;
+String argumentAlarms;
 
 double peep_low_alarm             = PEEP_LOW_ALARM;
 double peep_alarm                 = PEEP_ALARM;
@@ -95,6 +97,8 @@ double DisconnectAlarmTimer       = DEFAULT_DISCONNECT_TIME;
 // double ApneaTimer                 = DEFAULT_APNEA_TIME;
 
 bool isBatteryActivated = false;
+bool isBatterySnoozeTriggered = false;
+bool isDisconnectSnoozeTriggered = false;
 bool buzzer_state = 1;
 
 Adafruit_NeoPixel AlarmLED = Adafruit_NeoPixel(NUM_LEDS, LED_DATA_PIN, NEO_GRB + NEO_KHZ800);

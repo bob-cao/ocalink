@@ -2,7 +2,9 @@
 #define __CONSTANTS_H__
 
 #define DEFAULT_BAUD_RATE       256000
-#define SERIAL_SEND_TIME        42
+#define ALARM_TIME              (double)50
+#define SERIAL_SEND_TIME        (double)500
+#define SNOOZE_TIME             (double)120000  // Snooze time in ms (2 minutes)
 
 #define INCHES_2_CM     (double)2.54
 

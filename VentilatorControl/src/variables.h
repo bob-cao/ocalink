@@ -90,6 +90,8 @@ extern String string_from_pi;
 extern String property_name;
 extern String argument;
 extern double argument_value;
+extern String propertyNameAlarms;
+extern String argumentAlarms;
 
 extern double peep_low_alarm;
 extern double peep_alarm;
@@ -108,6 +110,8 @@ extern double DisconnectAlarmTimer;
 // extern double ApneaTimer;
 
 extern bool isBatteryActivated;
+extern bool isBatterySnoozeTriggered;
+extern bool isDisconnectSnoozeTriggered;
 extern bool buzzer_state;
 
 extern Adafruit_NeoPixel AlarmLED;
