@@ -27,7 +27,7 @@ void loop (void)
 
   alarmsHandler();
 
-  // alarmsVisualAudioHandler();
+  alarmsVisualAudioHandler();
 
   computeSerialReceive();
 
