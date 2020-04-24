@@ -5,6 +5,7 @@ void cycleStateHandler (void)
 {
   if( CurrCycleStep != IDLE )
   {
+    pinMode(BATTERY_SHUTDOWN_PIN, INPUT);
     CurrTimeInCycleMilliseconds = millis()-CycleStartTimeFromSysClockMilliseconds;
     if(millis()-ControlLoopStartTimeMilliseconds > ControlLoopInitialStabilizationTimeMilliseconds)
     {
@@ -37,6 +38,8 @@ void cycleStateHandler (void)
     else // if idle == true
     {
       CurrCycleStep = EXHALE_HOLD;
+      pinMode(BATTERY_SHUTDOWN_PIN, OUTPUT);
+      digitalWrite(BATTERY_SHUTDOWN_PIN, LOW);
     }
   }
 }

@@ -20,6 +20,7 @@ void alarmsInit (void)
   digitalWrite(BUZZER_PIN, LOW);  // Buzzer is a piezo with a built in driver
 
   pinMode(BATTERY_ALARM_PIN, INPUT);  // Battery UPS backup has a NC relay
+  pinMode(BATTERY_SHUTDOWN_PIN, INPUT);
 }
 
 void pinchValveInit (void)
