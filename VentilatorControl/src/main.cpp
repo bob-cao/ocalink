@@ -31,7 +31,7 @@ void loop (void)
 
   computeSerialReceive();
 
-  //computeSerialSend();
+  computeSerialSend();
 
   // debugPrintCurrentValues();
 }

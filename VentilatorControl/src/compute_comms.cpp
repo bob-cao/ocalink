@@ -6,23 +6,26 @@ void computeSerialSend (void)
   // $MAX_PIP,MIN_PEEP,INSTANT_PRESSURE,INSTANT_VOLUME,INSTANT_FLOW*
 
   static unsigned long computeSerialSendTimer = 0;
-
+  returnHighestPipOverPeriod();
+  returnLowestPeepOverPeriod();
+  returnInstantPressure();
+  returnInspiratoryVolume();
+  
+  
   if( (millis() - computeSerialSendTimer) >= SERIAL_SEND_TIME)
   {
     isHighLowPressureDoneOneCycle = false;
-    serialSendString = "$";
-    serialSendString += String(maxPipPressure, 2);
-    serialSendString += ",";
-    serialSendString += String(minPeepPressure, 2);
-    serialSendString += ",";
-    serialSendString += String(instantPressure, 2);
-    serialSendString += ",";
-    serialSendString += String(inspiratoryVolume, 2);  //TODO
-    serialSendString += ",";
-    serialSendString += String(instantFlow, 2);  //TODO
-    serialSendString += "*";
-
-    Serial.println(serialSendString);
+    Serial.print("$");
+    Serial.print(String(maxPipPressure, 2));
+    Serial.print(",");
+    Serial.print(String(minPeepPressure, 2));
+    Serial.print(",");
+    Serial.print(String(instantPressure, 2));
+    Serial.print(",");
+    Serial.print(String(inspiratoryVolume, 2));  //TODO
+    Serial.print(",");
+    Serial.print(String(venturiFlowRateLpm, 2));  //TODO
+    Serial.println("*");
 
     computeSerialSendTimer = millis();
   }
