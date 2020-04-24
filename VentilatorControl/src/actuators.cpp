@@ -75,30 +75,14 @@ void writePinchValveOpenness (double opennessPercentage)
 
 
 
-
+static double openessRampPercentage;
+static uint32_t lastOpennessRampDecrement;
 
 void pinchValveControl (void)
 {
   // debug only
   //PinchValve_PID.SetTunings(PinchValve_Kp,PinchValve_Ki,PinchValve_Kd);
-  /*
-  if((millis()-timeofLastIncrement) >100)
-  {
-    pinch_valve_output_openness_in_percentage += incrementIsPositive?1:-1;
-    timeofLastIncrement = millis();
-  }
-  if(pinch_valve_output_openness_in_percentage>=100.0)
-  {
-    pinch_valve_output_openness_in_percentage = 100.0;
-    incrementIsPositive = false;
-  }
-  if(pinch_valve_output_openness_in_percentage<=0.0)
-  {
-    pinch_valve_output_openness_in_percentage = 0.0;
-    incrementIsPositive = true;
-  }
-*/
-  
+ 
   // reset the integrator at the beginning of each exhale cycle
   if((previousBreathCycleStep == INHALE_HOLD) && ((CurrCycleStep == EXHALE_RAMP)||(CurrCycleStep == EXHALE_HOLD)))
   {
@@ -110,13 +94,20 @@ void pinchValveControl (void)
   //  pinch_valve_output_openness_in_percentage = 100.0;
   //  break;
   case EXHALE_HOLD:
-    if(CurrPressureSetpointCentimetersH2O>pressure_reading)
+    if((CurrPressureSetpointCentimetersH2O>pressure_reading) && !PeepPressureReached)
     {
       PeepPressureReached = true;
+      openessRampPercentage = 100.0;
+      lastOpennessRampDecrement = millis();
     }
-    if(PeepPressureReached)
+
+    if((PeepPressureReached) && ((millis() - lastOpennessRampDecrement) > 10))
     {
-      pinch_valve_output_openness_in_percentage = 5.0;
+      if( openessRampPercentage > 25.0 )
+      {
+        openessRampPercentage -= 5;
+        lastOpennessRampDecrement = millis();
+      }
     }
     else
     {
