@@ -13,16 +13,16 @@ void breathCycleTimerReset (bool hardreset)
   }
 }
 
-void alarm2MinuteSnoozeTimer (void)
-{
-  static unsigned long alarmSnoozeTimer = 0;
+// void alarm2MinuteSnoozeTimer (void)
+// {
+//   static unsigned long alarmSnoozeTimer = 0;
 
-  if((millis() - alarmSnoozeTimer >= SNOOZE_TIME)
-    && (isBatterySnoozeTriggered || isDisconnectSnoozeTriggered))
-  {
-    isBatterySnoozeTriggered = false;
-    isDisconnectSnoozeTriggered = false;
+//   if((millis() - alarmSnoozeTimer >= SNOOZE_TIME)
+//     && (isBatterySnoozeTriggered || isDisconnectSnoozeTriggered))
+//   {
+//     isBatterySnoozeTriggered = false;
+//     isDisconnectSnoozeTriggered = false;
 
-    alarmSnoozeTimer = millis();
-  }
-}
+//     alarmSnoozeTimer = millis();
+//   }
+// }
