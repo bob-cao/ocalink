@@ -92,6 +92,7 @@ extern String argument;
 extern double argument_value;
 extern String propertyNameAlarms;
 extern String argumentAlarms;
+extern String serialSendString;
 
 extern double peep_low_alarm;
 extern double peep_alarm;

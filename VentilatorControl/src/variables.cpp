@@ -79,6 +79,7 @@ String argument;
 double argument_value;
 String propertyNameAlarms;
 String argumentAlarms;
+String serialSendString;
 
 double peep_low_alarm             = PEEP_LOW_ALARM;
 double peep_alarm                 = PEEP_ALARM;
