@@ -67,15 +67,14 @@
 #define PIP_MAX_RECEIVE     55
 #define FIO2_MIN_RECEIVE    0.2
 #define FIO2_MAX_RECEIVE    1
-#define TRISE_MIN_RECEIVE   0.5
-#define TRISE_MAX_RECEIVE   4
+#define INSP_MIN_RECEIVE    0.5
+#define INSP_MAX_RECEIVE    5
 #define RR_MIN_RECEIVE      5
 #define RR_MAX_RECEIVE      50
 #define IE_MIN_RECEIVE      1
 #define IE_MAX_RECEIVE      4
 
-#define DEFAULT_IE_SCALING_FACTOR       10
-#define DEFAULT_TRISE_SCALING_FACTOR    10
-#define DEFAULT_FIO2_SCALING_FACTOR     100
+#define DEFAULT_INSP_SCALING_FACTOR    10
+// #define DEFAULT_FIO2_SCALING_FACTOR     100
 
 #endif // __CONSTANTS_H__

@@ -7,11 +7,11 @@ void cycleStateHandler (void)
     CurrTimeInCycleMilliseconds = millis()-CycleStartTimeFromSysClockMilliseconds;
     if(millis()-ControlLoopStartTimeMilliseconds > ControlLoopInitialStabilizationTimeMilliseconds)
     {
-      if(CurrTimeInCycleMilliseconds <= InhaleRampDurationMilliseconds)
-      {
-        CurrCycleStep = INHALE_RAMP;
-      }
-      else if((InhaleRampDurationMilliseconds < CurrTimeInCycleMilliseconds) &&
+      // if(CurrTimeInCycleMilliseconds <= InhaleRampDurationMilliseconds)
+      // {
+      //   CurrCycleStep = INHALE_RAMP;
+      // }
+      if((InhaleRampDurationMilliseconds < CurrTimeInCycleMilliseconds) &&
               (CurrTimeInCycleMilliseconds <= InhaleDurationMilliseconds))
       { 
         CurrCycleStep = INHALE_HOLD;
@@ -19,20 +19,20 @@ void cycleStateHandler (void)
       else if((InhaleDurationMilliseconds < CurrTimeInCycleMilliseconds) &&
             (CurrTimeInCycleMilliseconds <= BreathCycleDurationMilliseconds))
       {
-        if( pressure_system_input > (PeepPressureCentimetersH2O + 5) )
-        {
-          CurrCycleStep = EXHALE_RAMP;
-        }
-        else
-        {
+        // if( pressure_system_input > (PeepPressureCentimetersH2O + 5) )
+        // {
+        //   CurrCycleStep = EXHALE_RAMP;
+        // }
+        // else
+        // {
           CurrCycleStep = EXHALE_HOLD;
-        }
+        // }
       }
-      else if(CurrTimeInCycleMilliseconds > BreathCycleDurationMilliseconds)
-      {
-        CurrCycleStep = INHALE_RAMP;
-        breathCycleTimerReset();
-      }
+      // else if(CurrTimeInCycleMilliseconds > BreathCycleDurationMilliseconds)
+      // {
+      //   CurrCycleStep = INHALE_RAMP;
+      //   breathCycleTimerReset();
+      // }
     }
     else // if idle == true
     {

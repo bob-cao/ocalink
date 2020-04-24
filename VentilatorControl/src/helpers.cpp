@@ -58,3 +58,18 @@ void returnLowestPeepOverPeriod (void)
     minPeepPressure = previousPeepPressureCentimetersH2O;
   }
 }
+
+void returnInstantPressure (void)
+{
+  instantPressure = pressure_reading;
+}
+
+void returnInspiratoryVolume (void)
+{
+  inspiratoryVolume = instantPressure * InhaleDurationMilliseconds;  // PROPER VALUE??
+}
+
+void returnInstantFlow(void)
+{
+  instantFlow = instantPressure * InhaleDurationMilliseconds;  // PROPER VALUE??
+}
