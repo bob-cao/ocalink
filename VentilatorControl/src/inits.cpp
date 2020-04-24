@@ -19,8 +19,8 @@ void alarmsInit (void)
   pinMode(BUZZER_PIN, OUTPUT);
   digitalWrite(BUZZER_PIN, LOW);  // Buzzer is a piezo with a built in driver
 
-  pinMode(BATTERY_ALARM_PIN, INPUT);  // Battery UPS backup has a NC relay
-  pinMode(BATTERY_SHUTDOWN_PIN, INPUT);
+  pinMode(BATTERY_ALARM_PIN, INPUT_PULLUP);  // Battery UPS backup has a NC relay
+  pinMode(BATTERY_SHUTDOWN_PIN, OUTPUT);
 }
 
 void pinchValveInit (void)
@@ -72,6 +72,10 @@ void inits (void)
   pinchValveInit();
   pressureSensorsInit();
   pidInit();
+
+  pinMode(ALARM_STATE_1_PIN, OUTPUT);
+  pinMode(ALARM_STATE_2_PIN, OUTPUT);
+  pinMode(ALARM_STATE_3_PIN, OUTPUT);
 
   // Start cycle state in IDLE state
   CurrCycleStep = IDLE;

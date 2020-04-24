@@ -127,7 +127,7 @@ void computeSerialReceive (void)
       {
         if(argument_value >= RR_MIN_RECEIVE && argument_value <= RR_MAX_RECEIVE)
         {
-          BreathCycleDurationMilliseconds = argument_value / BREATHS_PER_MINUTE_TO_SEC;
+          BreathCycleDurationMilliseconds = BREATHS_PER_MINUTE_TO_SEC*1000/argument_value;
           ExhaleDurationMilliseconds = BreathCycleDurationMilliseconds - InhaleDurationMilliseconds;
           Serial.print("BreathCycleDuration: ");
           Serial.print(BreathCycleDurationMilliseconds);

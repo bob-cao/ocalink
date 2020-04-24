@@ -26,12 +26,12 @@ void alarmsHandler (void)
     alarmTimer = millis();
 
     // Ventilator specific alarms (battery backup activated)
-    isBatteryActivated = digitalRead(BATTERY_ALARM_PIN);
-    if(isBatteryActivated && !isBatterySnoozeTriggered)
-    {
-      alarm_state = 1;
-      Serial.write("%ALARMS,A@");  // BATTERY BACKUP ALARM
-    }
+    // isBatteryActivated = digitalRead(BATTERY_ALARM_PIN)?false:true;
+    // if(isBatteryActivated && !isBatterySnoozeTriggered)
+    // {
+    //   alarm_state = 1;
+    //   Serial.write("$ALARMS,A*");  // BATTERY BACKUP ALARM
+    // }
     // Disconnect Alarm
     if(((millis()-PrevAlarmTimeDisconnectError > DisconnectAlarmTimer)
         && (CurrCycleStep == EXHALE_HOLD && CurrCycleStep != INHALE_RAMP)
@@ -40,7 +40,7 @@ void alarmsHandler (void)
     {
       // make sound and send Raspberry Pi alarm status flag
       alarm_state = 1;
-      Serial.write("%ALARMS,B@");  // DISCONNECT ALARM
+      Serial.write("$ALARMS,B*");  // DISCONNECT ALARM
       PrevAlarmTimeDisconnectError = millis();
     }
     // High and Low PIP Alarms
@@ -53,13 +53,13 @@ void alarmsHandler (void)
       alarm_state = 2;
       if(pressure_system_input >= PipPressureCentimetersH2O + pip_alarm)
       {
-        Serial.write("%ALARMS,C@");  // HIGH PIP ALARM
+        Serial.write("$ALARMS,C*");  // HIGH PIP ALARM
         // exhale immedietly to PEEP pressure and continue breathing cycle, don't reset alarm
         CurrCycleStep = EXHALE_RAMP;
       }
       else if(pressure_system_input <= PipPressureCentimetersH2O - pip_alarm)
       {
-        Serial.write("%ALARMS,D@");  // LOW PIP ALARM
+        Serial.write("$ALARMS,D*");  // LOW PIP ALARM
       }
 
       PrevAlarmTimePipError = millis();
@@ -75,11 +75,11 @@ void alarmsHandler (void)
 
       if(pressure_system_input >= PeepPressureCentimetersH2O + peep_alarm)
       {
-        Serial.write("%ALARMS,E@");  // HIGH PEEP ALARM
+        Serial.write("$ALARMS,E*");  // HIGH PEEP ALARM
       }
       else if(pressure_system_input <= PeepPressureCentimetersH2O - peep_alarm)
       {
-        Serial.write("%ALARMS,F@");  // LOW PEEP ALARM
+        Serial.write("$ALARMS,F*");  // LOW PEEP ALARM
       }
 
       PrevAlarmTimePeepError = millis();
@@ -96,7 +96,7 @@ void alarmsHandler (void)
     // {
     //   PrevAlarmTimeApneaError = millis();
     //   buzzerToggle();
-    //   Serial.write("%ALARMS,G@");  // APNEA ALARM
+    //   Serial.write("$ALARMS,G*");  // APNEA ALARM
     // }
 
     // TODO: Add High/Low RR Alarm
@@ -104,7 +104,7 @@ void alarmsHandler (void)
     // {
     //   PrevAlarmTimeRRError = millis();
     //   buzzerToggle();
-    //   Serial.write("%ALARMS,H@");  // High/Low RR ALARM
+    //   Serial.write("$ALARMS,H*");  // High/Low RR ALARM
     // }
 
     // TODO: Add I:E ratio Alarm
@@ -112,7 +112,7 @@ void alarmsHandler (void)
     // {
     //   PrevAlarmTimeIEError = millis();
     //   buzzerToggle();
-    //   Serial.write("%ALARMS,I@");  // I:E Ratio ALARM
+    //   Serial.write("$ALARMS,I*");  // I:E Ratio ALARM
     // }
   }
 }
@@ -123,6 +123,9 @@ void alarmsVisualAudioHandler (void)
   {
     case 1:
       // chase(red, low_red, LED_ON_TIME); // red
+      digitalWrite(ALARM_STATE_1_PIN, HIGH);
+      digitalWrite(ALARM_STATE_2_PIN, LOW);
+      digitalWrite(ALARM_STATE_3_PIN, LOW);
       if(isBatterySnoozeTriggered)
       {
         digitalWrite(BUZZER_PIN, HIGH);
@@ -130,6 +133,9 @@ void alarmsVisualAudioHandler (void)
       break;
     case 2:
       // chase(amber, low_amber, LED_ON_TIME); // amber
+      digitalWrite(ALARM_STATE_2_PIN, HIGH);
+      digitalWrite(ALARM_STATE_1_PIN, LOW);
+      digitalWrite(ALARM_STATE_3_PIN, LOW);
       if(isBatterySnoozeTriggered)
       {
         buzzerToggle();
@@ -138,6 +144,9 @@ void alarmsVisualAudioHandler (void)
     case 3:
     default:
       //chase(green, low_green, LED_ON_TIME); // green
+      digitalWrite(ALARM_STATE_3_PIN, HIGH);
+      digitalWrite(ALARM_STATE_2_PIN, LOW);
+      digitalWrite(ALARM_STATE_1_PIN, LOW);
       digitalWrite(BUZZER_PIN, LOW);
       break;
   }
