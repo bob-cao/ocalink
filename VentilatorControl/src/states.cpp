@@ -12,8 +12,7 @@ void cycleStateHandler (void)
       // {
       //   CurrCycleStep = INHALE_RAMP;
       // }
-      if((InhaleRampDurationMilliseconds < CurrTimeInCycleMilliseconds) &&
-              (CurrTimeInCycleMilliseconds <= InhaleDurationMilliseconds))
+      if(CurrTimeInCycleMilliseconds <= InhaleDurationMilliseconds)
       { 
         CurrCycleStep = INHALE_HOLD;
       }
@@ -51,8 +50,8 @@ void cycleStateSetpointHandler(void)
   switch(CurrCycleStep)
   {
     case INHALE_RAMP:
-      CurrPressureSetpointCentimetersH2O = (((float)CurrTimeInCycleMilliseconds/(float)InhaleRampDurationMilliseconds)*(PipPressureCentimetersH2O-PeepPressureCentimetersH2O))+PeepPressureCentimetersH2O;
-    break;
+      //CurrPressureSetpointCentimetersH2O = (((float)CurrTimeInCycleMilliseconds/(float)InhaleRampDurationMilliseconds)*(PipPressureCentimetersH2O-PeepPressureCentimetersH2O))+PeepPressureCentimetersH2O;
+   // break;
     case INHALE_HOLD:
       CurrPressureSetpointCentimetersH2O = PipPressureCentimetersH2O;
     break;
