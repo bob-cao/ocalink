@@ -39,6 +39,7 @@ double returnHighestPipOverPeriod (void)
   {
     highestPipPressure = previousPipPressureCentimetersH2O;
   }
+  return highestPipPressure;
 }
 
 double returnLowestPeepOverPeriod (void)
@@ -57,4 +58,5 @@ double returnLowestPeepOverPeriod (void)
   {
     lowestPeepPressure = previousPeepPressureCentimetersH2O;
   }
+  return lowestPeepPressure;
 }
