@@ -95,37 +95,37 @@ void alarmsHandler (void)
   if( millis() - alarmTimer >= ALARM_TIME)
   {
     // Battery backup alarm
-    if( digitalRead (BATTERY_ALARM_PIN))
+    if( digitalRead (BATTERY_ALARM_PIN) && (CurrCycleStep != IDLE))
     {
       alarm_state = 1;
       Serial.write("$ALARMS,A*");  // BATTERY BACKUP ALARM
     }
     // disconnect alarm
-    if(disconnectalarmtimer_running && (millis()-disconnectalarmtimer_starttime)>DisconnectAlarmTimer)
+    if(disconnectalarmtimer_running && (millis()-disconnectalarmtimer_starttime)>DisconnectAlarmTimer && (CurrCycleStep != IDLE))
     {
       alarm_state = 1;
       Serial.write("$ALARMS,B*");  // DISCONNECT ALARM
     }
     // PIP overshoot alarm
-    else if(pipovershoottimer_running && (millis()-pipovershoottimer_starttime)>PipAlarmTimer)
+    else if(pipovershoottimer_running && (millis()-pipovershoottimer_starttime)>PipAlarmTimer && (CurrCycleStep != IDLE))
     {
       alarm_state = 2;
       Serial.write("$ALARMS,C*");  // HIGH PIP ALARM
     }
     // Low PIP alarm
-    else if(lowpiptimer_running && (millis()-lowpiptimer_starttime)>PipAlarmTimer)
+    else if(lowpiptimer_running && (millis()-lowpiptimer_starttime)>PipAlarmTimer && (CurrCycleStep != IDLE))
     {
       alarm_state = 2;
       Serial.write("$ALARMS,D*");  // LOW PIP ALARM
     }
     // High Peep alarm
-    else if(highpeeptimer_running && (millis()-highpeeptimer_starttime)>PeepAlarmTimer)
+    else if(highpeeptimer_running && (millis()-highpeeptimer_starttime)>PeepAlarmTimer && (CurrCycleStep != IDLE))
     {
       alarm_state = 2;
       Serial.write("$ALARMS,E*");  // HIGH PEEP ALARM
     }
     // Peep Undershoot alarm
-    else if(peepundershoottimer_running && (millis()-peepundershoottimer_starttime)>PeepAlarmTimer)
+    else if(peepundershoottimer_running && (millis()-peepundershoottimer_starttime)>PeepAlarmTimer && (CurrCycleStep != IDLE))
     {
       alarm_state = 2;
       Serial.write("$ALARMS,F*");  // LOW PEEP ALARM
