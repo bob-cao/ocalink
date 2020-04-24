@@ -129,8 +129,13 @@ extern byte low_perywinkle; // perywinkle (pastell blue)
 
 extern byte alarm_state;
 
+extern double currentPipPressureCentimetersH2O;
+extern double previousPipPressureCentimetersH2O;
+extern double highestPipPressure;
 
-
+extern double currentPeepPressureCentimetersH2O;
+extern double previousPeepPressureCentimetersH2O;
+extern double lowestPeepPressure;
 // --------------------------------USER SETTINGS------------------------------------- //
 
 

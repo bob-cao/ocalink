@@ -22,3 +22,39 @@ double linearRemapSetpointCompensation (double setpoint)
 {
   return (1.116785714*setpoint)-0.5892857143;
 }
+
+double returnHighestPipOverPeriod (void)
+{
+  currentPipPressureCentimetersH2O = PipPressureCentimetersH2O;
+
+  if(isHighLowPressureDoneOneCycle)
+  {
+    previousPipPressureCentimetersH2O = currentPipPressureCentimetersH2O;
+  }
+  if(currentPipPressureCentimetersH2O > previousPipPressureCentimetersH2O)
+  {
+    highestPipPressure = currentPipPressureCentimetersH2O;
+  }
+  else
+  {
+    highestPipPressure = previousPipPressureCentimetersH2O;
+  }
+}
+
+double returnLowestPeepOverPeriod (void)
+{
+  currentPeepPressureCentimetersH2O = PeepPressureCentimetersH2O;
+
+  if(isHighLowPressureDoneOneCycle)
+  {
+    previousPeepPressureCentimetersH2O = currentPeepPressureCentimetersH2O;
+  }
+  if(currentPeepPressureCentimetersH2O > previousPeepPressureCentimetersH2O)
+  {
+    lowestPeepPressure = currentPeepPressureCentimetersH2O;
+  }
+  else
+  {
+    lowestPeepPressure = previousPeepPressureCentimetersH2O;
+  }
+}

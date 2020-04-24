@@ -115,6 +115,14 @@ byte perywinkle     =   AlarmLED.Color(5 , 7, 10);  // perywinkle (pastell blue)
 byte low_perywinkle =   AlarmLED.Color(2,3,5);      // perywinkle (pastell blue)
 
 byte alarm_state = 1;
+
+double currentPipPressureCentimetersH2O;
+double previousPipPressureCentimetersH2O;
+double highestPipPressure;
+
+double currentPeepPressureCentimetersH2O;
+double previousPeepPressureCentimetersH2O;
+double highestPeepPressure;
 // --------------------------------USER SETTINGS------------------------------------- //
 
 
