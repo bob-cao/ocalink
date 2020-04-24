@@ -31,8 +31,8 @@ bool incrementIsPositive = true;
 uint32_t timeofLastIncrement = 0;
 static BreathCycleStep blowerPreviousBreathCycleStep;
 static BreathCycleStep previousBreathCycleStep;
-static bool PipPressureReached = false;
-static bool PeepPressureReached = false;
+bool PipPressureReached = false;
+bool PeepPressureReached = false;
 
 void writeBlowerSpeed(void)
 {

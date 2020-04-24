@@ -35,110 +35,110 @@ void alarmsHandler (void)
 
 
 
-      // Disconnect Alarm
-      if((pressure_reading<2) && !disconnectalarmtimer_running)
-      {
-        disconnectalarmtimer_starttime = millis();
-        disconnectalarmtimer_running = true;
-      }
-      if((pressure_reading>2) && disconnectalarmtimer_running)
-      {
-        disconnectalarmtimer_running = false;
-      }
-      // High PIP Alarm
-      if((pressure_reading>(PipPressureCentimetersH2O+pip_alarm_overshoot)) && !pipovershoottimer_running)
-      {
-        pipovershoottimer_starttime = millis();
-        pipovershoottimer_running = true;
-      }
-      if((pressure_reading<(PipPressureCentimetersH2O+pip_alarm_overshoot)) && pipovershoottimer_running)
-      {
-        pipovershoottimer_running = false;
-      }
+  // Disconnect Alarm
+  if((pressure_reading<2) && !disconnectalarmtimer_running)
+  {
+    disconnectalarmtimer_starttime = millis();
+    disconnectalarmtimer_running = true;
+  }
+  if((pressure_reading>2) && disconnectalarmtimer_running)
+  {
+    disconnectalarmtimer_running = false;
+  }
+  // High PIP Alarm
+  if((pressure_reading>(PipPressureCentimetersH2O+pip_alarm_overshoot)) && !pipovershoottimer_running)
+  {
+    pipovershoottimer_starttime = millis();
+    pipovershoottimer_running = true;
+  }
+  if((pressure_reading<(PipPressureCentimetersH2O+pip_alarm_overshoot)) && pipovershoottimer_running)
+  {
+    pipovershoottimer_running = false;
+  }
 
-      // Low PIP Alarm
-      if((pressure_reading<(PipPressureCentimetersH2O-pip_alarm_overshoot)) && !lowpiptimer_running)
-      {
-        lowpiptimer_starttime = millis();
-        lowpiptimer_running = true;
-      }
-      if((pressure_reading>(PipPressureCentimetersH2O-pip_alarm_overshoot)) && lowpiptimer_running)
-      {
-        lowpiptimer_running = false;
-      }
+  // Low PIP Alarm
+  if((pressure_reading<(PipPressureCentimetersH2O-pip_alarm_overshoot)) && !lowpiptimer_running)
+  {
+    lowpiptimer_starttime = millis();
+    lowpiptimer_running = true;
+  }
+  if((pressure_reading>(PipPressureCentimetersH2O-pip_alarm_overshoot)) && lowpiptimer_running)
+  {
+    lowpiptimer_running = false;
+  }
 
-      // High PEEP Alarm
-      if((pressure_reading>(PeepPressureCentimetersH2O+peep_alarm_undershoot)) && !highpeeptimer_running)
-      {
-        highpeeptimer_starttime = millis();
-        highpeeptimer_running = true;
-      }
-      if((pressure_reading<(PeepPressureCentimetersH2O+peep_alarm_undershoot)) && highpeeptimer_running)
-      {
-        highpeeptimer_running = false;
-      }
+  // High PEEP Alarm
+  if((pressure_reading>(PeepPressureCentimetersH2O+peep_alarm_undershoot)) && !highpeeptimer_running)
+  {
+    highpeeptimer_starttime = millis();
+    highpeeptimer_running = true;
+  }
+  if((pressure_reading<(PeepPressureCentimetersH2O+peep_alarm_undershoot)) && highpeeptimer_running)
+  {
+    highpeeptimer_running = false;
+  }
 
-      // Low PEEP alarm
-      if((pressure_reading<(PeepPressureCentimetersH2O-peep_alarm_undershoot)) && !peepundershoottimer_running)
-      {
-        peepundershoottimer_starttime = millis();
-        peepundershoottimer_running = true;
-      }
-      if((pressure_reading>(PeepPressureCentimetersH2O-peep_alarm_undershoot)) && peepundershoottimer_running)
-      {
-        peepundershoottimer_running = false;
-      }
+  // Low PEEP alarm
+  if((pressure_reading<(PeepPressureCentimetersH2O-peep_alarm_undershoot)) && !peepundershoottimer_running)
+  {
+    peepundershoottimer_starttime = millis();
+    peepundershoottimer_running = true;
+  }
+  if((pressure_reading>(PeepPressureCentimetersH2O-peep_alarm_undershoot)) && peepundershoottimer_running)
+  {
+    peepundershoottimer_running = false;
+  }
 
 
       
 
-      if( millis() - alarmTimer >= ALARM_TIME)
-      {
-        // Battery backup alarm
-        if( digitalRead (BATTERY_ALARM_PIN))
-        {
-          alarm_state = 1;
-          Serial.write("$ALARMS,A*");  // BATTERY BACKUP ALARM
-        }
-        // disconnect alarm
-        if(disconnectalarmtimer_running && (millis()-disconnectalarmtimer_starttime)>DisconnectAlarmTimer)
-        {
-          alarm_state = 1;
-          Serial.write("$ALARMS,B*");  // DISCONNECT ALARM
-        }
-        // PIP overshoot alarm
-        else if(pipovershoottimer_running && (millis()-pipovershoottimer_starttime)>PipAlarmTimer)
-        {
-          alarm_state = 2;
-          Serial.write("$ALARMS,C*");  // HIGH PIP ALARM
-        }
-        // Low PIP alarm
-        else if(lowpiptimer_running && (millis()-lowpiptimer_starttime)>PipAlarmTimer)
-        {
-          alarm_state = 2;
-          Serial.write("$ALARMS,D*");  // LOW PIP ALARM
-        }
-        // High Peep alarm
-        else if(highpeeptimer_running && (millis()-highpeeptimer_starttime)>PeepAlarmTimer)
-        {
-          alarm_state = 2;
-          Serial.write("$ALARMS,E*");  // HIGH PEEP ALARM
-        }
-        // Peep Undershoot alarm
-        else if(peepundershoottimer_running && (millis()-peepundershoottimer_starttime)>PeepAlarmTimer)
-        {
-          alarm_state = 2;
-          Serial.write("$ALARMS,F*");  // LOW PEEP ALARM
-        }
-        // DISCONNECT Alarm
+  if( millis() - alarmTimer >= ALARM_TIME)
+  {
+    // Battery backup alarm
+    if( digitalRead (BATTERY_ALARM_PIN))
+    {
+      alarm_state = 1;
+      Serial.write("$ALARMS,A*");  // BATTERY BACKUP ALARM
+    }
+    // disconnect alarm
+    if(disconnectalarmtimer_running && (millis()-disconnectalarmtimer_starttime)>DisconnectAlarmTimer)
+    {
+      alarm_state = 1;
+      Serial.write("$ALARMS,B*");  // DISCONNECT ALARM
+    }
+    // PIP overshoot alarm
+    else if(pipovershoottimer_running && (millis()-pipovershoottimer_starttime)>PipAlarmTimer)
+    {
+      alarm_state = 2;
+      Serial.write("$ALARMS,C*");  // HIGH PIP ALARM
+    }
+    // Low PIP alarm
+    else if(lowpiptimer_running && (millis()-lowpiptimer_starttime)>PipAlarmTimer)
+    {
+      alarm_state = 2;
+      Serial.write("$ALARMS,D*");  // LOW PIP ALARM
+    }
+    // High Peep alarm
+    else if(highpeeptimer_running && (millis()-highpeeptimer_starttime)>PeepAlarmTimer)
+    {
+      alarm_state = 2;
+      Serial.write("$ALARMS,E*");  // HIGH PEEP ALARM
+    }
+    // Peep Undershoot alarm
+    else if(peepundershoottimer_running && (millis()-peepundershoottimer_starttime)>PeepAlarmTimer)
+    {
+      alarm_state = 2;
+      Serial.write("$ALARMS,F*");  // LOW PEEP ALARM
+    }
+    // DISCONNECT Alarm
 
-        alarmTimer = millis();
-      }
+    alarmTimer = millis();
+  }
 
-      else
-      {
-        alarm_state = 3;
-      }
+  else
+  {
+    alarm_state = 3;
+  }
     
     
 
@@ -167,7 +167,6 @@ void alarmsHandler (void)
     //   buzzerToggle();
     //   Serial.write("$ALARMS,I*");  // I:E Ratio ALARM
     // }
-  }
 }
 
 void alarmsVisualAudioHandler (void)
