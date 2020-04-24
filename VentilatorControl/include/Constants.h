@@ -3,7 +3,7 @@
 
 
 #define DEFAULT_BAUD_RATE       256000
-#define ALARM_TIME              (double)50
+#define ALARM_TIME              (double)500
 #define SERIAL_SEND_TIME        (double)500
 #define SNOOZE_TIME             (double)120000  // Snooze time in ms (2 minutes)
 
