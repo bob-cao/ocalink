@@ -20,10 +20,8 @@
 // pip_alarm				        	            -> pipAlarm
 // PeepPressureCentimetersH2O			            -> peepPressureCentimetersH2O
 // PipPressureCentimetersH2O			            -> pipPressureCentimetersH2O
-// RespritoryRate				    	            -> respritoryRate
 // InhalationExhalationRatio			            -> inhalationExhalationRatio
 // FlowOfOxygen					                -> flowOfOxygen
-// IEScalingFactor				       	            -> ScalingFactorIE
 // PeepAlarmTimer				    	            -> peepAlarmTimer
 // PipAlarmTimer				    	            -> pipAlarmTimer
 // DisconnectAlarmTimer			    	        -> disconnectAlarmTimer
@@ -90,6 +88,9 @@ extern String string_from_pi;
 extern String property_name;
 extern String argument;
 extern double argument_value;
+extern String propertyNameAlarms;
+extern String argumentAlarms;
+extern String serialSendString;
 
 extern double peep_low_alarm;
 extern double peep_alarm;
@@ -97,10 +98,8 @@ extern double pip_alarm;
 
 extern double PeepPressureCentimetersH2O;
 extern double PipPressureCentimetersH2O;
-extern double RespritoryRate;
 extern double InhalationExhalationRatio;
 // extern double FlowOfOxygen;
-extern double IEScalingFactor;
 
 extern double PeepAlarmTimer;
 extern double PipAlarmTimer;
@@ -108,6 +107,9 @@ extern double DisconnectAlarmTimer;
 // extern double ApneaTimer;
 
 extern bool isBatteryActivated;
+extern bool isBatterySnoozeTriggered;
+extern bool isDisconnectSnoozeTriggered;
+extern bool isHighLowPressureDoneOneCycle;
 extern bool buzzer_state;
 
 extern Adafruit_NeoPixel AlarmLED;
@@ -124,8 +126,19 @@ extern byte low_perywinkle; // perywinkle (pastell blue)
 
 extern byte alarm_state;
 
+extern double currentPipPressureCentimetersH2O;
+extern double previousPipPressureCentimetersH2O;
+extern double maxPipPressure;
 
+extern double currentPeepPressureCentimetersH2O;
+extern double previousPeepPressureCentimetersH2O;
+extern double minPeepPressure;
 
+extern double instantPressure;
+extern double inspiratoryVolume;
+extern double instantFlow;
+
+extern double timeInspiratoryRequested;
 // --------------------------------USER SETTINGS------------------------------------- //
 
 
@@ -135,7 +148,6 @@ extern double CurrTimeInCycleMilliseconds;                        // Time since 
 extern double CycleStartTimeFromSysClockMilliseconds;             // Time that the current breath cycle started ( in terms of system clock millis() )
 extern double ControlLoopStartTimeMilliseconds;                   // Time, in terms of millis(), the state machine last switched out of IDLE
 extern double ControlLoopInitialStabilizationTimeMilliseconds;    // Length of time after transitioning out of IDLE that the system waits before transitioning to INHALE_RAMP
-extern double InhaleRampDurationMilliseconds;                     // Length of the INHALE_RAMP period for a breath cycle. AKA Value of CurrTimeInCycleMilliseconds when the state changes to INHALE_HOLD .User configurable
 extern double InhaleDurationMilliseconds;                         // Combined length of the INHALE_RAMP and INHALE_HOLD periods. AKA Value of CurrTimeInCycleMilliseconds when the state changes to EXHALE_HOLD. User configurable.
 extern double ExhaleDurationMilliseconds;                         // Combined length of the EXHALE_RAMP and EXHALE_HOLD periods. AKA Value of CurrTimeInCycleMilliseconds when the state changes to INHALE_HOLD. User configurable.
 extern double BreathCycleDurationMilliseconds;                    // Total length of breath cycle, AKA when cycle step resets to INHALE_RAMP and CurrTimeInCycleMilliseconds resets to 0

@@ -2,7 +2,7 @@
 
 
 
-// TODO: (LOW Priority) Update variable names to be consistent with C++ standard
+// TODO: LOW Priority) Update variable names to be consistent with C++ standard
 
 // OLD NAME                                        -> NEW NAME
 
@@ -19,10 +19,8 @@
 // pip_alarm				        	            -> pipAlarm
 // PeepPressureCentimetersH2O			            -> peepPressureCentimetersH2O
 // PipPressureCentimetersH2O			            -> pipPressureCentimetersH2O
-// RespritoryRate				    	            -> respritoryRate
 // InhalationExhalationRatio			            -> inhalationExhalationRatio
 // FlowOfOxygen					                -> flowOfOxygen
-// IEScalingFactor				       	            -> ScalingFactorIE
 // PeepAlarmTimer				    	            -> peepAlarmTimer
 // PipAlarmTimer				    	            -> pipAlarmTimer
 // DisconnectAlarmTimer			    	        -> disconnectAlarmTimer
@@ -77,6 +75,9 @@ String string_from_pi;
 String property_name;
 String argument;
 double argument_value;
+String propertyNameAlarms;
+String argumentAlarms;
+String serialSendString;
 
 double peep_low_alarm             = PEEP_LOW_ALARM;
 double peep_alarm                 = PEEP_ALARM;
@@ -84,10 +85,7 @@ double pip_alarm                  = PIP_ALARM;
 
 double PeepPressureCentimetersH2O = DEFAULT_PEEP;
 double PipPressureCentimetersH2O  = DEFAULT_PIP;
-double RespritoryRate             = DEFAULT_RR;
-double InhalationExhalationRatio  = DEFAULT_IE;
 // double FlowOfOxygen;
-double IEScalingFactor            = DEFAULT_IE_SCALING_FACTOR;
 
 double PeepAlarmTimer             = DEFAULT_PEEP_TIME;
 double PipAlarmTimer              = DEFAULT_PIP_TIME;
@@ -95,6 +93,9 @@ double DisconnectAlarmTimer       = DEFAULT_DISCONNECT_TIME;
 // double ApneaTimer                 = DEFAULT_APNEA_TIME;
 
 bool isBatteryActivated = false;
+bool isBatterySnoozeTriggered = false;
+bool isDisconnectSnoozeTriggered = false;
+bool isHighLowPressureDoneOneCycle = false;
 bool buzzer_state = 1;
 
 Adafruit_NeoPixel AlarmLED = Adafruit_NeoPixel(NUM_LEDS, LED_DATA_PIN, NEO_GRB + NEO_KHZ800);
@@ -110,6 +111,20 @@ byte perywinkle     =   AlarmLED.Color(5 , 7, 10);  // perywinkle (pastell blue)
 byte low_perywinkle =   AlarmLED.Color(2,3,5);      // perywinkle (pastell blue)
 
 byte alarm_state = 1;
+
+double currentPipPressureCentimetersH2O;
+double previousPipPressureCentimetersH2O;
+double maxPipPressure;
+
+double currentPeepPressureCentimetersH2O;
+double previousPeepPressureCentimetersH2O;
+double minPeepPressure;
+
+double instantPressure;
+double inspiratoryVolume;
+double instantFlow;
+
+double timeInspiratoryRequested;
 // --------------------------------USER SETTINGS------------------------------------- //
 
 
@@ -119,7 +134,6 @@ double CurrTimeInCycleMilliseconds;                                             
 double CycleStartTimeFromSysClockMilliseconds;                                                                    // Time that the current breath cycle started ( in terms of system clock millis() )
 double ControlLoopStartTimeMilliseconds;                                                                          // Time, in terms of millis(), the state machine last switched out of IDLE
 double ControlLoopInitialStabilizationTimeMilliseconds = DEFAULT_CONTROL_LOOP_INIT_STABILIZATION;                 // Length of time after transitioning out of IDLE that the system waits before transitioning to INHALE_RAMP
-double InhaleRampDurationMilliseconds                  = DEFAULT_INHALE_RAMP;                                     // Length of the INHALE_RAMP period for a breath cycle. AKA Value of CurrTimeInCycleMilliseconds when the state changes to INHALE_HOLD .User configurable
 double InhaleDurationMilliseconds                      = DEFAULT_INHALE_DURATION;                                 // Combined length of the INHALE_RAMP and INHALE_HOLD periods. AKA Value of CurrTimeInCycleMilliseconds when the state changes to EXHALE_HOLD. User configurable.
 double ExhaleDurationMilliseconds                      = DEFAULT_EXHALE_DURATION;                                 // Combined length of the EXHALE_RAMP and EXHALE_HOLD periods. AKA Value of CurrTimeInCycleMilliseconds when the state changes to INHALE_HOLD. User configurable.
 double BreathCycleDurationMilliseconds                 = InhaleDurationMilliseconds + ExhaleDurationMilliseconds; // Total length of breath cycle, AKA when cycle step resets to INHALE_RAMP and CurrTimeInCycleMilliseconds resets to 0
