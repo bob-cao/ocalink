@@ -43,10 +43,10 @@ void pressureSensorsInit (void)
   I2CMux.closeChannel(PATIENT_CIRCUIT_PRESSURE_MUX_CHANNEL);
 
   // Setup the Venturi differential pressure sensor
-  I2CMux.openChannel(VENTRUI_DIFFERENTIAL_PRESSURE_MUX_CHANNEL);
+  I2CMux.openChannel(VENTURI_DIFFERENTIAL_PRESSURE_MUX_CHANNEL);
   venturiDifferentialPressure.setPressureUnit(AllSensors_DLHR::PressureUnit::IN_H2O);
   patientCircuitPressure.startMeasurement();
-  I2CMux.closeChannel(VENTRUI_DIFFERENTIAL_PRESSURE_MUX_CHANNEL);
+  I2CMux.closeChannel(VENTURI_DIFFERENTIAL_PRESSURE_MUX_CHANNEL);
 
   // Setup rate limiting for reads to the pressure sensors
   PressureSensorLastStatusRead = micros();
@@ -55,7 +55,7 @@ void pressureSensorsInit (void)
 void pidInit (void)
 {
   Blower_PID.SetMode(AUTOMATIC);      // Set PID Mode to Automatic, may change later
-  Blower_PID.SetOutputLimits(MIN_PERCENTAGE, MAX_PERCENTAGE);
+  Blower_PID.SetOutputLimits(-MAX_BLOWER_PRESSURE_OFFSET, MAX_BLOWER_PRESSURE_OFFSET);
   Blower_PID.SetSampleTime(DEFAULT_PID_SAMPLE_TIME);
 
   PinchValve_PID.SetMode(AUTOMATIC);  // Set PID Mode to Automatic, may change later
@@ -65,7 +65,6 @@ void pidInit (void)
 
 void inits (void)
 {
-  // Initializations
   blowerEscInit();
   alarmLedInit();
   alarmsInit();
@@ -75,9 +74,4 @@ void inits (void)
 
   // Start cycle state in IDLE state
   CurrCycleStep = IDLE;
-
-  // Serial initialization
-  #if SYSTEM__SERIAL_DEBUG__STATEMACHINE
-  Serial.begin(DEFAULT_BAUD_RATE);
-  #endif
 }

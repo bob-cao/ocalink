@@ -63,6 +63,4 @@ void cycleStateSetpointHandler(void)
       CurrPressureSetpointCentimetersH2O = PeepPressureCentimetersH2O;
     break;
   }
-
-  CurrPressureSetpointCentimetersH2O = linearRemapSetpointCompensation(CurrPressureSetpointCentimetersH2O);
 }
