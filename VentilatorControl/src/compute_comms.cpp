@@ -3,7 +3,8 @@
 void computeSerialSend (void)
 {
   // Send values to Raspberry Pi
-  // Serial.println();  // Populate with values once that is figured out
+  // $MAX_PIP,MIN_PEEP,INSTANT_PRESSURE,INSTANT_VOLUME,INSTANT_FLOW*
+  // Serial.println($10.0,10.0,10.0,10.0,10.0*);
 }
 
 void computeSerialReceive (void)
