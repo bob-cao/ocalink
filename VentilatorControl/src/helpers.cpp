@@ -60,5 +60,5 @@ void returnInspiratoryVolume (void)
 
 void returnInstantFlow(void)
 {
-  instantFlow = instantPressure * InhaleDurationMilliseconds;  // PROPER VALUE??
+  instantFlow = venturiFlowRateLpm;
 }
