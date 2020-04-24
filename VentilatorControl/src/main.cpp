@@ -27,13 +27,13 @@ void loop (void)
 
   alarmsHandler();
 
-  //alarmsVisualAudioHandler();
+  // alarmsVisualAudioHandler();
 
   computeSerialReceive();
 
-  //computeSerialSend();
+  // computeSerialSend();
 
-  debugPrintCurrentValues();
+  // debugPrintCurrentValues();
 }
 
 // ---------------------------VENTILATOR CONTROL MAIN-------------------------------- //

@@ -38,11 +38,11 @@ void computeSerialReceive (void)
 
   if (Serial.available())
   {
-    string_from_pi = Serial.readStringUntil('@');
-    if(string_from_pi[0] == '%')
+    string_from_pi = Serial.readStringUntil('*');
+    if(string_from_pi[0] == '$')
     {
-      propertyNameAlarms = string_from_pi.substring(string_from_pi.indexOf('%') + 1, string_from_pi.indexOf(','));
-      argumentAlarms = string_from_pi.substring(string_from_pi.indexOf(',') + 1, string_from_pi.indexOf('@'));
+      propertyNameAlarms = string_from_pi.substring(string_from_pi.indexOf('$') + 1, string_from_pi.indexOf(','));
+      argumentAlarms = string_from_pi.substring(string_from_pi.indexOf(',') + 1, string_from_pi.indexOf('*'));
 
       if( propertyNameAlarms.equalsIgnoreCase("ALARMS") )
       {
@@ -59,11 +59,6 @@ void computeSerialReceive (void)
           Serial.println("ALARM STATE INPUT OUT OF BOUNDS!");  // Alarm out of bounds error
         }
       }
-    }
-
-    string_from_pi = Serial.readStringUntil('*');
-    if(string_from_pi[0] == '$')
-    {
       property_name = string_from_pi.substring(string_from_pi.indexOf('$') + 1, string_from_pi.indexOf(','));
       argument = string_from_pi.substring(string_from_pi.indexOf(',') + 1, string_from_pi.indexOf('*'));
 

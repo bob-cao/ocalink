@@ -28,11 +28,11 @@ void cycleStateHandler (void)
           CurrCycleStep = EXHALE_HOLD;
         // }
       }
-      // else if(CurrTimeInCycleMilliseconds > BreathCycleDurationMilliseconds)
-      // {
-      //   CurrCycleStep = INHALE_RAMP;
-      //   breathCycleTimerReset();
-      // }
+       else if(CurrTimeInCycleMilliseconds > BreathCycleDurationMilliseconds)
+       {
+         CurrCycleStep = INHALE_HOLD;
+         breathCycleTimerReset();
+       }
     }
     else // if idle == true
     {
