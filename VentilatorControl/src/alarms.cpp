@@ -95,8 +95,11 @@ void alarmsHandler (void)
       if( millis() - alarmTimer >= ALARM_TIME)
       {
         // Battery backup alarm
-//      Serial.write("$ALARMS,A*");  // BATTERY BACKUP ALARM
-
+        if( digitalRead (BATTERY_ALARM_PIN))
+        {
+          alarm_state = 1;
+          Serial.write("$ALARMS,A*");  // BATTERY BACKUP ALARM
+        }
         // disconnect alarm
         if(disconnectalarmtimer_running && (millis()-disconnectalarmtimer_starttime)>DisconnectAlarmTimer)
         {
