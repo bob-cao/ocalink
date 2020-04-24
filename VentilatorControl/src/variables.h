@@ -93,8 +93,11 @@ extern String argumentAlarms;
 extern String serialSendString;
 
 extern double peep_low_alarm;
-extern double peep_alarm;
-extern double pip_alarm;
+extern double peep_alarm_undershoot;
+extern double pip_alarm_overshoot;
+
+extern bool PeepPressureReached;
+extern bool PipPressureReached;
 
 extern double PeepPressureCentimetersH2O;
 extern double PipPressureCentimetersH2O;

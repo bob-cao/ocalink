@@ -17,79 +17,127 @@ void alarmsHandler (void)
 {
   static unsigned long alarmTimer = 0;
 
-  static unsigned long PrevAlarmTimePipError = 0;
-  static unsigned long PrevAlarmTimePeepError = 0;
-  static unsigned long PrevAlarmTimeDisconnectError = 0;
+  static bool disconnectalarmtimer_running = false;
+  static unsigned long disconnectalarmtimer_starttime;
+  
+  static bool pipovershoottimer_running = false;
+  static unsigned long pipovershoottimer_starttime;
 
-  if( millis() - alarmTimer >= ALARM_TIME)
-  {
-    alarmTimer = millis();
+  static bool lowpiptimer_running = false;
+  static unsigned long lowpiptimer_starttime;
 
-    // Ventilator specific alarms (battery backup activated)
-    // isBatteryActivated = digitalRead(BATTERY_ALARM_PIN)?false:true;
-    // if(isBatteryActivated && !isBatterySnoozeTriggered)
-    // {
-    //   alarm_state = 1;
-    //   Serial.write("$ALARMS,A*");  // BATTERY BACKUP ALARM
-    // }
-    // Disconnect Alarm
-    if(((millis()-PrevAlarmTimeDisconnectError > DisconnectAlarmTimer)
-        && (CurrCycleStep == EXHALE_HOLD && CurrCycleStep != INHALE_RAMP)
-        && (pressure_system_input >= -peep_low_alarm
-        && pressure_system_input <= peep_low_alarm)) && !isDisconnectSnoozeTriggered)
-    {
-      // make sound and send Raspberry Pi alarm status flag
-      alarm_state = 1;
-      Serial.write("$ALARMS,B*");  // DISCONNECT ALARM
-      PrevAlarmTimeDisconnectError = millis();
-    }
-    // High and Low PIP Alarms
-    if((millis()-PrevAlarmTimePipError > PipAlarmTimer)
-        && (CurrCycleStep == INHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
-        && (pressure_system_input <= PipPressureCentimetersH2O - pip_alarm
-        || pressure_system_input >= PipPressureCentimetersH2O + pip_alarm))
-    {
-      // make sound and send Raspberry Pi alarm status flag
-      if(alarm_state<2)
-        alarm_state = 2;
-      if(pressure_system_input >= PipPressureCentimetersH2O + pip_alarm)
+  static bool highpeeptimer_running = false;
+  static unsigned long highpeeptimer_starttime;
+
+  static bool peepundershoottimer_running = false;
+  static unsigned long peepundershoottimer_starttime;
+
+
+
+
+      // Disconnect Alarm
+      if((pressure_reading<2) && !disconnectalarmtimer_running)
       {
-        Serial.write("$ALARMS,C*");  // HIGH PIP ALARM
-        // exhale immedietly to PEEP pressure and continue breathing cycle, don't reset alarm
-        CurrCycleStep = EXHALE_RAMP;
+        disconnectalarmtimer_starttime = millis();
+        disconnectalarmtimer_running = true;
       }
-      else if(pressure_system_input <= PipPressureCentimetersH2O - pip_alarm)
+      if((pressure_reading>2) && disconnectalarmtimer_running)
       {
-        Serial.write("$ALARMS,D*");  // LOW PIP ALARM
+        disconnectalarmtimer_running = false;
+      }
+      // High PIP Alarm
+      if((pressure_reading>(PipPressureCentimetersH2O+pip_alarm_overshoot)) && !pipovershoottimer_running)
+      {
+        pipovershoottimer_starttime = millis();
+        pipovershoottimer_running = true;
+      }
+      if((pressure_reading<(PipPressureCentimetersH2O+pip_alarm_overshoot)) && pipovershoottimer_running)
+      {
+        pipovershoottimer_running = false;
       }
 
-      PrevAlarmTimePipError = millis();
-    }
-    // High and Low PEEP Alarms
-    if((millis()-PrevAlarmTimePeepError > PeepAlarmTimer)
-        && (CurrCycleStep == INHALE_HOLD && CurrCycleStep != EXHALE_RAMP && CurrCycleStep != INHALE_RAMP)
-        && (pressure_system_input <= PeepPressureCentimetersH2O - peep_alarm
-        || pressure_system_input >= PeepPressureCentimetersH2O + peep_alarm))
-    {
-      // make sound and send Raspberry Pi alarm status flag
-      if(alarm_state<2)
-        alarm_state = 2;
-
-      if(pressure_system_input >= PeepPressureCentimetersH2O + peep_alarm)
+      // Low PIP Alarm
+      if((pressure_reading<(PipPressureCentimetersH2O-pip_alarm_overshoot)) && !lowpiptimer_running)
       {
-        Serial.write("$ALARMS,E*");  // HIGH PEEP ALARM
+        lowpiptimer_starttime = millis();
+        lowpiptimer_running = true;
       }
-      else if(pressure_system_input <= PeepPressureCentimetersH2O - peep_alarm)
+      if((pressure_reading>(PipPressureCentimetersH2O-pip_alarm_overshoot)) && lowpiptimer_running)
       {
-        Serial.write("$ALARMS,F*");  // LOW PEEP ALARM
+        lowpiptimer_running = false;
       }
 
-      PrevAlarmTimePeepError = millis();
-    }
-    else
-    {
-      alarm_state = 3;
-    }
+      // High PEEP Alarm
+      if((pressure_reading>(PeepPressureCentimetersH2O+peep_alarm_undershoot)) && !highpeeptimer_running)
+      {
+        highpeeptimer_starttime = millis();
+        highpeeptimer_running = true;
+      }
+      if((pressure_reading<(PeepPressureCentimetersH2O+peep_alarm_undershoot)) && highpeeptimer_running)
+      {
+        highpeeptimer_running = false;
+      }
+
+      // Low PEEP alarm
+      if((pressure_reading<(PeepPressureCentimetersH2O-peep_alarm_undershoot)) && !peepundershoottimer_running)
+      {
+        peepundershoottimer_starttime = millis();
+        peepundershoottimer_running = true;
+      }
+      if((pressure_reading>(PeepPressureCentimetersH2O-peep_alarm_undershoot)) && peepundershoottimer_running)
+      {
+        peepundershoottimer_running = false;
+      }
+
+
+      
+
+      if( millis() - alarmTimer >= ALARM_TIME)
+      {
+        // Battery backup alarm
+//      Serial.write("$ALARMS,A*");  // BATTERY BACKUP ALARM
+
+        // disconnect alarm
+        if(disconnectalarmtimer_running && (millis()-disconnectalarmtimer_starttime)>DisconnectAlarmTimer)
+        {
+          alarm_state = 1;
+          Serial.write("$ALARMS,B*");  // DISCONNECT ALARM
+        }
+        // PIP overshoot alarm
+        else if(pipovershoottimer_running && (millis()-pipovershoottimer_starttime)>PipAlarmTimer)
+        {
+          alarm_state = 2;
+          Serial.write("$ALARMS,C*");  // HIGH PIP ALARM
+        }
+        // Low PIP alarm
+        else if(lowpiptimer_running && (millis()-lowpiptimer_starttime)>PipAlarmTimer)
+        {
+          alarm_state = 2;
+          Serial.write("$ALARMS,D*");  // LOW PIP ALARM
+        }
+        // High Peep alarm
+        else if(highpeeptimer_running && (millis()-highpeeptimer_starttime)>PeepAlarmTimer)
+        {
+          alarm_state = 2;
+          Serial.write("$ALARMS,E*");  // HIGH PEEP ALARM
+        }
+        // Peep Undershoot alarm
+        else if(peepundershoottimer_running && (millis()-peepundershoottimer_starttime)>PeepAlarmTimer)
+        {
+          alarm_state = 2;
+          Serial.write("$ALARMS,F*");  // LOW PEEP ALARM
+        }
+        // DISCONNECT Alarm
+
+        alarmTimer = millis();
+      }
+
+      else
+      {
+        alarm_state = 3;
+      }
+    
+    
 
     // TODO: Add Apnea Alarm
     // error caused by no spontaneous breath for x amount of time

@@ -80,8 +80,8 @@ String argumentAlarms;
 String serialSendString;
 
 double peep_low_alarm             = PEEP_LOW_ALARM;
-double peep_alarm                 = PEEP_ALARM;
-double pip_alarm                  = PIP_ALARM;
+double peep_alarm_undershoot      = PEEP_ALARM;
+double pip_alarm_overshoot        = PIP_ALARM;
 
 double PeepPressureCentimetersH2O = DEFAULT_PEEP;
 double PipPressureCentimetersH2O  = DEFAULT_PIP;
