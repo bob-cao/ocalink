@@ -199,6 +199,41 @@ void computeSerialReceive (void)
         Serial.println();
       }
 
+      // // debug only
+      // else if( property_name.equalsIgnoreCase("kp") && !isnan(argument_value) )
+      // {
+      //   PinchValve_Kp = argument_value;
+      //   Serial.print("Current Gains:");
+      //   Serial.print(PinchValve_Kp);
+      //   Serial.print(" ");
+      //   Serial.print(PinchValve_Ki);
+      //   Serial.print(" ");
+      //   Serial.print(PinchValve_Kd);
+      //   Serial.println();
+      // }
+      // else if( property_name.equalsIgnoreCase("ki") && !isnan(argument_value) )
+      // {
+      //   PinchValve_Ki = argument_value;
+      //   Serial.print("Current Gains:");
+      //   Serial.print(PinchValve_Kp);
+      //   Serial.print(" ");
+      //   Serial.print(PinchValve_Ki);
+      //   Serial.print(" ");
+      //   Serial.print(PinchValve_Kd);
+      //   Serial.println();
+      // }
+      // else if( property_name.equalsIgnoreCase("kd") && !isnan(argument_value) )
+      // {
+      //   PinchValve_Kd = argument_value;
+      //   Serial.print("Current Gains:");
+      //   Serial.print(PinchValve_Kp);
+      //   Serial.print(" ");
+      //   Serial.print(PinchValve_Ki);
+      //   Serial.print(" ");
+      //   Serial.print(PinchValve_Kd);
+      //   Serial.println();
+      // }
+
       else
       {
         Serial.println("UNKNOWN MESSAGE");  // A message starting with '$' was not valid

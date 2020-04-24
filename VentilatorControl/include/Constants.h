@@ -15,8 +15,9 @@
 #define ADC_MIN_OUTPUT 0
 #define ADC_MAX_OUTPUT 1023
 
-#define PINCH_VALVE_DRIVER_FULL_OPEN_PULSE_MICROSECONDS     (double)1450
-#define PINCH_VALVE_DRIVER_FULL_CLOSE_PULSE_MICROSECONDS    (double)1725
+//#define PINCH_VALVE_DRIVER_FULL_OPEN_PULSE_MICROSECONDS     (double)1100
+#define PINCH_VALVE_DRIVER_FULL_OPEN_PULSE_MICROSECONDS     (double)1000
+#define PINCH_VALVE_DRIVER_FULL_CLOSE_PULSE_MICROSECONDS    (double)1170
 #define DEFAULT_PINCH_VALVE_MIN_DWELL_TIME                  (double)250
 
 #define NUM_LEDS            24                          // 2 Inch LED Ring
@@ -29,9 +30,9 @@
 #define DEFAULT_BLOWER_KI           (double)3.0
 #define DEFAULT_BLOWER_KD           (double)0.1
 
-#define DEFAULT_PINCH_VALVE_KP      (double)5.000
+#define DEFAULT_PINCH_VALVE_KP      (double)3.000
 #define DEFAULT_PINCH_VALVE_KI      (double)0.000
-#define DEFAULT_PINCH_VALVE_KD      (double)1.000
+#define DEFAULT_PINCH_VALVE_KD      (double)6.000
 
 #define DEFAULT_PEEP                (double)5.000       // in cmH2O
 #define DEFAULT_PIP                 (double)20.000      // in cmH2O

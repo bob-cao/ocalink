@@ -8,7 +8,7 @@ void debugPrintCurrentValues (void)
       Serial.print(" ");
       Serial.print(CurrPressureSetpointCentimetersH2O);
       Serial.print(" ");
-      Serial.print((uint32_t)blower_speed);
+      Serial.print(blower_speed);
       Serial.print(" ");
       Serial.print(venturiDifferentialPressureReading);
       Serial.println();

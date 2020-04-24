@@ -17,16 +17,25 @@ void buzzerToggle (void)
 double blowerPressureToBlowerSpeed (double pressure)
 {
     double clampedpressure = clampf(pressure, 0, PIP_MAX_RECEIVE+MAX_BLOWER_PRESSURE_OFFSET);
-    return clampf(sqrt(clampedpressure)*105.0738528 + clampedpressure*1.042164472 + -32.32704615,ADC_MIN_OUTPUT, ADC_MAX_OUTPUT);
+    return clampf(sqrt(clampedpressure)*99.28637634 + clampedpressure*1.908460447 + -51.83083825,ADC_MIN_OUTPUT, ADC_MAX_OUTPUT);
 }
 
 bool incrementIsPositive = true;
 uint32_t timeofLastIncrement = 0;
+static BreathCycleStep blowerPreviousBreathCycleStep;
+static BreathCycleStep previousBreathCycleStep;
+static bool PipPressureReached = false;
+static bool PeepPressureReached = false;
 
 void writeBlowerSpeed(void)
 {
-  // debug only
-  Blower_PID.SetTunings(Blower_Kp,Blower_Ki,Blower_Kd);
+  //debug only
+  //Blower_PID.SetTunings(PinchValve_Kp,PinchValve_Ki,PinchValve_Kd);
+
+  if((blowerPreviousBreathCycleStep == EXHALE_HOLD) && ((CurrCycleStep == INHALE_RAMP)||(CurrCycleStep == INHALE_HOLD)))
+  {
+    PipPressureReached = false;
+  }
 
   double blowerOffsetLimit = CurrPressureSetpointCentimetersH2O*0.5;
   Blower_PID.SetOutputLimits(-blowerOffsetLimit,blowerOffsetLimit);
@@ -34,7 +43,19 @@ void writeBlowerSpeed(void)
 
   blower_speed = blowerPressureToBlowerSpeed(CurrPressureSetpointCentimetersH2O + blower_pressure_offset);
 
-  analogWrite(BLOWER_SPEED_PIN,(uint32_t)blower_speed);
+  if(pressure_reading>(CurrPressureSetpointCentimetersH2O*0.95))
+  {
+    PipPressureReached = true;
+  }
+
+  if(!PipPressureReached && ((CurrCycleStep == INHALE_RAMP)||(CurrCycleStep == INHALE_HOLD)))
+  {
+    analogWrite(BLOWER_SPEED_PIN,ADC_MAX_OUTPUT);
+  }
+  else
+  {
+    analogWrite(BLOWER_SPEED_PIN,(uint32_t)blower_speed);
+  }
 }
 
 // Write percent openness to the pinch valve
@@ -51,16 +72,57 @@ void writePinchValveOpenness (double opennessPercentage)
   PinchValve.writeMicroseconds(pinchValvePulseLengthMicroseconds);
 }
 
+
+
+
+
+
 void pinchValveControl (void)
 {
+  // debug only
+  //PinchValve_PID.SetTunings(PinchValve_Kp,PinchValve_Ki,PinchValve_Kd);
+  /*
+  if((millis()-timeofLastIncrement) >100)
+  {
+    pinch_valve_output_openness_in_percentage += incrementIsPositive?1:-1;
+    timeofLastIncrement = millis();
+  }
+  if(pinch_valve_output_openness_in_percentage>=100.0)
+  {
+    pinch_valve_output_openness_in_percentage = 100.0;
+    incrementIsPositive = false;
+  }
+  if(pinch_valve_output_openness_in_percentage<=0.0)
+  {
+    pinch_valve_output_openness_in_percentage = 0.0;
+    incrementIsPositive = true;
+  }
+*/
+  
+  // reset the integrator at the beginning of each exhale cycle
+  if((previousBreathCycleStep == INHALE_HOLD) && ((CurrCycleStep == EXHALE_RAMP)||(CurrCycleStep == EXHALE_HOLD)))
+  {
+    PeepPressureReached = false;
+  }
   switch (CurrCycleStep)
   {
   case EXHALE_RAMP:
-    pinch_valve_output_openness_in_percentage = 100.0;
-    break;
+  //  pinch_valve_output_openness_in_percentage = 100.0;
+  //  break;
   case EXHALE_HOLD:
-    PinchValve_PID.SetTunings(PinchValve_Kp,PinchValve_Ki,PinchValve_Kd);
-    PinchValve_PID.Compute();
+    if(CurrPressureSetpointCentimetersH2O>pressure_reading)
+    {
+      PeepPressureReached = true;
+    }
+    if(PeepPressureReached)
+    {
+      pinch_valve_output_openness_in_percentage = 5.0;
+    }
+    else
+    {
+      pinch_valve_output_openness_in_percentage = 100.0;
+    }
+    
     break;
   case INHALE_HOLD:
   case INHALE_RAMP:
@@ -68,8 +130,10 @@ void pinchValveControl (void)
     break;
   default:
     pinch_valve_output_openness_in_percentage = 100.0;
+    // pinch_valve_output_openness_in_percentage = 0.0;
     break;
   }
-
+  
+  previousBreathCycleStep = CurrCycleStep;
   writePinchValveOpenness(pinch_valve_output_openness_in_percentage);  
 }
