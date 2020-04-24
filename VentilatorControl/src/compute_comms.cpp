@@ -22,7 +22,7 @@ void computeSerialSend (void)
     Serial.print(",");
     Serial.print(String(instantPressure, 2));
     Serial.print(",");
-    Serial.print(String(inspiratoryVolume, 2));  //TODO
+    Serial.print(String(0, 2));  //TODO
     Serial.print(",");
     Serial.print(String(venturiFlowRateLpm, 2));  //TODO
     Serial.println("*");

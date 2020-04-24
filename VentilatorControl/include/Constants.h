@@ -2,7 +2,7 @@
 #define __CONSTANTS_H__
 
 
-#define DEFAULT_BAUD_RATE       256000
+#define DEFAULT_BAUD_RATE       115200
 #define ALARM_TIME              (double)500
 #define SERIAL_SEND_TIME        (double)500
 #define SNOOZE_TIME             (double)120000  // Snooze time in ms (2 minutes)
@@ -50,16 +50,16 @@
 #define RATIO_TO_PERCENTAGE         (double)100.00
 
 #define PEEP_LOW_ALARM      1
-#define PEEP_ALARM          2
-#define PIP_ALARM           2
+#define PEEP_ALARM          3
+#define PIP_ALARM           5
 
 #define DEFAULT_INHALE_DURATION                     (double)1500
 #define DEFAULT_BREATH_CYCLE_DURATION               (double)6000
 #define DEFAULT_EXHALE_DURATION                     (DEFAULT_BREATH_CYCLE_DURATION - DEFAULT_INHALE_DURATION)
 #define DEFAULT_CONTROL_LOOP_INIT_STABILIZATION     (double)3000
 
-#define DEFAULT_PEEP_TIME           (double)500
-#define DEFAULT_PIP_TIME            (double)100
+#define DEFAULT_PEEP_TIME           (double)750
+#define DEFAULT_PIP_TIME            (double)750
 #define DEFAULT_DISCONNECT_TIME     (double)500
 // #define DEFAULT_APNEA_TIME          (double)3000
 

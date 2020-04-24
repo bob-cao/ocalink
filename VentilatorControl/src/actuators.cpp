@@ -43,7 +43,7 @@ void writeBlowerSpeed(void)
 
   blower_speed = blowerPressureToBlowerSpeed(CurrPressureSetpointCentimetersH2O + blower_pressure_offset);
 
-  if(pressure_reading>(CurrPressureSetpointCentimetersH2O*0.95))
+  if(pressure_reading>(CurrPressureSetpointCentimetersH2O*0.80))
   {
     PipPressureReached = true;
   }
@@ -94,21 +94,14 @@ void pinchValveControl (void)
   //  pinch_valve_output_openness_in_percentage = 100.0;
   //  break;
   case EXHALE_HOLD:
-    if((CurrPressureSetpointCentimetersH2O>pressure_reading) && !PeepPressureReached)
+    if((CurrPressureSetpointCentimetersH2O+3>pressure_reading) && !PeepPressureReached)
     {
       PeepPressureReached = true;
-      openessRampPercentage = 100.0;
-      lastOpennessRampDecrement = millis();
     }
 
-    if((PeepPressureReached) && ((millis() - lastOpennessRampDecrement) > 25))
+    if(PeepPressureReached)
     {
-      if( openessRampPercentage > 25.0 )
-      {
-        openessRampPercentage -= 5;
-        lastOpennessRampDecrement = millis();
-      }
-      pinch_valve_output_openness_in_percentage = openessRampPercentage;
+      pinch_valve_output_openness_in_percentage = 20.0;
     }
     else
     {

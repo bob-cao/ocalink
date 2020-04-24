@@ -50,7 +50,8 @@ void alarmsHandler (void)
         || pressure_system_input >= PipPressureCentimetersH2O + pip_alarm))
     {
       // make sound and send Raspberry Pi alarm status flag
-      alarm_state = 2;
+      if(alarm_state<2)
+        alarm_state = 2;
       if(pressure_system_input >= PipPressureCentimetersH2O + pip_alarm)
       {
         Serial.write("$ALARMS,C*");  // HIGH PIP ALARM
@@ -71,7 +72,8 @@ void alarmsHandler (void)
         || pressure_system_input >= PeepPressureCentimetersH2O + peep_alarm))
     {
       // make sound and send Raspberry Pi alarm status flag
-      alarm_state = 2;
+      if(alarm_state<2)
+        alarm_state = 2;
 
       if(pressure_system_input >= PeepPressureCentimetersH2O + peep_alarm)
       {
@@ -126,7 +128,7 @@ void alarmsVisualAudioHandler (void)
       digitalWrite(ALARM_STATE_1_PIN, HIGH);
       digitalWrite(ALARM_STATE_2_PIN, LOW);
       digitalWrite(ALARM_STATE_3_PIN, LOW);
-      if(isBatterySnoozeTriggered)
+      if(!isBatterySnoozeTriggered)
       {
         digitalWrite(BUZZER_PIN, HIGH);
       }
@@ -136,9 +138,10 @@ void alarmsVisualAudioHandler (void)
       digitalWrite(ALARM_STATE_2_PIN, HIGH);
       digitalWrite(ALARM_STATE_1_PIN, LOW);
       digitalWrite(ALARM_STATE_3_PIN, LOW);
-      if(isBatterySnoozeTriggered)
+      if(!isBatterySnoozeTriggered)
       {
-        buzzerToggle();
+        //buzzerToggle();
+        digitalWrite(BUZZER_PIN, HIGH);
       }
       break;
     case 3:
