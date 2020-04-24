@@ -2,7 +2,7 @@
 
 
 
-// TODO: (LOW Priority) Update variable names to be consistent with C++ standard
+// TODO: LOW Priority) Update variable names to be consistent with C++ standard
 
 // OLD NAME                                        -> NEW NAME
 

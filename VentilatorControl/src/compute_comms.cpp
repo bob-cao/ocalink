@@ -4,7 +4,14 @@ void computeSerialSend (void)
 {
   // Send values to Raspberry Pi
   // $MAX_PIP,MIN_PEEP,INSTANT_PRESSURE,INSTANT_VOLUME,INSTANT_FLOW*
-  // Serial.println($10.0,10.0,10.0,10.0,10.0*);
+
+  static unsigned long computeSerialSendTimer = 0;
+
+  if( millis() - computeSerialSendTimer >= SERIAL_SEND_TIME)
+    {
+      Serial.println("$10.0,10.0,10.0,10.0,10.0*");
+      computeSerialSendTimer = millis();
+    }
 }
 
 void computeSerialReceive (void)

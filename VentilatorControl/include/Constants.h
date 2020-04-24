@@ -2,6 +2,7 @@
 #define __CONSTANTS_H__
 
 #define DEFAULT_BAUD_RATE       256000
+#define SERIAL_SEND_TIME        42
 
 #define INCHES_2_CM     (double)2.54
 
