@@ -11,17 +11,17 @@ void computeSerialSend (void)
   {
     isHighLowPressureDoneOneCycle = false;
     serialSendString = "$";
-    serialSendString += maxPipPressure;
+    serialSendString += String(maxPipPressure, 2);
     serialSendString += ",";
-    serialSendString += minPeepPressure;
+    serialSendString += String(minPeepPressure, 2);
     serialSendString += ",";
-    serialSendString += instantPressure;
+    serialSendString += String(instantPressure, 2);
     serialSendString += ",";
-    serialSendString += inspiratoryVolume;
+    serialSendString += String(inspiratoryVolume, 2);
     serialSendString += ",";
-    serialSendString += instantFlow;
+    serialSendString += String(instantFlow, 2);
     serialSendString += ",";
-    serialSendString += calculateIERatio;
+    serialSendString += String(calculateIERatio, 2);
     serialSendString += "*";
 
     Serial.println(serialSendString);
